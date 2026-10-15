@@ -23,7 +23,8 @@
     const [a, m, d] = iso.split('-');
     return `${+d} ${MESES[+m - 1]} ${a}`;
   };
-  const num = (i) => '№ ' + String(i + 1).padStart(3, '0');
+  const num = (i) => String(i + 1).padStart(2, '0');
+  const seta = () => { const n = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); n.setAttribute('viewBox', '0 0 24 24'); n.setAttribute('aria-hidden', 'true'); n.innerHTML = '<path d="M7 17 17 7M8 7h9v9"/>'; return n; };
   const plural = (n, um, varios) => `${n} ${n === 1 ? um : varios}`;
 
   let NICHOS = {}, TIPOS = {}, MODELOS = [];
@@ -67,6 +68,7 @@
     visiveis.sort(ord);
     desenharNichos(base);
     desenharGrade();
+    desenharResultado();
     gravarFiltrosNaUrl();
   }
 
@@ -78,7 +80,7 @@
       type: 'button', class: 'chip', role: 'tab', 'aria-selected': String(filtro.nicho === valor),
       'data-vazio': String(n === 0),
       onclick: () => { filtro.nicho = valor; aplicar(); },
-    }, rotulo, el('sup', {}, String(n)));
+    }, rotulo, el('small', {}, String(n)));
     const caixa = $('#nichos');
     caixa.replaceChildren(
       chip('', 'Todos', base.length),
@@ -94,26 +96,28 @@
     const tela = el('div', { class: 'tela' },
       m.thumb
         ? el('img', { src: m.thumb, alt: '', loading: i < 6 ? 'eager' : 'lazy', decoding: 'async', width: 720, height: m.thumbAltura || 495 })
-        : el('div', { class: 'sem-imagem mono' }, 'sem miniatura'));
+        : el('div', { class: 'sem-imagem' }, 'sem miniatura'));
     const fone = m.thumbMobile
       ? el('div', { class: 'fone', 'aria-hidden': 'true' }, el('img', { src: m.thumbMobile, alt: '', loading: 'lazy', decoding: 'async' }))
       : null;
+    const paginas = plural(m.paginas.length, 'página', 'páginas');
     return el('a', {
       class: 'card', href: `#/${m.slug}`, style: `--i:${i};--dur:${dur.toFixed(1)}s`,
-      'aria-label': `${m.nome}, ${NICHOS[m.nicho]}, ${plural(m.paginas.length, 'página', 'páginas')}`,
+      'aria-label': `${m.nome}, ${NICHOS[m.nicho]}, ${paginas}`,
     },
-      el('div', { class: 'quadro' }, tela, fone),
-      el('div', { class: 'legenda' },
-        el('p', { class: 'meta mono' },
-          el('span', { class: 'num' }, num(indice)),
-          el('span', {}, NICHOS[m.nicho]),
-          el('span', {}, plural(m.paginas.length, 'página', 'páginas'))),
+      el('div', { class: 'card-visual' },
+        tela,
+        el('span', { class: 'card-pill' }, el('span', { class: 'status-dot' }), NICHOS[m.nicho]),
+        fone),
+      el('div', { class: 'card-copy' },
+        el('p', { class: 'card-meta eyebrow' }, el('span', {}, num(indice)), el('span', {}, TIPOS[m.tipo])),
         el('h3', {}, m.nome),
         el('p', { class: 'desc' }, m.descricao),
-        el('div', { class: 'etiquetas' },
-          el('span', { class: 'etiqueta' }, TIPOS[m.tipo]),
-          m.prototipo && el('span', { class: 'etiqueta proto' }, 'Protótipo'),
-          ...(m.tags || []).map((t) => el('span', { class: 'etiqueta' }, t)))));
+        el('div', { class: 'topicos' },
+          el('span', { class: 'topic-tag' }, paginas),
+          m.prototipo && el('span', { class: 'topic-tag proto' }, 'Protótipo'),
+          ...(m.tags || []).map((t) => el('span', { class: 'topic-tag' }, t))),
+        el('span', { class: 'program-link' }, 'Ver modelo', seta())));
   }
 
   function desenharGrade() {
@@ -123,11 +127,37 @@
     $('#vazio-termo').textContent = filtro.q ? ` para “${filtro.q}”` : '';
   }
 
-  function desenharContagem() {
+  function desenharResultado() {
+    const partes = [];
+    if (filtro.nicho) partes.push(NICHOS[filtro.nicho]);
+    if (filtro.tipo) partes.push(TIPOS[filtro.tipo]);
+    if (filtro.q) partes.push(`“${filtro.q}”`);
+    $('#resultado').innerHTML = `Mostrando <b>${visiveis.length}</b> de ${MODELOS.length} modelos` +
+      (partes.length ? ` · ${partes.map((p) => p.replace(/</g, '&lt;')).join(' · ')}` : '');
+  }
+
+  // Números do topo, como o card "07 programas" da página da EDU.
+  function desenharTopo() {
     const paginas = MODELOS.reduce((s, m) => s + m.paginas.length, 0);
     const ultima = MODELOS.map((m) => m.atualizado).filter(Boolean).sort().pop();
-    $('#contagem').innerHTML =
-      `<b>${MODELOS.length}</b> modelos<i>/</i><b>${paginas}</b> páginas<i>/</i><b>${Object.keys(NICHOS).length}</b> nichos<i>/</i>atualizado em ${data(ultima)}`;
+    $('#hero-num').textContent = String(MODELOS.length).padStart(2, '0');
+    $('#hero-foot').textContent = `${paginas} páginas · ${Object.keys(NICHOS).length} nichos`;
+    $('#hero-atualizado').textContent = `Acervo atualizado em ${data(ultima)}`;
+    $('#hero-nichos').textContent = Object.values(NICHOS).join(' · ');
+  }
+
+  // Mosaico de telas de celular das próprias LPs no fundo do topo.
+  function desenharMosaico() {
+    const caixa = $('#mosaico');
+    const fotos = MODELOS.filter((m) => m.thumbMobile).map((m) => m.thumbMobile);
+    if (!fotos.length) return;
+    const colunas = 5;
+    caixa.replaceChildren(...Array.from({ length: colunas }, (_, c) => {
+      const lista = fotos.filter((_, i) => i % colunas === c);
+      const imgs = () => lista.map((src) => el('img', { src, alt: '', loading: 'lazy', decoding: 'async' }));
+      return el('div', { class: 'mosaico-coluna' },
+        el('div', { class: 'mosaico-trilho', style: `--dur:${70 + c * 12}s` }, imgs(), imgs()));
+    }));
   }
 
   // ---------- visualizador ----------
@@ -136,7 +166,7 @@
     modelo: null, pagina: 0, disp: ler('disp') || 'desktop', voltarFoco: null,
   };
   const DIMS = { desktop: [1440, 0], tablet: [834, 1112], celular: [390, 844] };
-  const telaPequena = () => matchMedia('(max-width: 760px)').matches;
+  const telaPequena = () => matchMedia('(max-width: 767px)').matches;
 
   function ajustar() {
     if (V.raiz.hidden) return;
@@ -192,7 +222,7 @@
 
     if (mudouModelo) {
       $('#v-nome').textContent = m.nome;
-      $('#v-meta').textContent = `${num(MODELOS.indexOf(m))} · ${NICHOS[m.nicho]} · ${TIPOS[m.tipo]}${m.prototipo ? ' · protótipo' : ''}`;
+      $('#v-meta').textContent = `${num(MODELOS.indexOf(m))} · ${NICHOS[m.nicho]} · ${TIPOS[m.tipo]}${m.prototipo ? ' · Protótipo' : ''}`;
       $('#v-desc').textContent = m.descricao;
       const dados = [
         ['Nicho', NICHOS[m.nicho]],
@@ -212,10 +242,10 @@
     $('#v-paginas').hidden = m.paginas.length < 2;
     $('#v-lista').replaceChildren(...m.paginas.map((pg, i) => el('li', {}, el('button', {
       type: 'button', 'aria-current': String(i === p), onclick: () => irPara(m.slug, i),
-    }, pg.nome))));
-    const links = [el('a', { href: `https://github.com/${m.repo}`, target: '_blank', rel: 'noopener' }, 'Repositório no GitHub')];
+    }, el('span', {}, num(i)), pg.nome))));
+    const links = [el('a', { href: `https://github.com/${m.repo}`, target: '_blank', rel: 'noopener' }, 'Repositório no GitHub', seta())];
     const pub = urlPublicada(m, p);
-    if (pub) links.push(el('a', { href: pub, target: '_blank', rel: 'noopener' }, 'Página publicada'));
+    if (pub) links.push(el('a', { href: pub, target: '_blank', rel: 'noopener' }, 'Página publicada', seta()));
     $('#v-links').replaceChildren(...links);
     $('#v-abrir').href = urlPagina(m, p);
 
@@ -270,10 +300,11 @@
     abrir(slug, pg ? +pg - 1 : 0, disp);
   }
 
-  function mostrarInfo(sim) {
+  // Só grava a escolha quando vem de um clique; o estado inicial depende do tamanho da tela.
+  function mostrarInfo(sim, gravar = true) {
     V.info.hidden = !sim;
     $('#v-info-btn').setAttribute('aria-expanded', String(sim));
-    guardar('info', sim ? '1' : '0');
+    if (gravar) guardar('info', sim ? '1' : '0');
     requestAnimationFrame(ajustar);
   }
 
@@ -321,6 +352,10 @@
     });
     V.frame.addEventListener('load', () => V.palco.classList.remove('carregando'));
 
+    const topo = $('#topo');
+    const rolagem = () => topo.classList.toggle('is-scrolled', scrollY > 40);
+    window.addEventListener('scroll', rolagem, { passive: true });
+    rolagem();
     window.addEventListener('hashchange', lerHash);
     window.addEventListener('popstate', lerHash);
     window.addEventListener('resize', () => requestAnimationFrame(ajustar));
@@ -363,9 +398,10 @@
     NICHOS = dados.nichos;
     TIPOS = dados.tipos;
     MODELOS = dados.modelos;
-    desenharContagem();
+    desenharTopo();
+    desenharMosaico();
     ligar();
-    mostrarInfo(ler('info') !== '0' && !matchMedia('(max-width: 1100px)').matches);
+    mostrarInfo(ler('info') !== '0' && !matchMedia('(max-width: 1279px)').matches, false);
     aplicar();
     lerHash();
   }

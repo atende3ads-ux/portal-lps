@@ -20,7 +20,7 @@ catalogo.json        fonte: a lista de modelos (editar à mão)
 data/modelos.json    gerado: catálogo + datas, peso e miniaturas
 modelos/<slug>/      gerado: cópia limpa de cada LP
 thumbs/              gerado: capturas desktop e celular (WebP)
-index.html, assets/  a galeria (HTML, CSS e JS puros, sem build)
+index.html, assets/  a galeria (HTML, CSS e JS puros, sem build), no visual da página da 3ADS EDU
 scripts/             importar, capturar e servir localmente
 ```
 
