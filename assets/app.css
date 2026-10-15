@@ -123,9 +123,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
 .hero-copy h1 > span { color: var(--blue-texto); }
 .hero-description { font-size: 14px; max-width: 480px; line-height: 1.6; color: #ffffffe0; margin-top: 23px; }
 .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 25px; margin-top: 26px; }
-.hero-secondary { display: inline-flex; align-items: center; gap: 13px; font-size: 12px; padding-block: 14px; color: #fff; }
-.hero-secondary svg { transition: transform .25s; }
-.hero-secondary:hover svg { transform: translateX(3px); }
 .hero-program-card { position: relative; width: 218px; flex: 0 0 218px; padding: 25px 24px 0; border: 1px solid #fff3; border-radius: 13px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); background: #ffffff12; transition: background .3s; }
 .hero-program-card:hover { background: #ffffff24; }
 .hero-card-arrow { position: absolute; top: 20px; right: 20px; color: #ffffffcc; }
@@ -306,22 +303,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
 .vazio h3 { font-size: clamp(28px, 3vw, 40px); line-height: 1.15; }
 .vazio p { margin: 12px 0 26px; color: var(--texto); font-size: 14px; }
 
-/* ---------- como adicionar (method-section da EDU) ---------- */
-.method-section { background: var(--profundo); color: #f5f7f3; margin: 16px 16px 0; border-radius: 20px; }
-.method-section h2 > span { color: var(--blue); }
-.method-section .section-intro { color: var(--profundo-texto); }
-.steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 75px; padding: 0; list-style: none; }
-.step { position: relative; padding: 0 28px 0 0; }
-.step + .step { padding-left: 28px; border-left: 1px solid #ffffff26; }
-.step-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 22px; margin-bottom: 32px; border-bottom: 1px solid #ffffff35; }
-.step-top > span { color: #bdd0ca; font-size: 11px; }
-.step-top svg { color: var(--blue); }
-.step h3 { font-size: 29px; margin-bottom: 16px; }
-.step p { font-size: 13px; line-height: 1.75; color: var(--profundo-texto); max-width: 240px; }
-.step code { color: #e9f6fa; background: #ffffff12; padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
-.method-footer { display: flex; align-items: center; gap: 10px; margin-top: 60px; font-size: 11px; color: var(--profundo-texto); }
-.method-footer .status-dot { color: var(--blue); }
-
 /* ---------- rodapé ---------- */
 .site-footer { background: var(--profundo); color: #f5f7f3; padding-block: 55px 28px; margin-top: 16px; }
 .footer-top { display: flex; align-items: flex-start; gap: 70px; padding-bottom: 45px; }
@@ -446,8 +427,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
   .hero-mosaico { width: 100%; right: -30%; opacity: .55; }
   .section-heading { align-items: flex-start; flex-direction: column; gap: 24px; margin-bottom: 40px; }
   .section-intro { max-width: 410px; font-size: 14px; flex-basis: auto; }
-  .steps-grid { grid-template-columns: 1fr 1fr; gap: 44px 0; margin-top: 45px; }
-  .step:nth-child(3) { padding-left: 0; border-left: 0; }
   .v-titulo { max-width: 34vw; }
 }
 @media (max-width: 767px) {
@@ -474,9 +453,6 @@ svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round
   .seletor select { min-width: 0; width: 100%; }
   .grade { grid-template-columns: 1fr; gap: 18px; }
   .card-copy { padding: 20px 18px 16px; }
-  .method-section { margin-inline: 10px; }
-  .steps-grid { grid-template-columns: 1fr; gap: 36px; }
-  .step, .step + .step { padding: 0; border-left: 0; }
   .footer-top { flex-wrap: wrap; gap: 28px; }
   .footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }
   .visualizador { padding: 0; }
