@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>WhatsApp CoEx | App e API Oficial no Mesmo Número | Neppo</title>
+  <meta name="description" content="Conecte o número que sua equipe já usa no WhatsApp Business à Neppo. App e API oficial funcionando juntos, sem trocar de número ou interromper a operação.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Unbounded:wght@400;500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #65cc65;
+      --green-vivid: #02cd5d;
+      --green-dark: #168247;
+      --green-soft: #eef8ee;
+      --green-mint: #dcf6e2;
+      --green-chip: #e9f7eb;
+      --purple-deep: #7901ac;
+      --navy: #252c3b;
+      --navy-soft: #30394b;
+      --ink: #1e232f;
+      --muted: #69756f;
+      --line: #dfe9df;
+      --paper: #fffefa;
+      --white: #fff;
+      --radius-sm: 10px;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --shadow-sm: 0 8px 24px rgba(37, 44, 59, .07);
+      --shadow-lg: 0 24px 60px rgba(37, 44, 59, .13);
+      --transition: .25s ease;
+      --font-display: "Unbounded", "Outfit", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Outfit", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.menu-open { overflow: hidden; }
+    img, svg { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    h1, h2, h3, p { margin-top: 0; }
+    .container { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
+    .section { position: relative; padding: 104px 0; }
+    .eyebrow {
+      margin-bottom: 14px;
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .section-title {
+      max-width: 780px;
+      margin-bottom: 18px;
+      font-family: var(--font-display);
+      font-size: clamp(24px, 2.4vw, 38px);
+      font-weight: 400;
+      letter-spacing: -.05em;
+      line-height: 1.25;
+      color: var(--ink);
+    }
+    .section-title em { color: var(--green-vivid); font-style: normal; }
+    .section-copy { max-width: 680px; margin-bottom: 0; color: var(--muted); font-size: 17px; }
+    .section-head { margin-bottom: 50px; }
+    .section-head.center { text-align: center; }
+    .section-head.center .section-title,
+    .section-head.center .section-copy { margin-inline: auto; }
+    .btn {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 12px 22px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:focus-visible,
+    .faq-button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    .menu-toggle:focus-visible {
+      outline: 3px solid rgba(22, 130, 71, .34);
+      outline-offset: 3px;
+    }
+    .btn-primary { background: var(--green-dark); color: var(--white); box-shadow: 0 8px 22px rgba(22, 130, 71, .2); }
+    .btn-primary:hover { background: #116c3b; box-shadow: 0 12px 28px rgba(22, 130, 71, .28); }
+    .btn-vivid { background: var(--green-vivid); color: var(--white); }
+    .btn-vivid:hover { background: #02b552; }
+    .btn-navy { background: var(--navy); color: var(--white); }
+    .btn-navy:hover { background: #161b27; }
+    .btn-outline-white { border-color: rgba(255,255,255,.85); background: transparent; color: #fff; }
+    .btn-outline-white:hover { background: rgba(255,255,255,.12); }
+
+    .divider { position: absolute; left: 0; z-index: 2; width: 100%; height: auto; pointer-events: none; }
+    .divider.top { top: -1px; }
+    .divider.bottom { bottom: -1px; }
+
+    /* Header da nova identidade */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 12px 16px;
+      margin-bottom: -84px;
+    }
+    .header-inner {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 26px;
+      padding: 0 10px 0 22px;
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      backdrop-filter: blur(18px) saturate(1.4);
+      box-shadow: 0 14px 44px rgba(37,44,59,.16);
+    }
+    .brand img { width: 132px; height: auto; }
+    .main-nav { display: flex; align-items: center; gap: 28px; margin-left: auto; }
+    .main-nav a { position: relative; color: var(--navy); font-size: 14px; font-weight: 500; }
+    .main-nav a .caret { margin-left: 4px; font-size: 10px; color: var(--navy); }
+    .main-nav a:not(.btn)::after { content: ""; position: absolute; right: 0; bottom: -7px; left: 0; height: 2px; transform: scaleX(0); background: var(--green-vivid); transition: transform var(--transition); }
+    .main-nav a:hover::after { transform: scaleX(1); }
+    .main-nav .mobile-action { display: none; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .header-actions .btn { min-height: 38px; padding: 9px 20px; font-size: 13px; }
+    .menu-toggle { display: none; width: 42px; height: 42px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%; background: var(--white); cursor: pointer; }
+    .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--ink); transition: var(--transition); }
+    .menu-toggle span { position: relative; }
+    .menu-toggle span::before, .menu-toggle span::after { content: ""; position: absolute; left: 0; }
+    .menu-toggle span::before { top: -6px; }
+    .menu-toggle span::after { top: 6px; }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 160px 0 96px;
+      background:
+        radial-gradient(circle at 88% 14%, rgba(2,205,93,.18), transparent 28%),
+        linear-gradient(180deg, #f1ffef 0%, #fff 100%);
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 320px;
+      height: 320px;
+      right: -150px;
+      bottom: -180px;
+      border: 1px solid rgba(2,205,93,.18);
+      border-radius: 50%;
+      box-shadow: 0 0 0 46px rgba(2,205,93,.04), 0 0 0 92px rgba(2,205,93,.025);
+    }
+    .hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.04fr .96fr; align-items: start; gap: 70px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px; color: var(--green-dark); font-size: 12px; font-weight: 600; }
+    .hero-badge::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--green-dark); }
+    .hero h1 {
+      max-width: 610px;
+      margin-bottom: 22px;
+      font-family: var(--font-display);
+      font-size: clamp(30px, 3vw, 48px);
+      font-weight: 400;
+      line-height: 1.18;
+      letter-spacing: -.055em;
+      color: var(--ink);
+    }
+    .hero h1 em { color: var(--green-vivid); font-style: normal; }
+    .hero-copy { max-width: 570px; margin-bottom: 30px; color: var(--muted); font-size: 17px; }
+    .hero-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 38px; }
+    .hero-proof { display: flex; gap: 32px; margin: 0; padding: 0; list-style: none; }
+    .hero-proof li { max-width: 145px; color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .hero-proof strong { display: block; margin-bottom: 4px; font-family: var(--font-display); color: var(--green-dark); font-size: 17px; font-weight: 500; letter-spacing: -.03em; }
+
+    .form-card {
+      border: 1px solid rgba(37,44,59,.08);
+      border-radius: var(--radius-lg);
+      padding: 38px;
+      background: #fff;
+      box-shadow: var(--shadow-lg);
+    }
+    .form-card .eyebrow { margin-bottom: 10px; }
+    .form-card h2 { margin-bottom: 8px; font-size: 23px; font-weight: 700; line-height: 1.25; letter-spacing: -.02em; color: var(--navy); }
+    .form-card .lead { margin-bottom: 22px; color: var(--muted); font-size: 14px; }
+    .field { margin-bottom: 15px; }
+    .field label { display: block; margin-bottom: 6px; color: var(--navy); font-size: 13px; font-weight: 700; }
+    .field input,
+    .field select { width: 100%; min-height: 46px; border: 1px solid #dfe5e0; border-radius: 10px; padding: 10px 14px; background: #fff; color: var(--ink); font-size: 14px; transition: border-color var(--transition); }
+    .field input::placeholder { color: #a8b1aa; }
+    .field input:focus,
+    .field select:focus { border-color: var(--green-dark); outline: none; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-submit { width: 100%; margin-top: 6px; }
+    .form-note { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0 0; color: var(--muted); font-size: 12px; }
+    .form-note::before { content: "🔒"; font-size: 12px; }
+
+    /* Prova e dores */
+    .trust-strip { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: #fff; }
+    .trust-inner { display: flex; align-items: center; justify-content: center; gap: 18px 32px; flex-wrap: wrap; padding: 28px 0; }
+    .trust-chip { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; color: var(--navy); font-size: 13px; font-weight: 600; }
+    .trust-chip::before { content: "✓"; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--green-chip); color: var(--green-dark); font-size: 11px; font-weight: 700; }
+    .trust-text { color: var(--muted); font-size: 13px; }
+    .pains { background: var(--green-soft); }
+    .pain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .pain-card { border: 1px solid rgba(37,44,59,.06); border-radius: var(--radius); padding: 30px; background: #fff; box-shadow: 0 6px 20px rgba(37,44,59,.04); }
+    .card-number { display: grid; place-items: center; width: 36px; height: 36px; margin-bottom: 22px; border-radius: 11px; background: var(--green-chip); color: var(--green-dark); font-size: 13px; font-weight: 700; }
+    .pain-card h3 { margin-bottom: 10px; color: var(--navy); font-size: 17px; font-weight: 700; line-height: 1.3; }
+    .pain-card p { margin: 0; color: var(--muted); font-size: 14px; }
+
+    /* Produto e screenshots */
+    .product-split { display: grid; grid-template-columns: .82fr 1.18fr; align-items: center; gap: 62px; }
+    .product-copy .section-title { font-size: clamp(24px, 2.2vw, 34px); }
+    .check-list { display: grid; gap: 14px; margin: 28px 0 0; padding: 0; list-style: none; }
+    .check-list li { position: relative; padding-left: 30px; color: var(--navy); font-size: 15px; font-weight: 600; }
+    .check-list li::before { content: "✓"; position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--green-chip); color: var(--green-dark); font-size: 11px; font-weight: 700; }
+    .screen-shell { position: relative; margin: 0; }
+    .screen-shell::before { content: ""; position: absolute; inset: 22px -18px -22px 36px; z-index: -1; border-radius: 28px; background: var(--green-mint); }
+    .screen-frame { overflow: hidden; border: 1px solid rgba(37,44,59,.12); border-radius: 18px; background: #fff; box-shadow: var(--shadow-lg); }
+    .screen-frame img { width: 100%; height: auto; }
+    .screen-caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 18px; color: var(--muted); font-size: 13px; }
+    .screen-caption strong { color: var(--navy); }
+
+    .steps { background: #fff; }
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .step-item { position: relative; padding-top: 6px; }
+    .step-item:not(:last-child)::after { content: ""; position: absolute; top: 21px; right: -12px; width: 24px; height: 1px; background: var(--line); }
+    .step-num { display: inline-grid; place-items: center; min-width: 36px; height: 32px; margin-bottom: 18px; border-radius: 10px; background: var(--green-chip); color: var(--green-dark); font-size: 12px; font-weight: 700; }
+    .step-item h3 { margin-bottom: 8px; color: var(--navy); font-size: 16px; font-weight: 700; }
+    .step-item p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .operation {
+      overflow: hidden;
+      padding: calc(4.4vw + 88px) 0 calc(4.4vw + 96px);
+      background: var(--navy);
+    }
+    .operation .eyebrow { color: var(--green); }
+    .operation .section-title { color: #fff; }
+    .operation .section-copy { color: #bcc5c0; }
+    .operation-screen { overflow: hidden; margin: 0; border: 8px solid rgba(255,255,255,.08); border-radius: 24px; background: #fff; box-shadow: 0 28px 76px rgba(0,0,0,.28); }
+    .operation-screen img { width: 100%; height: auto; }
+    .operation-note { display: flex; justify-content: center; gap: 10px 34px; flex-wrap: wrap; margin-top: 24px; color: #dbe1dd; font-size: 13px; }
+    .operation-note span::before { content: "✓"; margin-right: 8px; color: var(--green); font-weight: 700; }
+
+    /* Benefícios */
+    .benefits { background: var(--paper); }
+    .benefit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    .benefit-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; background: #fff; transition: transform var(--transition), box-shadow var(--transition); }
+    .benefit-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-sm); }
+    .benefit-icon { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 18px; border-radius: 12px; background: var(--green-chip); color: var(--green-dark); font-size: 17px; }
+    .benefit-card h3 { margin-bottom: 8px; color: var(--navy); font-size: 16px; font-weight: 700; }
+    .benefit-card p { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .limits { background: var(--green-soft); }
+    .limits-box { display: grid; grid-template-columns: .72fr 1.28fr; gap: 64px; border-radius: 32px; padding: 54px; background: var(--navy); color: #fff; }
+    .limits-box .eyebrow { color: var(--green); }
+    .limits-box h2 { margin-bottom: 14px; font-family: var(--font-display); font-size: clamp(23px, 2vw, 32px); font-weight: 400; letter-spacing: -.045em; line-height: 1.25; }
+    .limits-box > div > p { margin: 0; color: #adb7b1; font-size: 14px; }
+    .limits-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; margin: 0; padding: 0; list-style: none; }
+    .limits-list li { position: relative; border-bottom: 1px solid rgba(255,255,255,.1); padding: 12px 0 12px 18px; color: #dbe1dd; font-size: 13.5px; }
+    .limits-list li::before { content: ""; position: absolute; top: 20px; left: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    /* Segmentos e investimento */
+    .segment-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .segment-card { border-top: 3px solid var(--green-vivid); border-radius: 14px; padding: 28px 24px; background: #fff; box-shadow: var(--shadow-sm); }
+    .segment-card h3 { margin-bottom: 8px; color: var(--navy); font-size: 16px; font-weight: 700; }
+    .segment-card p { margin: 0; color: var(--muted); font-size: 13px; }
+    .investment { background: var(--green-soft); }
+    .invest-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .invest-card { display: flex; min-height: 210px; flex-direction: column; border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; background: #fff; }
+    .invest-card.highlight { border-color: var(--navy); background: var(--navy); }
+    .invest-value { margin-bottom: 20px; font-family: var(--font-display); color: var(--green-dark); font-size: 22px; font-weight: 500; letter-spacing: -.04em; }
+    .invest-card.highlight .invest-value { color: var(--green); }
+    .invest-card h3 { margin-bottom: 8px; color: var(--navy); font-size: 15px; font-weight: 700; }
+    .invest-card.highlight h3 { color: #fff; }
+    .invest-card p { margin: auto 0 0; color: var(--muted); font-size: 12.5px; }
+    .invest-card.highlight p { color: #b8c1bc; }
+    .investment-note { margin: 22px 0 0; color: var(--muted); font-size: 12.5px; }
+
+    /* FAQ */
+    .faq-wrap { max-width: 820px; margin-inline: auto; }
+    .faq-item { border-bottom: 1px solid var(--line); }
+    .faq-item:first-child { border-top: 1px solid var(--line); }
+    .faq-button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 0; padding: 22px 0; background: transparent; cursor: pointer; text-align: left; color: var(--navy); font-size: 15px; font-weight: 700; }
+    .faq-plus { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--green-chip); color: var(--green-dark); font-size: 18px; transition: transform var(--transition); }
+    .faq-button[aria-expanded="true"] .faq-plus { transform: rotate(45deg); }
+    .faq-answer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+    .faq-answer > div { overflow: hidden; }
+    .faq-answer p { margin: 0; padding: 0 48px 22px 0; color: var(--muted); font-size: 14px; }
+    .faq-item.open .faq-answer { grid-template-rows: 1fr; }
+
+    /* CTA */
+    .final-cta { padding: 20px 0 96px; }
+    .final-box { position: relative; display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: 30px; overflow: hidden; border-radius: 40px; padding: 60px 70px; background: linear-gradient(135deg, #44d987 0%, #01cd5d 100%); color: #fff; }
+    .final-box h2 { max-width: 500px; margin-bottom: 14px; font-family: var(--font-display); font-size: clamp(24px, 2.3vw, 38px); font-weight: 400; line-height: 1.25; letter-spacing: -.04em; color: #fff; }
+    .final-box p { max-width: 440px; margin: 0 0 22px; color: rgba(255,255,255,.94); font-size: 16px; }
+    .final-robot { width: min(380px, 100%); margin-inline: auto; }
+    .final-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* Footer */
+    .site-footer { padding: 70px 0 0; background: #f2f4f6; color: var(--navy); }
+    .footer-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr .95fr .75fr; gap: 40px; padding-bottom: 64px; }
+    .footer-brand img.footer-logo { width: 184px; height: auto; margin-bottom: 42px; }
+    .contact-row { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; color: var(--navy); font-size: 14px; }
+    .contact-row img { width: 18px; height: 18px; }
+    .footer-col h3 { margin: 6px 0 28px; color: var(--green-vivid); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .footer-col a { display: block; margin-bottom: 12px; color: #575d68; font-size: 13px; }
+    .footer-col a:hover { color: var(--green-dark); }
+    .footer-bar { background: var(--purple-deep); color: #fff; }
+    .footer-bar-inner { display: flex; min-height: 50px; align-items: center; justify-content: space-between; gap: 20px; padding: 10px 0; font-size: 12px; }
+    .social { display: flex; gap: 22px; }
+    .social img { width: 19px; height: 19px; }
+
+    @media (max-width: 1040px) {
+      .main-nav { display: none; }
+      .header-actions .btn-navy { display: none; }
+      .menu-toggle { display: flex; }
+      .main-nav.open { position: fixed; inset: 86px 12px auto; display: flex; align-items: stretch; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 18px; padding: 14px; background: rgba(255,255,255,.98); box-shadow: var(--shadow-lg); }
+      .main-nav.open a { border-bottom: 1px solid var(--line); padding: 14px; }
+      .main-nav.open a:last-child { border-bottom: 0; }
+      .main-nav .mobile-action { display: inline-flex; margin-top: 8px; color: #fff; }
+      .main-nav .mobile-action::after { display: none; }
+      .footer-grid { grid-template-columns: 1.2fr 1fr 1fr; }
+      .footer-brand { grid-row: span 2; }
+    }
+
+    @media (max-width: 900px) {
+      .section { padding: 82px 0; }
+      .hero-grid,
+      .product-split,
+      .limits-box,
+      .final-box { grid-template-columns: 1fr; }
+      .hero-grid { gap: 46px; }
+      .hero h1 { max-width: 700px; }
+      .form-card { max-width: 660px; }
+      .product-split { gap: 44px; }
+      .steps-grid,
+      .segment-grid,
+      .invest-grid { grid-template-columns: 1fr 1fr; }
+      .step-item:not(:last-child)::after { display: none; }
+      .limits-box { gap: 32px; }
+      .final-robot { width: min(300px, 80%); }
+    }
+
+    @media (max-width: 720px) {
+      .container { width: min(100% - 32px, 1160px); }
+      .site-header { padding-inline: 8px; }
+      .header-inner { height: 56px; padding-left: 17px; }
+      .brand img { width: 112px; }
+      .header-actions .btn-vivid { display: none; }
+      .hero { padding: 142px 0 76px; }
+      .hero-proof { gap: 18px; }
+      .hero-proof li { flex: 1; }
+      .pain-grid,
+      .benefit-grid { grid-template-columns: 1fr; }
+      .limits-list { grid-template-columns: 1fr; }
+      .screen-shell::before { inset: 16px -8px -16px 22px; }
+      .operation-screen { border-width: 4px; border-radius: 16px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .footer-brand { grid-column: 1 / -1; grid-row: auto; }
+      .footer-bar-inner { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (max-width: 520px) {
+      .section { padding: 70px 0; }
+      .hero h1 { font-size: 30px; }
+      .hero-proof { display: grid; grid-template-columns: 1fr 1fr; }
+      .form-card { padding: 28px 22px; }
+      .field-row,
+      .steps-grid,
+      .segment-grid,
+      .invest-grid,
+      .footer-grid { grid-template-columns: 1fr; }
+      .limits-box { border-radius: 24px; padding: 34px 24px; }
+      .final-box { border-radius: 28px; padding: 42px 26px; }
+      .final-actions { align-items: stretch; flex-direction: column; }
+      .final-actions .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Neppo - página inicial"><img src="assets/logo-header.png" alt="Neppo" width="132" height="34"></a>
+      <nav class="main-nav" id="main-nav" aria-label="Navegação principal">
+        <a href="index.html#solucoes">Soluções <span class="caret" aria-hidden="true">▾</span></a>
+        <a href="page-planos-e-precos.html">Planos e Preços</a>
+        <a href="index.html#conteudos">Integrações <span class="caret" aria-hidden="true">▾</span></a>
+        <a href="#" data-link-pendente="parcerias">Parcerias</a>
+        <a href="page-casos-de-sucesso.html">Conteúdos <span class="caret" aria-hidden="true">▾</span></a>
+        <a href="index.html#contato">Contato</a>
+        <a class="btn btn-vivid mobile-action" href="#form">Conhecer o CoEx</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-navy" href="page-demonstracao.html">Ver Demonstração</a>
+        <a class="btn btn-vivid" href="#form">Conhecer o CoEx</a>
+        <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="main-nav" aria-expanded="false"><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="form">
+      <div class="container hero-grid">
+        <div>
+          <span class="hero-badge">WhatsApp CoEx · Recurso oficial da Meta</span>
+          <h1>Seu vendedor já vende pelo WhatsApp. Mas quem gerencia, <em>enxerga?</em></h1>
+          <p class="hero-copy">Conecte o número que sua equipe já usa no WhatsApp Business à Neppo. O app e a API oficial funcionam ao mesmo tempo, no mesmo número — sem migração, sem desativar o app e sem interromper a operação.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#como-funciona">Entender como funciona</a>
+            <a class="btn btn-navy" href="#na-pratica">Ver na prática</a>
+          </div>
+          <ul class="hero-proof">
+            <li><strong>180 dias</strong>de histórico importado na ativação</li>
+            <li><strong>Zero</strong>troca de número ou pausa na operação</li>
+            <li><strong>Oficial</strong>conexão homologada pela Meta</li>
+          </ul>
+        </div>
+
+        <div class="form-card">
+          <p class="eyebrow">Fale com a Neppo</p>
+          <h2>Veja onde o CoEx faz sentido na sua operação</h2>
+          <p class="lead">Conte um pouco sobre sua empresa. Nosso time entra em contato para avaliar seus números e sua rotina comercial.</p>
+          <form id="coex-form" novalidate>
+            <div class="field">
+              <label for="nome">Nome completo*</label>
+              <input id="nome" name="nome" type="text" placeholder="Seu nome" required autocomplete="name">
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="email">E-mail corporativo*</label>
+                <input id="email" name="email" type="email" placeholder="voce@empresa.com.br" required autocomplete="email">
+              </div>
+              <div class="field">
+                <label for="whatsapp">WhatsApp*</label>
+                <input id="whatsapp" name="whatsapp" type="tel" placeholder="(00) 00000-0000" required autocomplete="tel">
+              </div>
+            </div>
+            <div class="field">
+              <label for="empresa">Empresa*</label>
+              <input id="empresa" name="empresa" type="text" placeholder="Nome da empresa" required autocomplete="organization">
+            </div>
+            <div class="field">
+              <label for="numeros">Quantos números sua equipe usa no WhatsApp Business?</label>
+              <select id="numeros" name="numeros">
+                <option>1 a 5 números</option>
+                <option>6 a 20 números</option>
+                <option>21 a 50 números</option>
+                <option>Mais de 50 números</option>
+              </select>
+            </div>
+            <button class="btn btn-primary form-submit" type="submit">Quero conhecer o CoEx</button>
+            <p class="form-note">Seus dados serão usados somente para este contato.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust-strip" aria-label="Credenciais WhatsApp CoEx">
+      <div class="container trust-inner">
+        <span class="trust-chip">Tech Provider oficial do WhatsApp Business</span>
+        <span class="trust-chip">Conexão via Embedded Signup da Meta</span>
+        <span class="trust-text">O mesmo número. Os dois ambientes. Uma gestão centralizada.</span>
+      </div>
+    </section>
+
+    <section class="section pains" id="desafios">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Você vive isso?</p>
+          <h2 class="section-title">O WhatsApp vende. O desafio é <em>gerenciar o que acontece nele.</em></h2>
+          <p class="section-copy">Cada vendedor conversa de um número diferente, a gestão perde visibilidade e profissionalizar a operação parece arriscado demais.</p>
+        </div>
+        <div class="pain-grid">
+          <article class="pain-card"><span class="card-number">01</span><h3>Número pessoal, risco da empresa</h3><p>Se o vendedor sai, o relacionamento e o contexto construídos com os clientes podem sair junto.</p></article>
+          <article class="pain-card"><span class="card-number">02</span><h3>Gestão sem visibilidade</h3><p>Sem fila e sem histórico compartilhado, ninguém enxerga tudo o que está sendo combinado com o cliente.</p></article>
+          <article class="pain-card"><span class="card-number">03</span><h3>Migrar sempre pareceu arriscado</h3><p>A ida para a API oficial esbarrava no medo de perder o número, o histórico ou a rotina que o time já domina.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="o-que-e">
+      <div class="container product-split">
+        <div class="product-copy">
+          <p class="eyebrow">O que é o WhatsApp CoEx</p>
+          <h2 class="section-title">O app e a API oficial, <em>juntos no mesmo número</em></h2>
+          <p class="section-copy">CoEx vem de coexistence. O recurso conecta à Neppo o número ativo no WhatsApp Business App, mantendo o aplicativo disponível para o vendedor e trazendo a conversa para a gestão da empresa.</p>
+          <ul class="check-list">
+            <li>O vendedor continua no app que já domina</li>
+            <li>A gestão ganha histórico e atendimento centralizados</li>
+            <li>A ativação acontece pelo fluxo oficial da Meta</li>
+          </ul>
+        </div>
+        <figure class="screen-shell">
+          <div class="screen-frame"><img src="assets/coex-ativacao.png" alt="Tela da Neppo para ativação de uma conexão WhatsApp Business com coexistência" width="2860" height="1490"></div>
+          <figcaption class="screen-caption"><strong>Ativação guiada na Neppo</strong><span>WhatsApp Business + CoEx</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section steps" id="como-funciona">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Como funciona</p>
+          <h2 class="section-title">Da ativação à operação em <em>quatro etapas</em></h2>
+          <p class="section-copy">Nada muda na rotina de quem já usa o WhatsApp Business. A conexão acontece nos bastidores e mantém os dois ambientes sincronizados.</p>
+        </div>
+        <div class="steps-grid">
+          <div class="step-item"><span class="step-num">01</span><h3>Conexão</h3><p>O número ativo no WhatsApp Business é vinculado à Neppo via Embedded Signup.</p></div>
+          <div class="step-item"><span class="step-num">02</span><h3>Espelhamento</h3><p>As mensagens do app passam a aparecer também no espaço de atendimento da Neppo.</p></div>
+          <div class="step-item"><span class="step-num">03</span><h3>Histórico</h3><p>Conversas de até 180 dias podem ser sincronizadas para preservar o contexto.</p></div>
+          <div class="step-item"><span class="step-num">04</span><h3>Operação dupla</h3><p>O time responde pelo app ou pela Neppo, com a conversa refletida nos dois lados.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section operation" id="na-pratica">
+      <img class="divider top" src="assets/divisoria-sec-1.svg" alt="" aria-hidden="true">
+      <img class="divider bottom" src="assets/divisoria-7.svg" alt="" aria-hidden="true">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Na prática</p>
+          <h2 class="section-title">A conversa do WhatsApp aparece na <em>Central de Atendimento Neppo</em></h2>
+          <p class="section-copy">A equipe pode manter a proximidade do app enquanto a empresa acompanha histórico, cliente e operação em uma única interface.</p>
+        </div>
+        <figure class="operation-screen"><img src="assets/coex-atendimento.png" alt="Central de Atendimento Neppo exibindo uma conversa sincronizada do WhatsApp" width="1909" height="907"></figure>
+        <div class="operation-note"><span>Histórico centralizado</span><span>Contexto do cliente visível</span><span>Operação sincronizada</span></div>
+      </div>
+    </section>
+
+    <section class="section benefits" id="beneficios">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">O que muda para a operação</p>
+          <h2 class="section-title">Benefícios do vendedor à <em>gestão</em></h2>
+        </div>
+        <div class="benefit-grid">
+          <article class="benefit-card"><span class="benefit-icon" aria-hidden="true">◎</span><h3>Preserva o relacionamento</h3><p>Número, contatos e histórico continuam disponíveis, mesmo quando há mudanças no time.</p></article>
+          <article class="benefit-card"><span class="benefit-icon" aria-hidden="true">↻</span><h3>Zero tempo de inatividade</h3><p>A ativação é gradual e não interrompe a rotina comercial no WhatsApp Business.</p></article>
+          <article class="benefit-card"><span class="benefit-icon" aria-hidden="true">◫</span><h3>Visibilidade centralizada</h3><p>Conversas, clientes e histórico organizados na plataforma Neppo.</p></article>
+          <article class="benefit-card"><span class="benefit-icon" aria-hidden="true">⇄</span><h3>Conversas sincronizadas</h3><p>Texto, imagem, documento e áudio podem ser refletidos nos dois ambientes.</p></article>
+          <article class="benefit-card"><span class="benefit-icon" aria-hidden="true">⌁</span><h3>Mais resiliência</h3><p>As mensagens da API continuam chegando, e o app volta a sincronizar quando reconecta.</p></article>
+          <article class="benefit-card"><span class="benefit-icon" aria-hidden="true">✓</span><h3>Conexão oficial</h3><p>Fluxo Embedded Signup da Meta, com a segurança de um Tech Provider oficial.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section limits">
+      <div class="container limits-box">
+        <div>
+          <p class="eyebrow">Transparência desde o início</p>
+          <h2>O que o CoEx ainda não faz</h2>
+          <p>Alguns recursos ficam disponíveis somente na migração completa para a API Oficial.</p>
+        </div>
+        <ul class="limits-list">
+          <li>Automações, bots ou IA da Neppo nesse número</li>
+          <li>Sincronização de grupos, chamadas e localização em tempo real</li>
+          <li>Transferência de atendimento entre agentes</li>
+          <li>Criação ou edição de listas de transmissão pelo app</li>
+          <li>Mensagens temporárias e conteúdo de visualização única</li>
+          <li>Operação simultânea do mesmo número na API Oficial e no CoEx</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="para-quem-e">
+      <div class="container">
+        <div class="section-head">
+          <p class="eyebrow">Para quem é</p>
+          <h2 class="section-title">Operações que já vendem pelo app e precisam <em>ganhar gestão</em></h2>
+        </div>
+        <div class="segment-grid">
+          <article class="segment-card"><h3>Indústrias</h3><p>Forças de vendas de campo que trabalham com números próprios no WhatsApp Business.</p></article>
+          <article class="segment-card"><h3>Distribuidoras e transportadoras</h3><p>Times que já vendem pelo app e querem profissionalizar sem perder os contatos.</p></article>
+          <article class="segment-card"><h3>Equipes com vários vendedores</h3><p>Cada profissional com seu número — quanto maior a operação, maior o ganho de visibilidade.</p></article>
+          <article class="segment-card"><h3>Operações em transição</h3><p>Empresas em que o WhatsApp deixou de ser complementar e virou canal principal.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section investment" id="investimento">
+      <div class="container">
+        <div class="section-head center">
+          <p class="eyebrow">Investimento</p>
+          <h2 class="section-title">Como funciona o investimento no <em>WhatsApp CoEx</em></h2>
+        </div>
+        <div class="invest-grid">
+          <article class="invest-card"><span class="invest-value">R$ 0</span><h3>Ativação do CoEx</h3><p>A Meta não cobra uma taxa específica pela ativação da coexistência.</p></article>
+          <article class="invest-card"><span class="invest-value">Grátis</span><h3>Mensagens pelo app</h3><p>Continuam seguindo o funcionamento habitual do WhatsApp Business App.</p></article>
+          <article class="invest-card"><span class="invest-value">Tabela Meta</span><h3>Templates e mensagens via API</h3><p>Seguem a tabela oficial da Meta de acordo com a categoria da mensagem.</p></article>
+          <article class="invest-card highlight"><span class="invest-value">Sob consulta</span><h3>Plataforma Neppo</h3><p>Estrutura de atendimento, histórico e gestão dos números conectados.</p></article>
+        </div>
+        <p class="investment-note">Condições, limites e regras de tarifação da Meta podem variar. A Neppo ajuda sua empresa a avaliar o cenário aplicável à operação.</p>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head center"><p class="eyebrow">Dúvidas rápidas</p><h2 class="section-title">Perguntas frequentes sobre o <em>WhatsApp CoEx</em></h2></div>
+        <div class="faq-wrap">
+          <article class="faq-item open"><button class="faq-button" type="button" aria-expanded="true">Vou perder o número ou o histórico?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Não. O número continua ativo no WhatsApp Business e o histórico recente pode ser sincronizado na ativação, preservando até 180 dias de conversas.</p></div></div></article>
+          <article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">Meu vendedor precisa mudar a rotina?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Não. Ele pode continuar usando o aplicativo que já domina. A conexão com a Neppo acontece nos bastidores.</p></div></div></article>
+          <article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">Preciso migrar o número para a API oficial?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Não. No CoEx, o número permanece no aplicativo e passa a operar também conectado à API, sem uma migração completa.</p></div></div></article>
+          <article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">Existe limite de números no CoEx?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>A Meta define limites por Business Manager. Eles podem variar conforme a verificação e o histórico da empresa.</p></div></div></article>
+          <article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">Quem pode ativar o CoEx na empresa?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Um administrador com acesso à Central de Canais da Neppo e ao Meta Business Manager da empresa.</p></div></div></article>
+          <article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">CoEx substitui a migração completa para a API Oficial?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Não necessariamente. Ele é ideal para coexistência entre app e plataforma. Operações que precisam de automações, bots, IA ou fluxos mais avançados podem se beneficiar da migração completa.</p></div></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="container final-box">
+        <img class="final-robot" src="assets/robot.png" alt="" aria-hidden="true">
+        <div>
+          <h2>Seu WhatsApp já vende. Agora ele também pode gerar gestão.</h2>
+          <p>Fale com a Neppo e descubra em quantos números da sua operação o CoEx já faz sentido.</p>
+          <div class="final-actions">
+            <a class="btn btn-outline-white" href="#form">Preencher formulário</a>
+            <a class="btn btn-navy" href="#" data-link-pendente="whatsapp">Falar no WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contato">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img class="footer-logo" src="assets/logo-footer.png" alt="Neppo by Sankhya" width="184" height="47">
+          <div class="contact-row"><img src="assets/icon-whatsapp.svg" alt="" aria-hidden="true"><span>(34) 3256-3200</span></div>
+          <div class="contact-row"><img src="assets/icon-mail.svg" alt="" aria-hidden="true"><span>comercial@neppo.com.br</span></div>
+          <div class="contact-row"><img src="assets/icon-pin.svg" alt="" aria-hidden="true"><span>Av. Floriano Peixoto n°1615</span></div>
+        </div>
+        <div class="footer-col">
+          <h3>Soluções</h3>
+          <a href="page-api-whatsapp.html">WhatsApp API Oficial</a>
+          <a href="page-whatsapp-coex.html">WhatsApp CoEx</a>
+          <a href="index.html#conteudos">Telegram</a>
+          <a href="index.html#conteudos">Facebook Messenger</a>
+          <a href="index.html#conteudos">Instagram</a>
+          <a href="index.html#conteudos">E-mail</a>
+          <a href="index.html#conteudos">Neppo SMS</a>
+          <a href="index.html#conteudos">Chatbot</a>
+          <a href="index.html#conteudos">Omnichannel</a>
+          <a href="index.html#conteudos">Web Chat</a>
+          <a href="index.html#conteudos">Chat Interno</a>
+          <a href="index.html#conteudos">Neppo Voz</a>
+          <a href="index.html#conteudos">Neppo Ticket</a>
+          <a href="index.html#conteudos">Neppo Grow</a>
+          <a href="index.html#conteudos">WhatsApp Voz</a>
+        </div>
+        <div class="footer-col">
+          <h3>A Neppo</h3>
+          <a href="index.html#inicio">Quem somos</a>
+          <a href="page-planos-e-precos.html">Planos e Preços</a>
+          <a href="#" data-link-pendente="parcerias">Parcerias</a>
+          <a href="page-demonstracao.html">Demonstração</a>
+          <a href="#" data-link-pendente="termos">Termos de Uso</a>
+          <a href="#" data-link-pendente="privacidade">Política de Privacidade</a>
+          <a href="#" data-link-pendente="status">Status Page Serviços Neppo</a>
+        </div>
+        <div class="footer-col">
+          <h3>Conteúdos</h3>
+          <a href="#" data-link-pendente="blog">Blog</a>
+          <a href="#" data-link-pendente="materiais">Materiais Ricos</a>
+          <a href="page-casos-de-sucesso.html">Cases de Sucesso</a>
+        </div>
+        <div class="footer-col">
+          <h3>Contato</h3>
+          <a href="index.html#faq">Central de Ajuda</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="container footer-bar-inner">
+        <span>Copyright © 2026 Neppo | Todos os direitos reservados.</span>
+        <div class="social">
+          <a href="#" aria-label="Instagram"><img src="assets/icon-instagram.svg" alt=""></a>
+          <a href="#" aria-label="LinkedIn"><img src="assets/icon-linkedin.svg" alt=""></a>
+          <a href="#" aria-label="YouTube"><img src="assets/icon-youtube.svg" alt=""></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const menu = document.querySelector('.main-nav');
+    menuButton.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+      document.body.classList.toggle('menu-open', open);
+    });
+
+    menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      menu.classList.remove('open');
+      menuButton.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('menu-open');
+    }));
+
+    document.querySelectorAll('.faq-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const item = button.closest('.faq-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(faq => {
+          faq.classList.remove('open');
+          faq.querySelector('.faq-button').setAttribute('aria-expanded', 'false');
+        });
+        if (!wasOpen) {
+          item.classList.add('open');
+          button.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+
+    const form = document.getElementById('coex-form');
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      window.location.href = 'page-obrigado-experiencia.html';
+    });
+  </script>
+</body>
+</html>

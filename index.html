@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Biblioteca de LPs · 3ADS</title>
+  <meta name="description" content="Acervo interno de landing pages entregues pela 3ADS, organizado por nicho.">
+  <link rel="icon" href="assets/3ads.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <a class="pular" href="#grade">Pular para os modelos</a>
+
+  <header class="topo">
+    <a class="marca" href="#/" aria-label="Biblioteca de LPs, início">
+      <img src="assets/3ads.svg" alt="" width="30" height="30">
+      <span class="marca-nome">Biblioteca de LPs</span>
+      <span class="selo">uso interno</span>
+    </a>
+    <label class="busca">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+      <input id="busca" type="search" placeholder="Buscar cliente, nicho ou página" autocomplete="off" spellcheck="false" aria-label="Buscar modelos">
+      <kbd aria-hidden="true">/</kbd>
+    </label>
+  </header>
+
+  <main>
+    <section class="abertura">
+      <p class="contagem mono" id="contagem">&nbsp;</p>
+      <h1>O acervo de <em>landing pages</em> da&nbsp;3ADS.</h1>
+      <p class="linha">Tudo o que já entregamos, num lugar só. Encontre uma referência do nicho, veja no desktop e no celular, e comece a próxima LP mais perto do fim.</p>
+    </section>
+
+    <nav class="filtros" aria-label="Filtros">
+      <div class="nichos" id="nichos" role="tablist" aria-label="Nicho"></div>
+      <div class="controles">
+        <label class="seletor">
+          <span>Tipo</span>
+          <select id="tipo"><option value="">Todos</option></select>
+        </label>
+        <label class="seletor">
+          <span>Ordem</span>
+          <select id="ordem">
+            <option value="recentes">Mais recentes</option>
+            <option value="az">A–Z</option>
+            <option value="paginas">Mais páginas</option>
+          </select>
+        </label>
+      </div>
+    </nav>
+
+    <section id="grade" class="grade" aria-live="polite"></section>
+    <div id="vazio" class="vazio" hidden>
+      <p>Nenhum modelo encontrado<span id="vazio-termo"></span>.</p>
+      <button type="button" id="limpar">Limpar filtros</button>
+    </div>
+  </main>
+
+  <footer class="rodape mono">
+    <span>3ADS · Biblioteca de LPs</span>
+    <span>As cópias aqui não têm pixels nem formulários ativos.</span>
+  </footer>
+
+  <div id="visualizador" class="visualizador" role="dialog" aria-modal="true" aria-labelledby="v-nome" hidden>
+    <div class="v-barra">
+      <button type="button" class="v-icone" id="v-fechar" aria-label="Fechar (Esc)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
+      <div class="v-titulo">
+        <h2 id="v-nome"></h2>
+        <p class="mono" id="v-meta"></p>
+      </div>
+      <div class="v-paginas" id="v-paginas" role="tablist" aria-label="Páginas do modelo"></div>
+      <div class="v-acoes">
+        <div class="v-dispositivos" role="radiogroup" aria-label="Dispositivo">
+          <button type="button" data-disp="desktop" role="radio" aria-label="Desktop (1)" title="Desktop (1)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16.5V20"/></svg>
+          </button>
+          <button type="button" data-disp="tablet" role="radio" aria-label="Tablet (2)" title="Tablet (2)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M11 18h2"/></svg>
+          </button>
+          <button type="button" data-disp="celular" role="radio" aria-label="Celular (3)" title="Celular (3)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 18h2"/></svg>
+          </button>
+        </div>
+        <div class="v-nav">
+          <button type="button" class="v-icone" id="v-ant" aria-label="Modelo anterior (←)" title="Anterior (←)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+          </button>
+          <span class="mono" id="v-pos"></span>
+          <button type="button" class="v-icone" id="v-prox" aria-label="Próximo modelo (→)" title="Próximo (→)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <a class="v-icone" id="v-abrir" target="_blank" rel="noopener" aria-label="Abrir em nova aba" title="Abrir em nova aba">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>
+        </a>
+        <button type="button" class="v-icone" id="v-info-btn" aria-label="Detalhes do modelo (i)" aria-expanded="true" title="Detalhes (i)">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="v-corpo">
+      <div class="v-palco" id="v-palco">
+        <div class="v-aparelho" id="v-aparelho">
+          <iframe id="v-frame" title="Prévia do modelo" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals"></iframe>
+        </div>
+        <div class="v-carregando mono" id="v-carregando">carregando…</div>
+      </div>
+
+      <aside class="v-info" id="v-info" aria-label="Detalhes do modelo">
+        <p class="v-desc" id="v-desc"></p>
+        <dl class="v-dados mono" id="v-dados"></dl>
+        <h3 class="mono">Páginas</h3>
+        <ol class="v-lista" id="v-lista"></ol>
+        <h3 class="mono">Usar como base</h3>
+        <div class="v-clone">
+          <code id="v-clone"></code>
+          <button type="button" id="v-copiar-clone" class="mono">copiar</button>
+        </div>
+        <div class="v-links" id="v-links"></div>
+        <p class="v-aviso">Esta é uma cópia limpa: pixels, formulários e links de WhatsApp estão desativados.</p>
+      </aside>
+    </div>
+  </div>
+
+  <div class="aviso-flutuante mono" id="aviso" role="status" hidden></div>
+
+  <script src="assets/app.js" defer></script>
+</body>
+</html>

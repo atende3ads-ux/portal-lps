@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ofertas de Julho — Chevrolet 0 km | Autorio</title>
+<meta name="description" content="Confira as ofertas de julho da Autorio: Chevrolet 0 km com preços especiais, taxa 0%, bônus na troca e garantia de 5 anos. Enquanto durar o estoque.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://brands.gm-cdn.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+<style>
+/* ===== Fontes oficiais Chevrolet (GM CDN) com fallback Archivo ===== */
+@font-face{font-family:'ChevySans';src:url('https://brands.gm-cdn.com/gbds/chevrolet-2023/fonts/ChevySans-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'ChevySans';src:url('https://brands.gm-cdn.com/gbds/chevrolet-2023/fonts/ChevySans-Demi.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:'ChevySans';src:url('https://brands.gm-cdn.com/gbds/chevrolet-2023/fonts/ChevySans-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:'ChevySans';src:url('https://brands.gm-cdn.com/gbds/chevrolet-2023/fonts/ChevySans-MediumItalic.woff2') format('woff2');font-weight:500;font-style:italic;font-display:swap}
+@font-face{font-family:'ChevySans';src:url('https://brands.gm-cdn.com/gbds/chevrolet-2023/fonts/ChevySans-BoldItalic.woff2') format('woff2');font-weight:700;font-style:italic;font-display:swap}
+
+/* ===== Design Tokens — Chevrolet / Autorio (grafite + gold, sem azul exceto CTA) ===== */
+:root{
+  --primary:#262626;
+  --primary-deep:#1a1a1a;
+  --primary-deeper:#121212;
+  --accent:#F2BC18;
+  --accent-deep:#d29625;
+  --btn-fill:#0077D9;
+  --btn-fill-deep:#005fa8;
+
+  --bg:#FFFFFF;
+  --surface:#FFFFFF;
+  --surface-2:#F2F2F2;
+  --surface-3:#E6E6E6;
+
+  --t1:#262626;
+  --t2:#4d4d4d;
+  --t3:#808080;
+  --border:#E6E6E6;
+
+  --on-dark-1:#FFFFFF;
+  --on-dark-2:#cccccc;
+  --on-dark-3:#999999;
+  --border-dark:rgba(255,255,255,.16);
+
+  --dark:linear-gradient(135deg,#2f2f2f 0%,#121212 100%);
+
+  --shadow-sm:0 1px 3px rgba(0,0,0,.10);
+  --shadow-md:0 10px 30px rgba(0,0,0,.14);
+
+  --radius:4px;
+  --radius-md:8px;
+
+  --max:1240px;
+  --font-base:'ChevySans','Archivo',Arial,sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-base);color:var(--t1);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+.container{width:min(var(--max),calc(100% - 48px));margin-inline:auto}
+
+/* ===== Tipografia ===== */
+.eyebrow{font-size:.8rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);display:inline-flex;align-items:center;gap:10px;margin-bottom:14px}
+.eyebrow::before{content:"";width:26px;height:2px;background:var(--accent)}
+h1,h2{font-family:var(--font-base);font-weight:500;font-style:italic;text-transform:uppercase;line-height:1.12}
+h1{font-size:clamp(1.8rem,3.6vw,2.6rem)}
+h2{font-size:clamp(1.5rem,2.7vw,2.1rem);color:var(--primary-deep);margin-bottom:14px}
+.accent{color:var(--accent)}
+
+/* ===== Botões ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--font-base);font-weight:600;font-size:1rem;padding:15px 30px;border-radius:var(--radius);border:2px solid transparent;cursor:pointer;transition:background .18s ease,color .18s ease,transform .18s ease;white-space:nowrap}
+.btn-primary{background:var(--btn-fill);color:#fff}
+.btn-primary:hover{background:var(--btn-fill-deep)}
+.btn-accent{background:var(--accent);color:var(--primary-deeper)}
+.btn-accent:hover{background:var(--accent-deep)}
+.btn-outline{background:transparent;color:var(--primary);border-color:var(--primary)}
+.btn-outline:hover{background:var(--primary);color:#fff}
+
+/* ===== Header ===== */
+.header{position:sticky;top:0;z-index:50;background:rgba(18,18,18,.92);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border-dark)}
+.header .container{display:flex;align-items:center;justify-content:space-between;padding-block:14px}
+.brand img{height:38px;width:auto;display:block}
+.nav{display:flex;align-items:center;gap:30px}
+.nav a.link{color:var(--on-dark-2);font-size:.95rem;font-weight:600}
+.nav a.link:hover{color:#fff}
+.header .btn{padding:11px 22px;font-size:.9rem}
+
+/* ===== Hero (banner desktop 2506x760) ===== */
+.hero{
+  background:linear-gradient(90deg, rgba(12,12,12,.78) 0%, rgba(12,12,12,.45) 38%, rgba(12,12,12,.05) 62%, rgba(12,12,12,0) 100%), url('images-ofertas/banner-desktop.png') center/cover no-repeat;
+  color:#fff;min-height:760px;display:flex;align-items:center;
+}
+.hero .container{text-align:left}
+.hero .eyebrow{color:var(--accent)}
+.hero h1{color:#fff;margin:0 0 16px;max-width:17ch}
+.hero p{color:#e6e6e6;font-size:1.08rem;max-width:46ch;margin:0}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px;justify-content:flex-start}
+
+/* ===== Barra de filtros (visual — categorias) ===== */
+.filters{background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:69px;z-index:40}
+.filters .container{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:16px}
+.chip{font-size:.92rem;font-weight:600;color:var(--t2);background:#fff;border:1px solid var(--border);border-radius:var(--radius-pill,100px);padding:9px 18px;border-radius:100px;cursor:pointer;transition:all .15s ease}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chip.is-active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filters .count{margin-left:auto;font-size:.9rem;color:var(--t3);font-weight:600}
+
+/* ===== Catálogo (grid de cards) ===== */
+.catalog{padding:clamp(44px,6vw,72px) 0}
+.cat-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:34px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+
+.car-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;display:flex;flex-direction:column;transition:transform .2s ease,box-shadow .2s ease}
+.car-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md)}
+.car-thumb{position:relative;aspect-ratio:16/10;background:#f4f4f4 center/cover no-repeat;border-bottom:3px solid var(--accent)}
+.car-badge{position:absolute;top:12px;left:12px;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:4px;background:var(--accent);color:var(--primary-deeper)}
+.car-badge.blue{background:var(--btn-fill);color:#fff}
+.car-body{padding:18px 18px 20px;display:flex;flex-direction:column;flex:1;gap:5px}
+.car-tag{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-deep)}
+.car-name{font-family:var(--font-base);font-weight:700;font-size:1.2rem;color:var(--primary-deep);line-height:1.1}
+.car-spec{font-size:.85rem;color:var(--t3);margin-bottom:6px}
+.car-price{margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}
+.car-price small{display:block;font-size:.74rem;color:var(--t3);font-weight:600}
+.car-price strong{font-family:var(--font-base);font-weight:700;font-size:1.3rem;color:var(--primary-deep);letter-spacing:-.01em}
+.car-price strong span{font-size:.9rem;font-weight:600;color:var(--t2)}
+.car-cta{margin-top:14px;align-self:flex-start;color:var(--btn-fill);font-weight:700;font-size:.95rem;display:inline-flex;align-items:center;gap:8px;transition:gap .15s ease,color .15s ease}
+.car-cta .arrow{transition:transform .15s ease;font-size:1.05rem;line-height:1}
+.car-cta:hover{color:var(--btn-fill-deep)}
+.car-cta:hover .arrow{transform:translateX(4px)}
+
+/* ===== Faixa CTA ===== */
+.cta-band{background:var(--dark);color:#fff;padding:clamp(48px,6vw,72px) 0;border-top:4px solid var(--accent)}
+.cta-band .container{display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap}
+.cta-band h2{color:#fff;margin-bottom:8px}
+.cta-band p{color:var(--on-dark-2);max-width:52ch}
+
+/* ===== Footer ===== */
+.footer{background:var(--primary-deeper);color:var(--on-dark-2);padding:56px 0 28px}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:48px}
+.footer .brand img{height:50px;width:auto;margin-bottom:18px}
+.footer p{font-size:.95rem;line-height:1.7;max-width:50ch}
+.footer h4{color:#fff;font-weight:700;font-size:1rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em}
+.footer .legal p{font-size:.85rem;color:var(--on-dark-3);margin-bottom:12px;max-width:none}
+.footer-bottom{border-top:1px solid var(--border-dark);margin-top:44px;padding-top:22px;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;font-size:.85rem;color:var(--on-dark-3)}
+.footer-bottom a{color:var(--accent)}
+
+/* ===== WhatsApp flutuante ===== */
+.whatsapp-float{position:fixed;right:22px;bottom:22px;z-index:80;width:60px;height:60px;border-radius:50%;background:#25D366;box-shadow:0 10px 28px rgba(37,211,102,.45);display:grid;place-items:center}
+.whatsapp-float svg{width:32px;height:32px;fill:#fff}
+
+/* ===== Responsivo ===== */
+@media (max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:900px){.nav .link{display:none}}
+@media (max-width:820px){.grid{grid-template-columns:repeat(2,1fr)}}
+/* Hero mobile — banner vertical 500x760, texto centralizado na região superior */
+@media (max-width:700px){
+  .hero{
+    background:linear-gradient(180deg, rgba(12,12,12,.6) 0%, rgba(12,12,12,.2) 34%, rgba(12,12,12,0) 52%), url('images-ofertas/banner-mobile.png') center top/cover no-repeat;
+    min-height:640px;align-items:flex-start;
+  }
+  .hero .container{text-align:center;padding-top:52px}
+  .hero h1{margin:0 auto 14px;max-width:15ch}
+  .hero p{margin-inline:auto;max-width:34ch;font-size:1rem}
+  .hero-cta{justify-content:center}
+}
+@media (max-width:600px){
+  .container{width:calc(100% - 32px)}
+  .grid{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr;gap:32px}
+  .cta-band .container .btn{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="container">
+    <a class="brand" href="#" aria-label="Autorio">
+      <img src="images-ofertas/logo-autorio.png" alt="Autorio">
+    </a>
+    <nav class="nav" aria-label="Navegação principal">
+      <a class="link" href="#catalogo">Catálogo</a>
+      <a class="link" href="#ofertas">Ofertas</a>
+      <a class="link" href="#contato">Contato</a>
+      <a class="btn btn-primary" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Quero%20falar%20com%20o%20time%20comercial%20da%20Autorio%20sobre%20as%20ofertas%20de%20julho." target="_blank" rel="noopener">Falar com o time comercial</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="container">
+    <span class="eyebrow">Ofertas de Julho</span>
+    <h1>As melhores <span class="accent">ofertas</span> em Chevrolet 0 km</h1>
+    <p>Preços especiais, taxa 0%, bônus na troca e garantia de 5 anos em toda a linha. Aproveite enquanto durar o estoque.</p>
+    <div class="hero-cta">
+      <a class="btn btn-accent" href="#catalogo">Ver todas as ofertas</a>
+      <a class="btn btn-outline" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20as%20ofertas%20de%20julho%20da%20Autorio." target="_blank" rel="noopener" style="color:#fff;border-color:rgba(255,255,255,.5)">Falar no WhatsApp</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FILTROS (categorias — visual; filtro funcional exige um pequeno script) ===== -->
+<div class="filters">
+  <div class="container">
+    <button class="chip is-active" data-filter="all">Todos</button>
+    <button class="chip" data-filter="hatch">Hatch</button>
+    <button class="chip" data-filter="seda">Sedã</button>
+    <button class="chip" data-filter="suv">SUV</button>
+    <button class="chip" data-filter="picape">Picape</button>
+    <button class="chip" data-filter="monovolume">Monovolume</button>
+    <button class="chip" data-filter="eletrico">Elétrico</button>
+    <span class="count">14 ofertas</span>
+  </div>
+</div>
+
+<!-- ===== CATÁLOGO ===== -->
+<section id="catalogo" class="catalog">
+  <div class="container">
+    <div class="cat-head">
+      <div>
+        <span class="eyebrow" style="color:var(--accent-deep)">Ofertas de julho</span>
+        <h2>Escolha o seu <span class="accent">Chevrolet</span></h2>
+      </div>
+    </div>
+
+    <!-- Grade de cards com as ofertas reais (campanha válida até 31/07/2026, salvo indicado).
+         Para adicionar/editar, copie um bloco <article class="car-card"> e troque imagem/nome/valores. -->
+    <div class="grid">
+
+      <!-- ONIX 2026 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="car-thumb" style="background-image:url('images-ofertas/onix-2026.png')" role="img" aria-label="Chevrolet Onix 2026">
+          <span class="car-badge">Garantia 5 anos</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2026</span>
+          <h3 class="car-name">Onix</h3>
+          <p class="car-spec">Entrada + 72x · à vista R$ 89.900</p>
+          <div class="car-price"><small>Parcelas a partir de</small><strong>R$ 1.499<span>/mês</span></strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Onix%202026%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- S10 WT 2026/2027 -->
+      <article class="car-card" data-cat="picape">
+        <div class="car-thumb" style="background-image:url('images-ofertas/s10-wt.png')" role="img" aria-label="Chevrolet S10 WT">
+          <span class="car-badge">21% OFF</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Picape · 2026/2027</span>
+          <h3 class="car-name">S10 WT</h3>
+          <p class="car-spec">Exclusivo CNPJ ou Produtor Rural · Taxa 0%</p>
+          <div class="car-price"><small>Por</small><strong>R$ 241.376<span>,60</span></strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20na%20Chevrolet%20S10%20WT%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- ONIX ECO TURBO AT 2027 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="car-thumb" style="background-image:url('images-ofertas/onix-eco.png')" role="img" aria-label="Chevrolet Onix Eco Turbo"></div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2027</span>
+          <h3 class="car-name">Onix Eco Turbo AT</h3>
+          <p class="car-spec">Automático · Garantia 5 anos</p>
+          <div class="car-price"><small>A partir de</small><strong>R$ 99.990</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Onix%20Eco%20Turbo%20AT%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- ONIX ACTIV 2027 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="car-thumb" style="background-image:url('images-ofertas/onix-activ.png')" role="img" aria-label="Chevrolet Onix Activ"></div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2027</span>
+          <h3 class="car-name">Onix Activ</h3>
+          <p class="car-spec">Aventureiro · Garantia 5 anos</p>
+          <div class="car-price"><small>A partir de</small><strong>R$ 114.990</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Onix%20Activ%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- ONIX PLUS LTZ 2026 -->
+      <article class="car-card" data-cat="seda">
+        <div class="car-thumb" style="background-image:url('images-ofertas/onix-plus-ltz.png')" role="img" aria-label="Chevrolet Onix Plus LTZ">
+          <span class="car-badge blue">Taxa 0%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Sedã · 2026</span>
+          <h3 class="car-name">Onix Plus LTZ</h3>
+          <p class="car-spec">Taxa 0% · Garantia 5 anos</p>
+          <div class="car-price"><small>Entrada de</small><strong>R$ 79.990</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Onix%20Plus%20LTZ%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- ONIX PLUS PREMIER 2026 -->
+      <article class="car-card" data-cat="seda">
+        <div class="car-thumb" style="background-image:url('images-ofertas/onix-plus-premier.png')" role="img" aria-label="Chevrolet Onix Plus Premier">
+          <span class="car-badge blue">Taxa 0%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Sedã · 2026</span>
+          <h3 class="car-name">Onix Plus Premier</h3>
+          <p class="car-spec">Taxa 0% · Garantia 5 anos</p>
+          <div class="car-price"><small>Por</small><strong>R$ 119.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Onix%20Plus%20Premier%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- TRACKER AT 2026 -->
+      <article class="car-card" data-cat="suv">
+        <div class="car-thumb" style="background-image:url('images-ofertas/tracker-at.png')" role="img" aria-label="Chevrolet Tracker AT">
+          <span class="car-badge blue">Taxa 0%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2026</span>
+          <h3 class="car-name">Tracker AT</h3>
+          <p class="car-spec">Bônus na troca · Taxa 0%</p>
+          <div class="car-price"><small>Por</small><strong>R$ 119.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Tracker%20AT%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- TRACKER PREMIER 2026 -->
+      <article class="car-card" data-cat="suv">
+        <div class="car-thumb" style="background-image:url('images-ofertas/tracker-premier.png')" role="img" aria-label="Chevrolet Tracker Premier">
+          <span class="car-badge blue">Taxa 0%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2026</span>
+          <h3 class="car-name">Tracker Premier</h3>
+          <p class="car-spec">Taxa 0% na troca · Garantia 5 anos</p>
+          <div class="car-price"><small>Por</small><strong>R$ 149.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Tracker%20Premier%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- SONIC PREMIER 2027 -->
+      <article class="car-card" data-cat="suv">
+        <div class="car-thumb" style="background-image:url('images-ofertas/sonic-premier.png')" role="img" aria-label="Chevrolet Sonic Premier">
+          <span class="car-badge blue">Taxa 0%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2027</span>
+          <h3 class="car-name">Sonic Premier</h3>
+          <p class="car-spec">Bônus na troca · Taxa 0%</p>
+          <div class="car-price"><small>A partir de</small><strong>R$ 129.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Sonic%20Premier%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- TRAILBLAZER 2026 -->
+      <article class="car-card" data-cat="suv">
+        <div class="car-thumb" style="background-image:url('images-ofertas/trailblazer.png')" role="img" aria-label="Chevrolet Trailblazer">
+          <span class="car-badge">Pronta entrega</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2026</span>
+          <h3 class="car-name">Trailblazer</h3>
+          <p class="car-spec">High Country · Pronta entrega</p>
+          <div class="car-price"><small>Por</small><strong>R$ 389.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Trailblazer%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- MONTANA LTZ 2026 -->
+      <article class="car-card" data-cat="picape">
+        <div class="car-thumb" style="background-image:url('images-ofertas/montana-ltz.png')" role="img" aria-label="Chevrolet Montana LTZ">
+          <span class="car-badge blue">Taxa 0%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Picape · 2026</span>
+          <h3 class="car-name">Montana LTZ</h3>
+          <p class="car-spec">Taxa 0% · Garantia 5 anos</p>
+          <div class="car-price"><small>Por</small><strong>R$ 139.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20na%20Chevrolet%20Montana%20LTZ%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- MONTANA LS 2026 -->
+      <article class="car-card" data-cat="picape">
+        <div class="car-thumb" style="background-image:url('images-ofertas/montana.png')" role="img" aria-label="Chevrolet Montana LS">
+          <span class="car-badge">Taxa 0,99%</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Picape · 2026</span>
+          <h3 class="car-name">Montana LS</h3>
+          <p class="car-spec">Taxa 0,99% · CNPJ e Produtor Rural</p>
+          <div class="car-price"><small>Entrada de</small><strong>R$ 58.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20na%20Chevrolet%20Montana%20LS%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- SPIN PREMIER 2026 -->
+      <article class="car-card" data-cat="monovolume">
+        <div class="car-thumb" style="background-image:url('images-ofertas/spin-premiere.png')" role="img" aria-label="Chevrolet Spin Premier">
+          <span class="car-badge blue">7 lugares</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Monovolume · 2026</span>
+          <h3 class="car-name">Spin Premier</h3>
+          <p class="car-spec">7 lugares · Taxa 0%</p>
+          <div class="car-price"><small>Entrada de</small><strong>R$ 96.900</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20na%20Chevrolet%20Spin%20Premier%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+      <!-- SPARK ACTIV EUV 2026 -->
+      <article class="car-card" data-cat="eletrico">
+        <div class="car-thumb" style="background-image:url('images-ofertas/spark-activ.png')" role="img" aria-label="Chevrolet Spark Activ EUV">
+          <span class="car-badge blue">Elétrico</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Elétrico · 2026</span>
+          <h3 class="car-name">Spark Activ EUV</h3>
+          <p class="car-spec">100% elétrico · Taxa 0%</p>
+          <div class="car-price"><small>A partir de</small><strong>R$ 144.990</strong></div>
+          <a class="car-cta" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Tenho%20interesse%20no%20Chevrolet%20Spark%20Activ%20EUV%20-%20Autorio." target="_blank" rel="noopener">Tenho interesse <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAIXA CTA ===== -->
+<section id="ofertas" class="cta-band">
+  <div class="container">
+    <div>
+      <h2>Não achou o modelo <span class="accent">ideal</span>?</h2>
+      <p>Fale com o time comercial da Autorio e descubra todas as ofertas e condições disponíveis para o seu perfil.</p>
+    </div>
+    <a class="btn btn-accent" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Quero%20ver%20todas%20as%20ofertas%20de%20julho%20da%20Autorio." target="_blank" rel="noopener">Ver todas as ofertas</a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer id="contato" class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="#" aria-label="Autorio"><img src="images-ofertas/logo-autorio.png" alt="Autorio"></a>
+        <p>Concessionária Chevrolet Autorio. Ofertas especiais em toda a linha de veículos 0 km, com atendimento dedicado do primeiro contato à entrega.</p>
+      </div>
+      <div class="legal">
+        <h4>Informações legais</h4>
+        <p>Valores, modelos participantes, condições comerciais e opções de financiamento são meramente ilustrativos e podem sofrer alterações sem aviso prévio.</p>
+        <p>Ofertas válidas até 31/07/2026 ou enquanto durar o estoque, sujeitas à análise de crédito, disponibilidade de veículos e condições vigentes. Imagens meramente ilustrativas.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© Chevrolet. Todos os direitos reservados.</span>
+      <span>Feito por <a href="#">3ADS</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== WhatsApp flutuante ===== -->
+<a class="whatsapp-float" href="https://wa.me/55XXXXXXXXXXX?text=Ol%C3%A1!%20Quero%20falar%20sobre%20as%20ofertas%20de%20julho%20da%20Autorio." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+</a>
+
+<script>
+/* Filtro de categorias (único script da página) */
+(function(){
+  var chips = document.querySelectorAll('.filters .chip');
+  var cards = document.querySelectorAll('.car-card');
+  var count = document.querySelector('.filters .count');
+  function apply(f){
+    var n = 0;
+    cards.forEach(function(c){
+      var show = (f === 'all' || c.dataset.cat === f);
+      c.style.display = show ? '' : 'none';
+      if (show) n++;
+    });
+    if (count) count.textContent = n + (n === 1 ? ' oferta' : ' ofertas');
+  }
+  chips.forEach(function(ch){
+    ch.addEventListener('click', function(){
+      chips.forEach(function(x){ x.classList.remove('is-active'); });
+      ch.classList.add('is-active');
+      apply(ch.dataset.filter);
+    });
+  });
+})();
+</script>
+</body>
+</html>

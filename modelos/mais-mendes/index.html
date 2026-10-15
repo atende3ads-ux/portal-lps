@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>Mais Mendes Distribuidora | Protótipo do e-commerce</title>
+  <meta name="description" content="Protótipo de navegação do e-commerce da Mais Mendes Distribuidora (tema Ipanema, Nuvemshop).">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="assets/css/style.css?v=20261014a">
+</head>
+<body data-pagina="home">
+  <div id="cabecalho"></div>
+
+  <main id="conteudo">
+    <!-- Banner rotativo. Arte: 1580x790 (desktop) e 820x1100 (mobile) -->
+    <section class="hero" aria-roledescription="carrossel" aria-label="Destaques">
+      <div class="hero-trilho" id="hero-trilho">
+
+        <article class="slide" aria-roledescription="slide" aria-label="1 de 4">
+          <div class="slide-foto" style="background-image:url('assets/img/banners/hero-atendente.jpg');background-position:72% 18%"></div>
+          <div class="hero-faixas" aria-hidden="true"></div>
+          <div class="container">
+            <span class="tag"><span>Elétrica · Hidráulica · Iluminação · Ferramentas</span></span>
+            <h1>Sua obra com preço, frete e prazo <em>na hora</em></h1>
+            <p>Monte seu orçamento em minutos, sem cadastro e sem esperar retorno.</p>
+            <div class="hero-botoes">
+              <a class="btn btn-primario" href="categoria.html">Ver produtos</a>
+              <a class="btn btn-linha-claro" href="#como-funciona">Como funciona</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="slide" aria-roledescription="slide" aria-label="2 de 4">
+          <div class="slide-foto" style="background-image:url('assets/img/banners/hero-cabos.jpg')"></div>
+          <div class="container">
+            <span class="tag"><span>Fios e cabos</span></span>
+            <h2>Cabos Lamesa a partir de <em>R$&nbsp;147</em></h2>
+            <p>Rolo de 100 m, de 1,5 a 10 mm². Qualidade que garante segurança em cada instalação.</p>
+            <div class="hero-botoes">
+              <a class="btn btn-primario" href="produto.html?p=cabo-flexivel-450-750v-lamesa-rolo-100-m">Escolher a bitola</a>
+              <a class="btn btn-linha-claro" href="categoria.html?c=material-eletrico">Ver material elétrico</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="slide" aria-roledescription="slide" aria-label="3 de 4">
+          <div class="slide-foto" style="background-image:url('assets/img/banners/hero-ferramentas.jpg');background-position:80% 50%"></div>
+          <div class="container">
+            <span class="tag"><span>Ofertas da semana</span></span>
+            <h2>Ferramentas com até <em>15%&nbsp;OFF</em></h2>
+            <p>Stanley, DeWalt e Wesco para quem vive de obra.</p>
+            <div class="hero-botoes">
+              <a class="btn btn-primario" href="categoria.html?c=ferramentas-eletricas-e-manuais">Ver ofertas</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="slide" aria-roledescription="slide" aria-label="4 de 4">
+          <div class="slide-foto" style="background-image:url('assets/img/banners/hero-profissionais.jpg');background-position:70% 40%"></div>
+          <div class="container">
+            <span class="tag"><span>Parceria Mais Mendes + CREA-GO</span></span>
+            <h2>Seu registro no CREA-GO vale <em>5% de desconto</em></h2>
+            <p>E mais 3% de cashback para a próxima compra, em pedidos de qualquer valor. Cadastre uma vez e compre sempre com o seu preço.</p>
+            <div class="hero-botoes">
+              <a class="btn btn-primario" href="#" data-acao="cadastro" data-tipo="crea">Cadastrar meu registro</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+      <button class="hero-seta hero-ant" data-passo-hero="-1" aria-label="Banner anterior">
+        <svg class="ico" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+      </button>
+      <button class="hero-seta hero-prox" data-passo-hero="1" aria-label="Próximo banner">
+        <svg class="ico" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      </button>
+      <div class="hero-pontos" id="hero-pontos"></div>
+    </section>
+
+    <!-- Banners de categoria -->
+    <section class="secao" aria-label="Principais categorias">
+      <div class="container">
+        <div class="banners" id="banners"></div>
+      </div>
+    </section>
+
+    <!-- Como funciona -->
+    <section class="secao secao-m secao-cinza" id="como-funciona">
+      <div class="container">
+        <div class="sec-cab">
+          <div>
+            <h2 class="sec-titulo">Orçamento pronto em 3 passos</h2>
+            <p class="sec-sub">Tão simples quanto pedir no balcão, só que sem fila.</p>
+          </div>
+        </div>
+        <div class="passos">
+          <div class="passo">
+            <div class="passo-n">01</div>
+            <h3>Escolha os produtos</h3>
+            <p>Busque pelo nome ou navegue pelas categorias e toque em <strong>Adicionar</strong>.</p>
+          </div>
+          <div class="passo">
+            <div class="passo-n">02</div>
+            <h3>Informe seu CEP</h3>
+            <p>O frete e o prazo de entrega aparecem na hora, antes de qualquer cadastro.</p>
+          </div>
+          <div class="passo">
+            <div class="passo-n">03</div>
+            <h3>Confira o total e finalize</h3>
+            <p>Pague com Pix, cartão ou boleto, ou envie o orçamento para o nosso WhatsApp.</p>
+          </div>
+        </div>
+        <div class="passos-cta">
+          <a class="btn btn-escuro" href="categoria.html">Começar meu orçamento</a>
+          <p>O total acompanha você durante toda a navegação.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Marcas parceiras: logos em faixa contínua (no tema, conforme o Thigas confirmar o carrossel) -->
+    <section class="secao marcas-secao" aria-labelledby="marcas-titulo">
+      <div class="container">
+        <div class="sec-cab"><h2 class="sec-titulo" id="marcas-titulo">Marcas parceiras</h2></div>
+        <div class="marcas" id="marcas"></div>
+      </div>
+    </section>
+
+    <!-- Lista de produtos 1 -->
+    <section class="secao secao-gg">
+      <div class="container">
+        <div class="sec-cab">
+          <h2 class="sec-titulo">Mais procurados</h2>
+          <a class="link-seta" href="categoria.html">Ver todos</a>
+        </div>
+        <div class="grade rolagem" id="mais-procurados"></div>
+      </div>
+    </section>
+
+    <!-- Card para CNPJ: fica metade sobre a seção de categorias -->
+    <section class="faixa-area" aria-label="Condições para empresas">
+      <div class="container">
+        <div class="faixa">
+          <small>Para empresas e grandes volumes</small>
+          <h2>Condições especiais para CNPJ</h2>
+          <p>Cadastre o CNPJ da sua construtora, loja ou indústria e compre sempre pela tabela de atacado.</p>
+          <a class="btn btn-primario" href="#" data-acao="cadastro" data-tipo="cnpj">Cadastrar minha empresa</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categorias em destaque -->
+    <section class="secao secao-cinza secao-sob-faixa">
+      <div class="container">
+        <div class="sec-cab"><h2 class="sec-titulo">Compre por categoria</h2></div>
+        <div class="cats" id="categorias"></div>
+      </div>
+    </section>
+
+    <!-- Lista de produtos 2 -->
+    <section class="secao secao-g">
+      <div class="container">
+        <div class="sec-cab">
+          <h2 class="sec-titulo">Ferramentas para quem vive de obra</h2>
+          <a class="link-seta" href="categoria.html?c=ferramentas-eletricas-e-manuais">Ver todas</a>
+        </div>
+        <div class="grade rolagem" id="ferramentas"></div>
+      </div>
+    </section>
+
+    <!-- Ícones com texto -->
+    <section class="secao secao-cinza" aria-label="Por que comprar na Mais Mendes">
+      <div class="container">
+        <div class="selos">
+          <div class="selo">
+            <svg class="ico" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+            <div><strong>Compra segura</strong><span>Pagamento protegido e nota fiscal em todos os pedidos.</span></div>
+          </div>
+          <div class="selo">
+            <svg class="ico" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>
+            <div><strong>Entrega ágil</strong><span>Até 24h em Goiânia e região e envio para todo o Brasil.</span></div>
+          </div>
+          <div class="selo">
+            <svg class="ico" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6" rx="1.5"/><rect x="17.5" y="13" width="4" height="6" rx="1.5"/><path d="M19.5 19a4 4 0 0 1-4 3H13"/></svg>
+            <div><strong>Atendimento técnico</strong><span>Fale com quem entende de obra antes de comprar.</span></div>
+          </div>
+          <div class="selo">
+            <svg class="ico" width="32" height="32" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 7 5-3 5 3-1.5-7M9.5 9l1.8 1.8L14.8 7"/></svg>
+            <div><strong>Parceira CREA</strong><span>Selo de parceria e produtos com certificado de qualidade.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Newsletter -->
+    <section class="secao news">
+      <div class="container">
+        <h2>Receba ofertas para a sua obra</h2>
+        <p>Promoções e novidades direto no seu e-mail.</p>
+        <form id="news">
+          <label class="sr-only" for="email">Seu e-mail</label>
+          <input id="email" type="email" placeholder="Seu e-mail" required>
+          <button class="btn btn-primario">Quero receber</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape" id="rodape"></footer>
+
+  <script src="assets/js/data.js?v=20261014a"></script>
+  <script src="assets/js/app.js?v=20261014a"></script>
+</body>
+</html>

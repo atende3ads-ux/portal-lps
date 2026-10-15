@@ -1,0 +1,36 @@
+.form-card .lgpd a,
+.form-card .form-help a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.form-card .form-status {
+  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.form-card .form-status:empty {
+  display: none;
+}
+
+.form-card .form-status[data-state="success"] {
+  color: #176b42;
+}
+
+.form-card .form-status[data-state="error"] {
+  color: #a92721;
+}
+
+.form-card .form-help {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  opacity: .8;
+}
+
+.form-card .btn:disabled {
+  cursor: wait;
+  opacity: .65;
+}

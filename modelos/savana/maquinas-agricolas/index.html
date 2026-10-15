@@ -1,0 +1,1941 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" /><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Google Tag Manager -->
+    <!-- rastreio removido pelo portal -->
+    <!-- End Google Tag Manager -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/portal-lps/modelos/savana/assets/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/portal-lps/modelos/savana/assets/favicon-16.png" />
+    <link rel="icon" type="image/png" href="/portal-lps/modelos/savana/assets/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/portal-lps/modelos/savana/assets/favicon-180.png" />
+    <meta name="description" content="Encontre peças novas e usadas para máquinas agrícolas (tratores, colheitadeiras e pulverizadores) pelo WhatsApp. Savana Distribuidora de Auto Peças, atendimento na Região Norte e Mato Grosso." />
+    
+    <meta name="author" content="Savana Distribuidora de Auto Peças" />
+    <meta name="theme-color" content="#0047bd" />
+    <meta name="geo.region" content="BR-AM" />
+    <meta name="geo.placename" content="Amazonas" />
+    <link rel="canonical" href="https://savanadist.com.br/maquinas-agricolas/" />
+    <link rel="preload" as="image" href="assets/hero.png" fetchpriority="high" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:site_name" content="Savana Distribuidora de Auto Peças" />
+    <meta property="og:title" content="Auto Peças para Máquinas Agrícolas (Tratores e Colheitadeiras) | Savana" />
+    <meta property="og:description" content="Encontre peças novas e usadas para máquinas agrícolas (tratores, colheitadeiras e pulverizadores) pelo WhatsApp. Savana Distribuidora de Auto Peças, atendimento na Região Norte e Mato Grosso." />
+    <meta property="og:url" content="https://savanadist.com.br/maquinas-agricolas/" />
+    <meta property="og:image" content="https://savanadist.com.br/maquinas-agricolas/assets/hero.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Auto Peças para Máquinas Agrícolas (Tratores e Colheitadeiras) | Savana" />
+    <meta name="twitter:description" content="Encontre peças novas e usadas para máquinas agrícolas (tratores, colheitadeiras e pulverizadores) pelo WhatsApp. Savana Distribuidora de Auto Peças, atendimento na Região Norte e Mato Grosso." />
+    <meta name="twitter:image" content="https://savanadist.com.br/maquinas-agricolas/assets/hero.png" />
+    <title>Auto Peças para Máquinas Agrícolas (Tratores e Colheitadeiras) | Savana</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" /></noscript>
+    <style>
+      :root {
+        --color-primary: #0047bd;
+        --color-dark: #383838;
+        --color-background: #f4f4f5;
+        --color-white: #ffffff;
+        --color-muted: #6f7278;
+        --color-line: rgba(56, 56, 56, 0.12);
+        --color-blue-soft: #e6eefc;
+        --color-deep: #08224f;
+        --color-green: #25d366;
+        --color-whatsapp-text: #04371b;
+        --gradient-whatsapp: linear-gradient(135deg, #abffca 0%, #00ff5f 100%);
+        --font-family: "Figtree", sans-serif;
+        --letter-spacing-base: 0;
+        --shadow-soft: 0 18px 50px rgba(11, 32, 78, 0.1);
+        --shadow-strong: 0 26px 70px rgba(0, 71, 189, 0.22);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        letter-spacing: var(--letter-spacing-base);
+        color: var(--color-dark);
+        background: var(--color-background);
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      p,
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+
+      .container {
+        width: min(1200px, calc(100% - 32px));
+        margin-inline: auto;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        background: rgba(255, 255, 255, 0.94);
+        border-bottom: 1px solid rgba(56, 56, 56, 0.12);
+        backdrop-filter: blur(18px);
+      }
+
+      .header-inner {
+        min-height: 76px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .logo {
+        height: 40px;
+        width: auto;
+      }
+
+      .header-urgency {
+        flex: 1;
+        text-align: center;
+        color: rgba(56, 56, 56, 0.72);
+        font-size: 0.9rem;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+
+      .header-urgency a {
+        color: #023995;
+        text-decoration: underline;
+      }
+
+      .btn-header {
+        color: var(--color-primary);
+        background: rgba(255, 255, 255, 0.55);
+        border-color: rgba(0, 71, 189, 0.18);
+        flex: 0 0 auto;
+      }
+
+      .btn {
+        min-height: 50px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 0 22px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-size: 0.92rem;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .wa-icon {
+        flex: 0 0 auto;
+        width: 1.6em;
+        height: 1.6em;
+        fill: currentColor;
+      }
+
+      .btn-primary {
+        color: var(--color-whatsapp-text);
+        background: var(--gradient-whatsapp);
+        box-shadow: 0 16px 34px rgba(0, 200, 83, 0.3);
+      }
+
+      .btn-light {
+        color: var(--color-whatsapp-text);
+        background: var(--gradient-whatsapp);
+        box-shadow: 0 18px 38px rgba(0, 200, 83, 0.32);
+      }
+
+      .btn-ghost {
+        color: var(--color-white);
+        border-color: rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .section {
+        padding: 80px 0;
+      }
+
+      .section-blue {
+        color: var(--color-white);
+        background:
+          radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.18), transparent 34%),
+          linear-gradient(135deg, #00327f 0%, var(--color-primary) 48%, #061f49 100%);
+      }
+
+      .section-deep {
+        color: var(--color-white);
+        background:
+          radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.13), transparent 32%),
+          linear-gradient(135deg, #071b40 0%, #0b3478 62%, #06152f 100%);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 82px 0 0;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 0.92fr);
+        gap: 54px;
+        align-items: center;
+        padding-bottom: 58px;
+      }
+
+      .eyebrow {
+        width: fit-content;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 36px;
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--color-white);
+      }
+
+      h1,
+      h2 {
+        font-weight: 500;
+        line-height: 1.04;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        max-width: 700px;
+        margin-top: 24px;
+        font-size: clamp(1.6rem, 3.6vw, 2.8rem);
+      }
+
+      h2 {
+        font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+      }
+
+      .accent {
+        color: var(--color-primary);
+        font-weight: 700;
+      }
+
+      .section-blue .accent,
+      .section-deep .accent,
+      .hero .accent {
+        color: var(--color-white);
+        font-weight: 700;
+      }
+
+      .lead {
+        max-width: 620px;
+        margin-top: 22px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 1.05rem;
+        font-weight: 500;
+        line-height: 1.55;
+      }
+
+      .hero-actions,
+      .section-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 30px;
+      }
+
+      .hero-art {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 430px;
+      }
+
+      .hero-art::before {
+        content: "";
+        position: absolute;
+        inset: 0 -10% 0 6%;
+        border-radius: 480px 0 0 480px;
+        background: rgba(0, 0, 0, 0.16);
+      }
+
+      .hero-art img {
+        position: relative;
+        width: min(580px, 100%);
+        height: auto;
+        filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.3));
+      }
+
+      .hero-truck {
+        right: 0;
+        top: 18px;
+        width: min(520px, 96%);
+      }
+
+      .hero-pickup {
+        left: 0;
+        bottom: 22px;
+        width: min(470px, 88%);
+      }
+
+      .agri-hero-svg {
+        position: absolute;
+        right: 0;
+        top: 44px;
+        width: min(560px, 100%);
+        height: auto;
+        color: var(--color-white);
+        filter: drop-shadow(0 32px 48px rgba(0, 0, 0, 0.22));
+      }
+
+      .agri-hero-svg .panel {
+        fill: rgba(255, 255, 255, 0.94);
+      }
+
+      .agri-hero-svg .soft {
+        fill: #eaf1fb;
+      }
+
+      .agri-hero-svg .blue {
+        fill: var(--color-primary);
+      }
+
+      .agri-hero-svg .line {
+        fill: none;
+        stroke: #0047bd;
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .agri-hero-svg .white-line {
+        fill: none;
+        stroke: rgba(255, 255, 255, 0.9);
+        stroke-width: 4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .hero-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        padding: 30px 0 52px;
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+      }
+
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .stat-icon,
+      .audience-icon,
+      .feature-icon {
+        flex: 0 0 auto;
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        border-radius: 14px;
+        background: var(--color-white);
+        color: var(--color-primary);
+        font-weight: 700;
+      }
+
+      .stat-icon svg,
+      .audience-icon svg,
+      .feature-icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .stat strong {
+        display: block;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 0.92rem;
+        font-weight: 600;
+        line-height: 1.35;
+      }
+
+      .wave {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin-bottom: -1px;
+      }
+
+      .section-head {
+        max-width: 760px;
+        margin-bottom: 38px;
+      }
+
+      .section-head.center {
+        margin-inline: auto;
+        text-align: center;
+      }
+
+      .section-kicker {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 36px;
+        padding: 0 14px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(0, 71, 189, 0.16);
+        border-radius: 999px;
+        background: rgba(0, 71, 189, 0.07);
+        color: var(--color-primary);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .section-kicker::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .section-blue .section-kicker,
+      .section-deep .section-kicker {
+        border-color: rgba(255, 255, 255, 0.16);
+        background: rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .section-head p,
+      .split-copy p,
+      .plain-copy {
+        margin-top: 18px;
+        color: var(--color-muted);
+        font-size: 1.03rem;
+        font-weight: 500;
+        line-height: 1.6;
+      }
+
+      .section-blue .section-head p,
+      .section-deep .section-head p,
+      .section-blue .split-copy p,
+      .section-deep .plain-copy {
+        color: rgba(255, 255, 255, 0.76);
+      }
+
+      .audience-grid,
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+      }
+
+      .audience-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .audience-card,
+      .feature-card,
+      .model-card,
+      .faq details {
+        background: var(--color-white);
+        border: 1.5px solid var(--color-line);
+        border-radius: 20px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .audience-card {
+        min-height: 116px;
+        display: grid;
+        align-content: center;
+        justify-items: center;
+        gap: 16px;
+        padding: 22px;
+        color: var(--color-primary);
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .audience-icon {
+        color: var(--color-primary);
+        background: var(--color-blue-soft);
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: 44px;
+        align-items: center;
+      }
+
+      .challenge-copy .section-head {
+        margin-bottom: 0;
+      }
+
+      .challenge-copy .section-actions {
+        margin-top: 30px;
+      }
+
+      .image-frame {
+        overflow: hidden;
+        border-radius: 24px;
+        background: var(--color-blue-soft);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .image-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .challenge-image {
+        min-height: 420px;
+        border-radius: 28px;
+      }
+
+      .challenge-image img {
+        min-height: 420px;
+      }
+
+      .challenge-placeholder {
+        min-height: 420px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 1.5px solid var(--color-line);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at 50% 26%, rgba(0, 71, 189, 0.14), transparent 32%),
+          linear-gradient(135deg, #ffffff 0%, #eef3fb 100%);
+        box-shadow: var(--shadow-soft);
+      }
+
+      .challenge-placeholder svg {
+        width: min(260px, 58%);
+        height: auto;
+        color: rgba(0, 71, 189, 0.34);
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .models-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px;
+      }
+
+      .model-section .models-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .model-section .model-card {
+        flex: 0 1 calc((100% - 66px) / 4);
+        min-width: 230px;
+      }
+
+      .model-section .section-actions {
+        justify-content: center;
+      }
+
+      .model-card {
+        overflow: hidden;
+        border-radius: 30px;
+      }
+
+      .model-media {
+        height: 220px;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border-bottom: 1px solid var(--color-line);
+        background:
+          radial-gradient(circle at 50% 30%, rgba(0, 71, 189, 0.12), transparent 32%),
+          linear-gradient(135deg, #ffffff 0%, #eef3fb 100%);
+      }
+
+      .model-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .model-media svg {
+        width: min(180px, 58%);
+        height: auto;
+        color: rgba(0, 71, 189, 0.32);
+        stroke: currentColor;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .model-body {
+        padding: 26px;
+        text-align: center;
+      }
+
+      .model-body h3,
+      .feature-card h3,
+      .step-card h3,
+      .benefit h3 {
+        color: var(--color-dark);
+        font-size: 1.16rem;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .model-body p,
+      .feature-card p,
+      .step-card p,
+      .benefit p,
+      .faq p {
+        margin-top: 10px;
+        color: var(--color-muted);
+        font-size: 0.96rem;
+        font-weight: 500;
+        line-height: 1.55;
+      }
+
+      .card-link {
+        display: inline-flex;
+        justify-content: center;
+        margin-top: 18px;
+        color: var(--color-primary);
+        font-weight: 700;
+      }
+
+      .process-list {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .process-list::before {
+        content: "";
+        position: absolute;
+        top: 28px;
+        left: 28px;
+        right: calc(25% - 28px);
+        height: 2px;
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.48) 50%, transparent 50%);
+        background-size: 12px 2px;
+        z-index: 0;
+      }
+
+      .step-card {
+        position: relative;
+        z-index: 1;
+        min-height: 260px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        padding: 0 22px 0 0;
+      }
+
+      .step-number {
+        position: relative;
+        z-index: 1;
+        width: 56px;
+        height: 56px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 16px;
+        color: var(--color-primary);
+        background: var(--color-white);
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.14);
+        font-weight: 700;
+      }
+
+      .step-content {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .step-label {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        padding: 0 12px;
+        margin-bottom: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.76);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .step-card h3 {
+        color: var(--color-white);
+        min-height: 52px;
+      }
+
+      .step-card p {
+        color: rgba(255, 255, 255, 0.74);
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .feature-card {
+        padding: 28px;
+      }
+
+      .parts-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+      }
+
+      .part-card {
+        min-height: 116px;
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        padding: 24px;
+        background: var(--color-white);
+        border: 1.5px solid var(--color-line);
+        border-radius: 20px;
+        box-shadow: var(--shadow-soft);
+      }
+
+      .part-icon {
+        flex: 0 0 auto;
+        width: 46px;
+        height: 46px;
+        display: grid;
+        place-items: center;
+        margin-bottom: 6px;
+        border-radius: 13px;
+        color: var(--color-primary);
+        background: var(--color-blue-soft);
+      }
+
+      .part-icon svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .part-card strong {
+        color: var(--color-dark);
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .part-card span {
+        color: var(--color-muted);
+        font-size: 0.9rem;
+        font-weight: 500;
+        line-height: 1.45;
+      }
+
+      .parts-section .section-actions {
+        justify-content: center;
+      }
+
+      .feature-icon {
+        margin-bottom: 20px;
+        color: var(--color-primary);
+        background: var(--color-blue-soft);
+      }
+
+      .faq-wrap {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr);
+        gap: 44px;
+        align-items: start;
+      }
+
+      .faq {
+        display: grid;
+        gap: 14px;
+      }
+
+      .faq details {
+        overflow: hidden;
+      }
+
+      .faq details[open] {
+        border-color: rgba(0, 71, 189, 0.38);
+        box-shadow: 0 22px 46px rgba(0, 71, 189, 0.12);
+      }
+
+      .faq summary {
+        min-height: 74px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 0 24px;
+        color: var(--color-dark);
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+      }
+
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .faq summary::after {
+        content: "+";
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--color-white);
+        background: var(--color-primary);
+        font-size: 1.2rem;
+        font-weight: 700;
+      }
+
+      .faq details[open] summary::after {
+        content: "-";
+      }
+
+      .faq p {
+        padding: 0 24px 24px;
+      }
+
+      .final-grid {
+        display: block;
+        max-width: 760px;
+        margin-inline: auto;
+        text-align: center;
+      }
+
+      .final-grid .eyebrow {
+        margin-inline: auto;
+      }
+
+      .final-grid .lead {
+        margin-inline: auto;
+      }
+
+      .final-grid .section-actions {
+        justify-content: center;
+      }
+
+      .footer {
+        padding: 44px 0 34px;
+        color: rgba(255, 255, 255, 0.7);
+        background: #071426;
+      }
+
+      .footer-grid {
+        display: grid;
+        gap: 22px;
+        justify-items: center;
+        text-align: center;
+      }
+
+      .footer img {
+        height: 38px;
+        width: auto;
+        margin-bottom: 0;
+        filter: brightness(0) invert(1);
+      }
+
+      .footer-meta {
+        width: min(760px, 100%);
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 0.82rem;
+        font-weight: 500;
+        line-height: 1.5;
+      }
+
+      .footer-meta span:first-child {
+        text-align: left;
+      }
+
+      .footer-meta span:last-child {
+        text-align: right;
+      }
+
+      .whatsapp-float {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 40;
+        width: 60px;
+        height: 60px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: var(--color-white);
+        background: var(--gradient-whatsapp);
+        box-shadow: 0 18px 38px rgba(0, 200, 83, 0.45);
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+
+      .whatsapp-float svg {
+        width: 34px;
+        height: 34px;
+        fill: var(--color-white);
+        filter: drop-shadow(0 1px 2px rgba(4, 55, 21, 0.35));
+      }
+
+      /* Carrossel de peças */
+      .pcar {
+        position: relative;
+        padding: 0 56px;
+      }
+
+      .pcar-track {
+        display: flex;
+        gap: 22px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        padding: 6px 0;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      .pcar-track::-webkit-scrollbar {
+        display: none;
+      }
+
+      .pcar-card {
+        flex: 0 0 calc((100% - 44px) / 3);
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--color-white);
+        border: 1px solid var(--color-line);
+        border-radius: 24px;
+      }
+
+      .pcar-media {
+        flex: 0 0 240px;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        padding: 16px;
+        background:
+          radial-gradient(circle at 50% 40%, rgba(0, 71, 189, 0.06), transparent 62%),
+          linear-gradient(135deg, #ffffff 0%, #eef3fb 100%);
+        border-bottom: 1px solid var(--color-line);
+      }
+
+      .pcar-media img {
+        max-width: 80%;
+        max-height: 144px;
+        object-fit: contain;
+        mix-blend-mode: multiply;
+      }
+
+      .pcar-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .pcar-body h3 {
+        color: var(--color-dark);
+        font-size: 1rem;
+        font-weight: 700;
+        line-height: 1.3;
+      }
+
+      .pcar-divider {
+        width: 64px;
+        height: 1px;
+        margin: 16px 0 0;
+        background: var(--color-line);
+      }
+
+      .pcar-body .card-link {
+        margin-top: auto;
+        padding-top: 22px;
+      }
+
+      .pcar-arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: none;
+        border-radius: 50%;
+        color: var(--color-white);
+        background: var(--color-primary);
+        box-shadow: 0 10px 24px rgba(0, 71, 189, 0.32);
+        cursor: pointer;
+        z-index: 3;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+
+      .pcar-arrow svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+      }
+
+      .pcar-arrow:hover {
+        transform: translateY(-50%) scale(1.08);
+      }
+
+      .pcar-arrow.prev {
+        left: 0;
+      }
+
+      .pcar-arrow.next {
+        right: 0;
+      }
+
+      @media (max-width: 980px) {
+        .pcar {
+          padding: 0 48px;
+        }
+
+        .pcar-card {
+          flex-basis: calc((100% - 22px) / 2);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .pcar {
+          padding: 0 16px;
+        }
+
+        .pcar-card {
+          flex-basis: 80%;
+        }
+      }
+
+      @media (max-width: 980px) {
+        .header-urgency {
+          display: none;
+        }
+
+        .hero-grid,
+        .split,
+        .faq-wrap,
+        .final-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .hero-art {
+          display: none;
+        }
+
+        .hero-stats,
+        .audience-grid,
+        .features-grid,
+        .models-grid,
+        .parts-grid,
+        .process-list {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .process-list::before {
+          display: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .section {
+          padding: 62px 0;
+        }
+
+        .hero {
+          padding-top: 58px;
+        }
+
+        .header-inner {
+          min-height: auto;
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 12px;
+          padding: 12px 0;
+        }
+
+        .logo {
+          height: 32px;
+        }
+
+        .header-urgency {
+          justify-content: flex-start;
+          text-align: left;
+          font-size: 0.82rem;
+        }
+
+        .header-urgency .urgent-link {
+          min-height: 32px;
+          padding-inline: 12px;
+          font-size: 0.78rem;
+        }
+
+        .hero-stats,
+        .audience-grid,
+        .features-grid,
+        .models-grid,
+        .parts-grid,
+        .process-list {
+          grid-template-columns: 1fr;
+        }
+
+        .stat {
+          align-items: center;
+        }
+
+        .challenge-placeholder {
+          border-radius: 22px;
+        }
+
+        .footer-meta {
+          grid-template-columns: 1fr;
+        }
+
+        .footer-meta span,
+        .footer-meta span:first-child,
+        .footer-meta span:last-child {
+          text-align: center;
+        }
+
+        .step-card {
+          min-height: auto;
+        }
+      }
+
+      /* === Parallax (adaptive loading) === */
+      .parallax-on .hero-art img { will-change: transform; }
+
+      /* === FAQ (sanfona) === */
+      @keyframes faqReveal { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+      .faq details[open] > p { animation: faqReveal 0.28s ease; }
+      .faq summary::after { transition: transform 0.2s ease; }
+
+      /* === Responsivo: widescreen === */
+      @media (min-width: 1700px) {
+        .container { width: min(1320px, calc(100% - 56px)); }
+      }
+
+      /* === Responsivo: celulares pequenos === */
+      @media (max-width: 480px) {
+        .section { padding: 48px 0; }
+        .container { width: calc(100% - 24px); }
+        h1 { font-size: clamp(1.55rem, 7.4vw, 2rem); }
+        h2 { font-size: clamp(1.45rem, 6.4vw, 1.9rem); }
+        .hero { padding-top: 46px; }
+        .pecas-band { padding: 26px; }
+        .hero-actions .btn,
+        .section-actions .btn { width: 100%; }
+        .lead { font-size: 1rem; }
+      }
+
+      /* === Acessibilidade: reduzir movimento === */
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        .faq details[open] > p { animation: none; }
+      }
+    </style>
+
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "AutoPartsStore",
+      "@id": "https://savanadist.com.br/#business",
+      "name": "Savana Distribuidora de Auto Peças",
+      "url": "https://savanadist.com.br/",
+      "image": "https://savanadist.com.br/maquinas-agricolas/assets/hero.png",
+      "telephone": "+5592991833602",
+      "priceRange": "$$",
+      "description": "Encontre peças novas e usadas para máquinas agrícolas (tratores, colheitadeiras e pulverizadores) pelo WhatsApp. Savana Distribuidora de Auto Peças, atendimento na Região Norte e Mato Grosso.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "BR",
+        "addressRegion": "AM"
+      },
+      "areaServed": [
+        {
+          "@type": "State",
+          "name": "Amazonas"
+        },
+        {
+          "@type": "State",
+          "name": "Roraima"
+        },
+        {
+          "@type": "State",
+          "name": "Rondônia"
+        },
+        {
+          "@type": "State",
+          "name": "Acre"
+        },
+        {
+          "@type": "State",
+          "name": "Mato Grosso"
+        }
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+5592991833602",
+        "contactType": "sales",
+        "availableLanguage": [
+          "Portuguese"
+        ]
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Início",
+          "item": "https://savanadist.com.br/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Máquinas Agrícolas",
+          "item": "https://savanadist.com.br/maquinas-agricolas/"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Vocês atendem apenas a Região Norte?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "O foco principal está nos estados da Região Norte, mas também atendemos clientes de outras regiões."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Como faço para identificar a peça correta?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Envie o modelo da máquina, o código da peça ou uma foto do componente."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Vocês atendem fazendas e empresas?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. Atendemos produtores rurais, oficinas, empresas agrícolas, revendas e distribuidores."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "O atendimento é realizado pelo WhatsApp?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. A consulta pode ser iniciada diretamente pelo WhatsApp."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Trabalham com peças para tratores e colheitadeiras?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sim. Atendemos diferentes categorias de máquinas e equipamentos agrícolas."
+          }
+        }
+      ]
+    }
+  ]
+}
+    </script>
+  </head>
+  <body>
+    <!-- Google Tag Manager (noscript) -->
+    
+    <!-- End Google Tag Manager (noscript) -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <img class="logo" src="assets/Logo.png" width="226" height="52" alt="Savana Distribuidora de Auto Peças" />
+        <p class="header-urgency">
+          Quando uma máquina fica parada, a rotina também para.
+          <a href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20preciso%20consultar%20uma%20pe%C3%A7a%20com%20urg%C3%AAncia%20para%20uma%20m%C3%A1quina%20agr%C3%ADcola.%20Pode%20me%20ajudar%3F">Clique aqui e entre em contato.</a>
+        </p>
+        <a class="btn btn-header" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Consultar peça agora</a>
+      </div>
+    </header>
+
+    <main id="inicio">
+      <section class="hero section-blue">
+        <div class="container">
+          <div class="hero-grid">
+            <div>
+              <span class="eyebrow">Distribuidora de peças</span>
+              <h1>Distribuidora de peças para tratores, colheitadeiras e <span class="accent">máquinas agrícolas</span></h1>
+              <p class="lead">A Savana atende produtores rurais, oficinas, empresas agrícolas, revendas e operadores que precisam encontrar peças para tratores, colheitadeiras e máquinas agrícolas com mais rapidez e segurança.</p>
+              <p class="lead">Envie o modelo da máquina, o código da peça ou uma foto do componente. Nossa equipe auxilia na identificação da aplicação e consulta a disponibilidade para atendimento em Amazonas, Rondônia, Acre e toda a região Norte.</p>
+              <div class="hero-actions">
+                <a class="btn btn-light" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Consultar peça agora</a>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+              <img src="assets/hero.png" width="629" height="548" fetchpriority="high" decoding="async" alt="Peças de reposição para máquinas agrícolas" />
+            </div>
+          </div>
+          <div class="hero-stats" aria-label="Destaques do atendimento">
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 16h5l3-6h4l3 6h1"></path><circle cx="7" cy="17" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><path d="M12 10V6h4"></path><path d="M3 13h4"></path></svg></span>
+              <div>
+                <strong>Atendimento para máquinas agrícolas</strong>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path><path d="M8.4 11.2 10.2 13l3.6-4"></path></svg></span>
+              <div>
+                <strong>Suporte na identificação da aplicação</strong>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16v5H4z"></path><path d="M7 10v9"></path><path d="M17 10v9"></path><path d="M4 19h16"></path><path d="M9 14h6"></path></svg></span>
+              <div>
+                <strong>Consulta pelo WhatsApp</strong>
+              </div>
+            </div>
+            <div class="stat">
+              <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"></path><circle cx="12" cy="10" r="2.4"></circle></svg></span>
+              <div>
+                <strong>Atendimento no Amazonas, Roraima, Rondônia, Acre e Mato Grosso</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+        <svg class="wave" viewBox="0 0 1920 122.656" preserveAspectRatio="none" aria-hidden="true">
+          <path fill="#f4f4f5" d="M1920 122.656V4.74707C1920 4.74707 1433.5 71.2471 960 71.2471C486.502 71.2471 0 4.74704 0 4.74704V122.656H1920Z"></path>
+        </svg>
+      </section>
+
+      <!-- PEÇAS EM DESTAQUE (carrossel) -->
+      <section id="pecas-destaque" class="section">
+        <div class="container">
+          <div class="section-head center">
+            <h2>Peças <span class="accent">mais procuradas</span></h2>
+          </div>
+          <div class="pcar">
+            <button class="pcar-arrow prev" type="button" aria-label="Ver peças anteriores"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"></path></svg></button>
+            <div class="pcar-track" id="agriPartsTrack">
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/01-turbina-motor-6.8-usada.jpg" alt="Turbina motor 6.8 usada" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Turbina | Motor 6.8</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Turbina%20motor%206.8%20usada.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/02-bico-injetor-re36939-novo.jpg" alt="Bico injetor RE36939 novo" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Bico injetor | RE36939</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Bico%20injetor%20RE36939%20novo.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/03-bomba-injetora-combustivel-usada.jpg" alt="Bomba injetora de combustível usada" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Bomba injetora de combustível</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Bomba%20injetora%20de%20combust%C3%ADvel%20usada.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/04-valvula-solenoide-7j-usada.jpg" alt="Válvula solenoide linha 7J usada" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Válvula solenoide | Linha 7J</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20V%C3%A1lvula%20solenoide%20linha%207J%20usada.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/05-camisa-cilindro-7500-nova.jpg" alt="Camisa do cilindro 7500 nova" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Camisa do cilindro | 7500</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Camisa%20do%20cilindro%207500%20nova.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/06-virabrequim-usado.jpg" alt="Virabrequim usado" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Virabrequim</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Virabrequim%20usado.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/07-alternador-14v-90a-novo.jpg" alt="Alternador 14V 90A novo" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Alternador 14V 90A</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Alternador%2014V%2090A%20novo.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/08-bomba-combustivel-5e-6j-nova.png" alt="Bomba de combustível 5E 6J nova" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Bomba de combustível | 5E/6J</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Bomba%20de%20combust%C3%ADvel%205E%206J%20nova.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/09-compressor-ah169875-usado.jpg" alt="Compressor AH169875 usado" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Compressor | AH169875</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Compressor%20AH169875%20usado.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/10-evaporador-novo.jpg" alt="Evaporador novo" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Evaporador</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Evaporador%20novo.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/11-kit-diferencial-5e-novo.jpg" alt="Kit do diferencial 5E novo" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Kit do diferencial | 5E</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Kit%20do%20diferencial%205E%20novo.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/12-barra-tracao-cq29431-nova.jpg" alt="Barra de tração CQ29431 nova" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Barra de tração | CQ29431</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Barra%20de%20tra%C3%A7%C3%A3o%20CQ29431%20nova.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/13-carcaca-reducao-final-7500-usado.png" alt="Carcaça da redução final 7500 usada" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Carcaça da redução final | 7500</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Carca%C3%A7a%20da%20redu%C3%A7%C3%A3o%20final%207500%20usada.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/14-tdp-eixo-tomada-potencia-novo.jpg" alt="Eixo da tomada de potência TDP novo" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Eixo da TDP (tomada de potência)</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Eixo%20da%20TDP%20tomada%20de%20pot%C3%AAncia%20novo.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+              <article class="pcar-card">
+                <div class="pcar-media"><img src="assets/pecas/15-corrente-esteira-49l.jpg" alt="Corrente de esteira 49L" loading="lazy" /></div>
+                <div class="pcar-body"><h3>Corrente de esteira | 49L</h3><span class="pcar-divider"></span><a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20consultar%20a%20pe%C3%A7a%3A%20Corrente%20de%20esteira%2049L.%20Pode%20verificar%20disponibilidade%20e%20valor%3F">Consultar essa peça →</a></div>
+              </article>
+            </div>
+            <button class="pcar-arrow next" type="button" aria-label="Ver próximas peças"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"></path></svg></button>
+          </div>
+          <div class="section-actions" style="justify-content: center">
+            <a class="btn btn-primary" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Consultar peça agora</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="quem-atendemos" class="section">
+        <div class="container">
+          <div class="section-head center">
+            <span class="section-kicker">Quem depende da operação</span>
+            <h2>Quando a máquina para, o trabalho <span class="accent">não espera</span></h2>
+            <p>Tratores, colheitadeiras e pulverizadores fazem parte da rotina de quem precisa produzir, colher, transportar e manter a operação em andamento.</p>
+            <p>A Savana atende clientes que dependem desses equipamentos todos os dias.</p>
+          </div>
+          <div class="audience-grid">
+            <div class="audience-card"><span class="audience-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 18h16"></path><path d="M6 18V9l6-4 6 4v9"></path><path d="M9 18v-5h6v5"></path></svg></span><span>Produtores rurais</span></div>
+            <div class="audience-card"><span class="audience-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 18h18"></path><path d="M5 18v-6l7-5 7 5v6"></path><path d="M8 18v-4h8v4"></path><path d="M12 7V4"></path></svg></span><span>Fazendas</span></div>
+            <div class="audience-card"><span class="audience-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4.2 4.2 0 0 0-5.4 5.4l-4.9 4.9a2 2 0 0 0 3 3l4.9-4.9a4.2 4.2 0 0 0 5.4-5.4l-2.8 2.8-3-3 2.8-2.8Z"></path></svg></span><span>Oficinas agrícolas</span></div>
+            <div class="audience-card"><span class="audience-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="6" height="5" rx="1"></rect><rect x="14" y="5" width="6" height="5" rx="1"></rect><rect x="4" y="14" width="6" height="5" rx="1"></rect><rect x="14" y="14" width="6" height="5" rx="1"></rect></svg></span><span>Empresas de serviços agrícolas</span></div>
+            <div class="audience-card"><span class="audience-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M6 7v12h12V7"></path><path d="M9 11h6"></path><path d="M9 15h4"></path><path d="M8 4h8l1 3H7l1-3Z"></path></svg></span><span>Revendas e distribuidores</span></div>
+            <div class="audience-card"><span class="audience-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 16h5l3-6h4l3 6h1"></path><circle cx="7" cy="17" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><path d="M12 10V6h4"></path><path d="M3 13h4"></path></svg></span><span>Frotas de máquinas agrícolas</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container split">
+          <div class="challenge-copy">
+            <div class="section-head">
+              <span class="section-kicker">O desafio</span>
+              <h2>Nem sempre identificar a peça é a parte mais simples da <span class="accent">manutenção</span></h2>
+              <p>Em muitos casos, o código não está disponível. A peça apresenta desgaste. A identificação precisa ser feita a partir do modelo da máquina ou de uma foto do componente. Por isso, a equipe auxilia durante o atendimento para ajudar na localização da aplicação correta.</p>
+            </div>
+            <div class="section-actions">
+              <a class="btn btn-primary" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Falar com um especialista</a>
+            </div>
+          </div>
+          <div class="image-frame challenge-image">
+            <img src="assets/desafio.png" alt="Técnico medindo e identificando uma peça mecânica" loading="lazy" />
+          </div>
+        </div>
+      </section>
+
+      <section id="equipamentos" class="section model-section">
+        <div class="container">
+          <div class="section-head center">
+            <span class="section-kicker">Equipamentos agrícolas</span>
+            <h2>Peças para máquinas utilizadas diariamente no <span class="accent">campo</span></h2>
+            <p>Atendimento para diferentes categorias de equipamentos agrícolas utilizados em atividades de plantio, pulverização, colheita e transporte.</p>
+          </div>
+          <div class="models-grid">
+            <article class="model-card">
+              <div class="model-media"><img src="assets/modelo-tratores.png" alt="Tratores" loading="lazy" /></div>
+              <div class="model-body">
+                <h3>Tratores</h3>
+                <p>Peças para manutenção preventiva e corretiva.</p>
+                <a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F">Consultar disponibilidade →</a>
+              </div>
+            </article>
+            <article class="model-card">
+              <div class="model-media"><img src="assets/modelo-colheitadeiras.png" alt="Colheitadeiras" loading="lazy" /></div>
+              <div class="model-body">
+                <h3>Colheitadeiras</h3>
+                <p>Suporte na identificação da peça antes da consulta.</p>
+                <a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F">Consultar disponibilidade →</a>
+              </div>
+            </article>
+            <article class="model-card">
+              <div class="model-media"><img src="assets/modelo-pulverizadores.png" alt="Pulverizadores" loading="lazy" /></div>
+              <div class="model-body">
+                <h3>Pulverizadores</h3>
+                <p>Atendimento para diferentes sistemas e aplicações.</p>
+                <a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F">Consultar disponibilidade →</a>
+              </div>
+            </article>
+            <article class="model-card">
+              <div class="model-media"><img src="assets/modelo-maquinas.png" alt="Máquinas agrícolas" loading="lazy" /></div>
+              <div class="model-body">
+                <h3>Máquinas agrícolas</h3>
+                <p>Consulta de peças para manutenção e reposição.</p>
+                <a class="card-link" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F">Consultar disponibilidade →</a>
+              </div>
+            </article>
+          </div>
+          <div class="section-actions">
+            <a class="btn btn-primary" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Consultar disponibilidade →</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="pecas-procuradas" class="section parts-section">
+        <div class="container">
+          <div class="section-head center">
+            <span class="section-kicker">Categorias de peças</span>
+            <h2>Componentes utilizados na manutenção e reposição de equipamentos <span class="accent">agrícolas</span></h2>
+            <p>Consulte disponibilidade de filtros, bombas hidráulicas, rolamentos, correias, kits de vedação, eixos, cubos de roda, terminais de direção, peças para motores diesel, componentes de transmissão e outras peças agrícolas.</p>
+          </div>
+          <div class="parts-grid">
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 5h18"></path><path d="M6 5l4 6v6l4 2v-8l4-6"></path></svg></span><strong>Filtros</strong><span>Ar, óleo, combustível e hidráulicos.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3s5 5.5 5 9a5 5 0 0 1-10 0c0-3.5 5-9 5-9Z"></path><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5"></path></svg></span><strong>Bombas hidráulicas</strong><span>Itens para sistemas de força e acionamento.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3.4"></circle><path d="M12 3v3"></path><path d="M12 18v3"></path><path d="M3 12h3"></path><path d="M18 12h3"></path></svg></span><strong>Rolamentos</strong><span>Reposição para conjuntos de alta demanda.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="7.5" cy="12" r="4.5"></circle><circle cx="16.5" cy="12" r="4.5"></circle><path d="M7.5 7.5v9"></path><path d="M16.5 7.5v9"></path></svg></span><strong>Correias</strong><span>Aplicações para manutenção de rotina.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4"></circle></svg></span><strong>Kits de vedação</strong><span>Auxílio para identificar medidas e aplicação.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 12h16"></path><circle cx="6" cy="12" r="2.5"></circle><circle cx="18" cy="12" r="2.5"></circle><path d="M9 10v4"></path><path d="M15 10v4"></path></svg></span><strong>Eixos</strong><span>Componentes para transmissão e movimento.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 3.2v3.3"></path><path d="M20.8 12h-3.3"></path><path d="M12 20.8v-3.3"></path><path d="M3.2 12h3.3"></path></svg></span><strong>Cubos de roda</strong><span>Consulta por modelo da máquina ou referência.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"></circle><path d="M9 12h6"></path><path d="M15 12l4-4"></path><path d="M19 8h-3"></path><path d="M19 8v3"></path></svg></span><strong>Terminais de direção</strong><span>Peças para direção e articulações.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9h6V7h3v2h2l3 3v4h-3"></path><path d="M5 9v7h3"></path><circle cx="10" cy="16" r="2.4"></circle><path d="M3 11h2"></path></svg></span><strong>Motores diesel</strong><span>Componentes para manutenção e reposição.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="3.2"></circle><circle cx="16" cy="15" r="2.6"></circle><path d="M9 3.5v2"></path><path d="M9 12.5v2"></path><path d="M2.5 9h2"></path><path d="M13.5 9h2"></path></svg></span><strong>Transmissão</strong><span>Itens para máquinas agrícolas de trabalho.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5v6a6 6 0 0 0 6 6h3"></path><circle cx="5" cy="4" r="1.6"></circle><path d="M14 14l4 3-4 3v-2h-2v-2h2v-2Z"></path></svg></span><strong>Sistema hidráulico</strong><span>Mangueiras, conexões e componentes relacionados.</span></article>
+            <article class="part-card"><span class="part-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 16h4l3-6h4l3 6h2"></path><circle cx="7" cy="17" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><path d="M12 10V6h4"></path></svg></span><strong>Peças agrícolas</strong><span>Outros itens conforme disponibilidade.</span></article>
+          </div>
+          <div class="section-actions">
+            <a class="btn btn-primary" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Solicitar cotação →</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="como-funciona" class="section section-deep">
+        <div class="container">
+          <div class="section-head">
+            <span class="section-kicker">Como funciona</span>
+            <h2>Você envia as informações. A equipe cuida da <span class="accent">consulta.</span></h2>
+          </div>
+          <ol class="process-list">
+            <li class="step-card">
+              <span class="step-number">01</span>
+              <div class="step-content">
+                <span class="step-label">Passo 01</span>
+                <h3>Mostre o que está procurando</h3>
+                <p>Envie o modelo da máquina, o código da peça ou uma foto do componente.</p>
+              </div>
+            </li>
+            <li class="step-card">
+              <span class="step-number">02</span>
+              <div class="step-content">
+                <span class="step-label">Passo 02</span>
+                <h3>Evite dúvidas na identificação</h3>
+                <p>Nossa equipe auxilia na conferência das informações.</p>
+              </div>
+            </li>
+            <li class="step-card">
+              <span class="step-number">03</span>
+              <div class="step-content">
+                <span class="step-label">Passo 03</span>
+                <h3>Receba a consulta de disponibilidade</h3>
+                <p>Verificamos os itens disponíveis para atendimento.</p>
+              </div>
+            </li>
+            <li class="step-card">
+              <span class="step-number">04</span>
+              <div class="step-content">
+                <span class="step-label">Passo 04</span>
+                <h3>Continue o atendimento pelo WhatsApp</h3>
+                <p>Você recebe o retorno diretamente com a equipe da Savana.</p>
+              </div>
+            </li>
+          </ol>
+          <div class="section-actions">
+            <a class="btn btn-light" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Consultar peça pelo WhatsApp</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head center">
+            <span class="section-kicker">Por que muitos clientes começam por aqui?</span>
+            <h2>Antes de procurar disponibilidade, é preciso confirmar a aplicação <span class="accent">correta</span></h2>
+            <p>Nem sempre a referência da peça está disponível. Em muitos casos, uma foto ou o modelo do equipamento já ajudam a direcionar a consulta.</p>
+          </div>
+          <div class="features-grid">
+            <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"></circle><path d="m16 16 4 4"></path><path d="M8.4 11.2 10.2 13l3.6-4"></path></svg></span>
+              <h3>Ajuda para identificar a peça correta</h3>
+              <p>Suporte na análise das informações enviadas.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 11.4a8 8 0 0 1-11.8 7L4 19.5l1.2-4A8 8 0 1 1 20 11.4Z"></path><path d="M9 10h6"></path><path d="M9 13h4"></path></svg></span>
+              <h3>Atendimento direto pelo WhatsApp</h3>
+              <p>Sem formulários extensos.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 16h5l3-6h4l3 6h1"></path><circle cx="7" cy="17" r="2.5"></circle><circle cx="17" cy="17" r="2.5"></circle><path d="M12 10V6h4"></path><path d="M3 13h4"></path></svg></span>
+              <h3>Foco em máquinas agrícolas</h3>
+              <p>Atendimento voltado para tratores, colheitadeiras, pulverizadores e outros equipamentos utilizados no campo.</p>
+            </article>
+            <article class="feature-card">
+              <span class="feature-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 0 0-14 0c0 5.8 7 11 7 11Z"></path><circle cx="12" cy="10" r="2.4"></circle></svg></span>
+              <h3>Atendimento para a Região Norte</h3>
+              <p>Suporte para Amazonas, Rondônia, Acre e demais estados da região.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" class="section">
+        <div class="container faq-wrap">
+          <div class="section-head">
+            <span class="section-kicker">Antes de consultar uma peça</span>
+            <h2>Informações que costumam gerar <span class="accent">dúvidas</span></h2>
+            <p>Nem sempre o código da peça está disponível. Em muitos casos, o modelo da máquina ou uma foto do componente já ajudam a iniciar a consulta.</p>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Vocês atendem apenas a Região Norte?</summary>
+              <p>O foco principal está nos estados da Região Norte, mas também atendemos clientes de outras regiões.</p>
+            </details>
+            <details>
+              <summary>Como faço para identificar a peça correta?</summary>
+              <p>Envie o modelo da máquina, o código da peça ou uma foto do componente.</p>
+            </details>
+            <details>
+              <summary>Vocês atendem fazendas e empresas?</summary>
+              <p>Sim. Atendemos produtores rurais, oficinas, empresas agrícolas, revendas e distribuidores.</p>
+            </details>
+            <details>
+              <summary>O atendimento é realizado pelo WhatsApp?</summary>
+              <p>Sim. A consulta pode ser iniciada diretamente pelo WhatsApp.</p>
+            </details>
+            <details>
+              <summary>Trabalham com peças para tratores e colheitadeiras?</summary>
+              <p>Sim. Atendemos diferentes categorias de máquinas e equipamentos agrícolas.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-blue">
+        <div class="container final-grid">
+          <div>
+            <span class="eyebrow">Última etapa</span>
+            <h2>Precisa encontrar uma peça para seu <span class="accent">equipamento?</span></h2>
+            <p class="lead">Envie o modelo da máquina, o código da peça ou uma foto do componente. A equipe da Savana auxilia na identificação e consulta de disponibilidade.</p>
+            <div class="section-actions">
+              <a class="btn btn-light" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F"><svg class="wa-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>Consultar peça pelo WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer-grid">
+        <img src="assets/Logo.png" width="226" height="52" alt="Savana Distribuidora de Auto Peças" />
+        <div class="footer-meta">
+          <span>© Savana Distribuidora de Auto Peças | Todos os direitos reservados.</span>
+          <span>Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener noreferrer" style="text-decoration: underline;">3ADS</a></span>
+        </div>
+      </div>
+    </footer>
+
+    <a class="whatsapp-float" href="https://wa.me/5592991833602?text=Ol%C3%A1%21%20Vim%20pelo%20Google%20e%20gostaria%20de%20um%20or%C3%A7amento%20de%20pe%C3%A7as%20para%20m%C3%A1quinas%20agr%C3%ADcolas%20%28tratores%2C%20colheitadeiras%2C%20pulverizadores%29.%20Pode%20me%20ajudar%3F" aria-label="Consultar peça agrícola pelo WhatsApp">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16.04 4C9.96 4 5.02 8.94 5.02 15.02c0 2.06.57 4.06 1.65 5.82L4.8 27l6.34-1.84a11 11 0 0 0 4.9 1.18h.01c6.08 0 11.02-4.94 11.02-11.02C27.07 8.94 22.12 4 16.04 4Zm0 20.13h-.01a9.1 9.1 0 0 1-4.64-1.27l-.33-.2-3.76 1.09 1.1-3.67-.22-.34a9.06 9.06 0 0 1-1.39-4.83c0-5.02 4.09-9.1 9.1-9.1 2.43 0 4.71.95 6.43 2.67a9.05 9.05 0 0 1 2.66 6.43c0 5.02-4.08 9.1-9.1 9.1Zm5.27-6.81c-.29-.14-1.71-.84-1.97-.94-.26-.1-.46-.14-.65.14-.19.29-.74.94-.91 1.13-.17.19-.34.21-.63.07-.29-.14-1.22-.45-2.33-1.43-.86-.77-1.44-1.71-1.61-2-.17-.29-.02-.45.13-.59.13-.13.29-.34.43-.51.14-.17.19-.29.29-.48.1-.19.05-.36-.02-.51-.07-.14-.65-1.57-.89-2.15-.23-.56-.47-.48-.65-.49l-.55-.01c-.19 0-.5.07-.76.36-.26.29-1 .98-1 2.38 0 1.4 1.02 2.76 1.17 2.95.14.19 2.01 3.07 4.87 4.31.68.29 1.21.47 1.62.6.68.22 1.3.19 1.79.12.55-.08 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.26-.19-.55-.33Z"></path></svg>
+    </a>
+
+    <script>
+      (function () {
+        var track = document.getElementById("agriPartsTrack");
+        if (!track) return;
+        var prev = document.querySelector(".pcar-arrow.prev");
+        var next = document.querySelector(".pcar-arrow.next");
+        function step() {
+          var card = track.querySelector(".pcar-card");
+          if (!card) return track.clientWidth;
+          var gap = parseFloat(getComputedStyle(track).columnGap || "22") || 22;
+          return card.getBoundingClientRect().width + gap;
+        }
+        next.addEventListener("click", function () {
+          track.scrollBy({ left: step(), behavior: "smooth" });
+        });
+        prev.addEventListener("click", function () {
+          track.scrollBy({ left: -step(), behavior: "smooth" });
+        });
+        function update() {
+          var max = track.scrollWidth - track.clientWidth - 2;
+          prev.style.opacity = track.scrollLeft <= 2 ? "0.35" : "1";
+          next.style.opacity = track.scrollLeft >= max ? "0.35" : "1";
+        }
+        track.addEventListener("scroll", update);
+        window.addEventListener("resize", update);
+        update();
+      })();
+    </script>
+
+    <script>
+      (function () {
+        /* FAQ sanfona: abrir um fecha os demais */
+        var faqs = Array.prototype.slice.call(document.querySelectorAll(".faq details"));
+        faqs.forEach(function (d) {
+          d.addEventListener("toggle", function () {
+            if (!d.open) return;
+            faqs.forEach(function (o) { if (o !== d && o.open) o.open = false; });
+          });
+        });
+
+        /* Parallax com adaptive loading (desativa em conexao lenta, save-data,
+           pouca memoria, mobile, toque ou prefers-reduced-motion) */
+        function lowPower() {
+          try {
+            var c = navigator.connection || {};
+            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
+            if (c.saveData) return true;
+            if (c.effectiveType && /(^|-)(2g|3g)$/.test(c.effectiveType)) return true;
+            if (typeof navigator.deviceMemory === "number" && navigator.deviceMemory < 4) return true;
+            if (window.matchMedia("(max-width: 768px)").matches) return true;
+            if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return true;
+          } catch (e) {}
+          return false;
+        }
+        if (lowPower()) return;
+
+        var items = Array.prototype.slice
+          .call(document.querySelectorAll(".hero-art img"))
+          .map(function (el) { return { el: el, speed: 0.08 }; });
+        if (!items.length) return;
+        document.body.classList.add("parallax-on");
+
+        var vh = window.innerHeight;
+        var ticking = false;
+        function apply() {
+          ticking = false;
+          for (var i = 0; i < items.length; i++) {
+            var it = items[i];
+            var r = it.el.getBoundingClientRect();
+            var center = r.top + r.height / 2 - vh / 2;
+            var ty = Math.max(-26, Math.min(26, center * -it.speed));
+            it.el.style.transform = "translate3d(0," + ty.toFixed(1) + "px,0)";
+          }
+        }
+        function onScroll() {
+          if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", function () { vh = window.innerHeight; apply(); });
+        apply();
+      })();
+    </script>
+  </body>
+</html>

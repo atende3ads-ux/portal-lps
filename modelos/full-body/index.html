@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Google Tag Manager -->
+<!-- rastreio removido pelo portal -->
+<!-- End Google Tag Manager -->
+<!-- Microsoft Clarity -->
+<!-- rastreio removido pelo portal -->
+<!-- End Microsoft Clarity -->
+<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supreme Full Body Experience · Imersão para Médicos · 19 e 20 de outubro</title>
+<meta name="description" content="Imersão presencial de harmonização corporal premium para médicos. Dois dias na Clínica Supreme, em Goiânia, com os cinco protocolos Full Body e o módulo de gestão. 19 e 20 de outubro de 2026.">
+
+<link rel="canonical" href="https://fullbodyexperience.com.br/">
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Supreme Full Body Experience">
+<meta property="og:title" content="Supreme Full Body Experience · Imersão para Médicos">
+<meta property="og:description" content="Dois dias presenciais em Goiânia. Os cinco protocolos corporais Supreme e o modelo de gestão que sustenta o preço deles. 19 e 20 de outubro de 2026.">
+<meta property="og:url" content="https://fullbodyexperience.com.br/">
+<meta property="og:image" content="https://fullbodyexperience.com.br/images/og-cover.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="images/brand/favicon-supreme.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="images/hero-desktop.webp" media="(min-width:1001px)" fetchpriority="high">
+<link rel="preload" as="image" href="images/hero-mobile.webp" media="(max-width:1000px)" fetchpriority="high">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&family=Playfair+Display:ital,wght@1,400;1,500;1,600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   SUPREME FULL BODY EXPERIENCE — v2
+   Diagramação baseada na referência aprovada em 18/08:
+   sans geométrica dominante com mistura de peso (linha fina +
+   linha grossa), faixa diagonal com marquee entre blocos,
+   monograma gigante de marca ao fundo, CTA em pílula com degradê
+   e composições de imagem em perspectiva.
+   Identidade Supreme: dourado + itálico serifado como acento.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* superfícies */
+  --papel:      #F8F5F0;
+  --papel-2:    #F1ECE3;
+  --papel-3:    #E7DFD1;
+  --breu:       #16130F;
+  --breu-2:     #1E1A15;
+  --breu-3:     #272119;
+
+  /* tinta */
+  --tinta:      #17130F;
+  --tinta-2:    #5C5348;
+  --tinta-3:    #8A7F72;
+  --claro:      #F6F3EE;
+  --claro-2:    rgba(246,243,238,.70);
+  --claro-3:    rgba(246,243,238,.46);
+
+  /* dourado */
+  --ouro:       #C9A96A;
+  --ouro-txt:   #806024;   /* 5,3:1 sobre papel — texto e ícone em fundo claro */
+  --ouro-hero:  #74561F;   /* 5,2:1 sobre o creme da imagem do hero (#EBE0C9) */
+  --ouro-luz:   #EBD9AE;
+  --grad-cta:   linear-gradient(100deg,#6B4F1E 0%,#B08D45 48%,#7E5F24 100%);
+  --grad-faixa: linear-gradient(90deg,#8A6A28 0%,#C9A96A 42%,#A58440 78%,#7E5F24 100%);
+  --fio:        rgba(201,169,106,.30);
+  --fio-forte:  rgba(201,169,106,.58);
+  --fio-claro:  rgba(201,169,106,.22);
+
+  /* tipografia */
+  --sans:  "Poppins","Helvetica Neue",Arial,sans-serif;
+  --serif: "Playfair Display",Georgia,serif;
+
+  /* métrica */
+  --gutter: clamp(20px,5vw,60px);
+  --max: 1240px;
+  --r:    16px;
+  --r-sm: 10px;
+  --topo: 60px;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; scroll-padding-top:calc(var(--topo) + 18px); -webkit-text-size-adjust:100%; overflow-x:clip; }
+body{
+  margin:0; background:var(--papel); color:var(--tinta);
+  font-family:var(--sans); font-weight:300; font-size:16.5px; line-height:1.66;
+  -webkit-font-smoothing:antialiased; overflow-x:clip;
+}
+img,video{ max-width:100%; height:auto; display:block; }
+a{ color:inherit; text-decoration:none; }
+::selection{ background:var(--ouro); color:var(--breu); }
+
+h1,h2,h3,h4{ margin:0; line-height:1.1; letter-spacing:-.028em; font-weight:600; }
+.it{ font-family:var(--serif); font-style:italic; font-weight:500; letter-spacing:-.005em; }
+.dourado{ color:var(--ouro-txt); }
+.secao--breu .dourado{ color:var(--ouro-luz); }
+p{ margin:0 0 1.05em; }
+p:last-child{ margin-bottom:0; }
+
+.env{ width:100%; max-width:var(--max); margin-inline:auto; padding-inline:var(--gutter); position:relative; z-index:2; }
+.secao{ padding-block:clamp(68px,9vw,116px); position:relative; overflow:hidden; }
+.secao--alt{ background:var(--papel-2); }
+.secao--breu{ background:var(--breu); color:var(--claro); }
+.secao--breu h1,.secao--breu h2,.secao--breu h3{ color:var(--claro); }
+
+/* título em dois pesos — assinatura da referência */
+.tit{ font-size:clamp(29px,4.3vw,49px); font-weight:300; }
+.tit b{ display:block; font-weight:600; }
+.tit--centro{ text-align:center; margin-inline:auto; max-width:20ch; }
+.olho{
+  display:block; margin-bottom:16px;
+  font-size:10.5px; letter-spacing:.34em; text-transform:uppercase;
+  font-weight:500; color:var(--ouro-txt);
+}
+.secao--breu .olho{ color:var(--ouro-luz); }
+.olho--centro{ text-align:center; }
+.texto{ max-width:58ch; color:var(--tinta-2); font-size:clamp(15.5px,1.55vw,17.5px); }
+.texto b{ color:var(--tinta); font-weight:500; }
+.secao--breu .texto{ color:var(--claro-2); }
+.secao--breu .texto b{ color:var(--claro); font-weight:500; }
+.texto--centro{ margin-inline:auto; text-align:center; }
+
+/* monograma gigante ao fundo */
+.mono{
+  position:absolute; pointer-events:none; user-select:none; z-index:0;
+  font-family:var(--serif); font-style:italic; font-weight:600;
+  line-height:.78; color:transparent;
+  -webkit-text-stroke:1.5px rgba(201,169,106,.30);
+}
+.secao--breu .mono{ -webkit-text-stroke-color:rgba(201,169,106,.26); }
+.mono--dir{ right:-4vw; top:-6vh; font-size:clamp(300px,42vw,620px); }
+.mono--esq{ left:-9vw; top:8%; font-size:clamp(260px,34vw,500px); }
+.mono--cheio{ -webkit-text-stroke:0; color:rgba(201,169,106,.07); }
+
+/* ─── botões ─────────────────────────────────────────────────── */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:14px;
+  padding:17px 30px; border:0; border-radius:999px; cursor:pointer;
+  background:var(--grad-cta); color:#FBF7EF;
+  font-family:var(--sans); font-size:12.5px; font-weight:500;
+  letter-spacing:.15em; text-transform:uppercase; line-height:1;
+  box-shadow:0 10px 26px -14px rgba(107,79,30,.85);
+  transition:transform .3s cubic-bezier(.22,.61,.36,1), box-shadow .3s, filter .3s;
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:0 16px 34px -14px rgba(107,79,30,.95); filter:brightness(1.07); }
+.btn i{ font-style:normal; display:grid; place-items:center; width:20px; height:20px; flex:none; }
+.btn i svg{ width:15px; height:15px; }
+.btn--vazado{
+  background:transparent; color:var(--tinta); box-shadow:none;
+  border:1px solid var(--fio-forte);
+}
+.btn--vazado:hover{ background:var(--tinta); color:var(--papel); border-color:var(--tinta); filter:none; }
+.secao--breu .btn--vazado{ color:var(--claro); border-color:rgba(246,243,238,.34); }
+.secao--breu .btn--vazado:hover{ background:var(--claro); color:var(--breu); }
+.btn--bloco{ width:100%; }
+.btn--mini{ padding:11px 20px; font-size:11px; gap:9px; }
+.acoes{ display:flex; flex-wrap:wrap; gap:13px; margin-top:28px; }
+.acoes--centro{ justify-content:center; }
+
+/* ─── barra fixa superior ────────────────────────────────────── */
+.topo{
+  position:fixed; inset:0 0 auto; z-index:70; height:var(--topo); display:flex; align-items:center;
+  background:linear-gradient(92deg,#463414 0%,#6B4F1E 46%,#523E19 100%);
+  border-bottom:1px solid rgba(235,217,174,.28);
+  box-shadow:0 8px 24px -18px rgba(0,0,0,.75);
+  color:var(--claro);
+}
+.topo__in{ display:flex; align-items:center; gap:20px; width:100%; max-width:var(--max); margin-inline:auto; padding-inline:var(--gutter); }
+.topo .btn{ background:var(--ouro-luz); color:var(--breu); box-shadow:none; }
+.topo .btn:hover{ background:#FBF7EF; filter:none; }
+.topo__esc{ font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(246,243,238,.82); }
+.topo__esc b{ color:var(--ouro-luz); font-weight:600; }
+.relogio{ display:flex; align-items:center; gap:8px; margin-left:auto; font-variant-numeric:tabular-nums; }
+.relogio__un{ display:flex; align-items:baseline; gap:3px; }
+.relogio__n{ font-size:17px; font-weight:600; line-height:1; letter-spacing:-.02em; color:var(--claro); }
+.relogio__l{ font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(246,243,238,.68); }
+.relogio__sep{ color:rgba(235,217,174,.5); }
+
+/* ─── faixa diagonal com marquee ─────────────────────────────── */
+.faixa{ position:relative; height:0; z-index:5; }
+.faixa__fita{
+  position:absolute; top:0; left:-8%; width:116%; padding:13px 0;
+  background:var(--grad-faixa); overflow:hidden; display:flex;
+  box-shadow:0 12px 30px -20px rgba(0,0,0,.5);
+}
+/* as duas fitas se cruzam em cima da emenda das seções */
+.faixa__fita--a{ transform:translateY(-62%) rotate(-2.6deg); }
+.faixa__fita--b{ transform:translateY(-38%) rotate(1.9deg); opacity:.93; }
+.trilha{ display:flex; flex:none; gap:0; animation:corre 34s linear infinite; }
+.faixa__fita--b .trilha{ animation-duration:44s; animation-direction:reverse; }
+.trilha span{
+  flex:none; padding-inline:26px; white-space:nowrap;
+  font-size:clamp(11px,1.25vw,14px); font-weight:500; letter-spacing:.2em;
+  text-transform:uppercase; color:#FDFBF6;
+}
+.trilha span em{ font-family:var(--serif); font-style:italic; letter-spacing:.02em; text-transform:none; opacity:.9; }
+@keyframes corre{ from{ transform:translateX(0) } to{ transform:translateX(-50%) } }
+
+/* ─── hero ───────────────────────────────────────────────────── */
+/* A arte do hero é uma imagem de seção inteira, com o recorte da
+   idealizadora, os cartões e o monograma já embutidos. O creme da
+   imagem (#EBE0C9) é chapado, então o fundo da seção usa a mesma cor
+   e a arte é ancorada embaixo: sobra de altura vira creme liso, sem
+   emenda visível. Desktop: texto na metade esquerda livre.
+   Mobile: texto na metade de cima, com um espaçador reservando a
+   área da figura.                                                   */
+.hero{
+  position:relative; display:flex; align-items:center;
+  background-color:#EBE0C9;
+  background-image:url("images/hero-desktop.webp");
+  background-repeat:no-repeat;
+  /* a arte acompanha a ALTURA da seção, não a largura: quando o texto
+     pede mais altura, a figura cresce junto em vez de encolher. O
+     ponto 51% é exatamente onde o recorte começa na arte, então
+     ancorar aí mantém a figura na mesma posição em qualquer escala.  */
+  background-position:51% bottom;
+  background-size:auto 95%;   /* 95% e não 100%: a arte tem 9% de creme acima
+                                 da cabeça, e em 100% ela encostaria na barra fixa */
+  padding-top:calc(var(--topo) + clamp(26px,3vw,44px));
+  padding-bottom:0;
+  min-height:min(874px, 45.6vw);   /* 1920×874 → 1/2,197 */
+}
+.hero__txt{ width:min(48%,560px); padding-block:clamp(22px,3vw,40px); }
+.hero__vaga{ display:none; }       /* só no mobile, reserva a área da figura */
+
+.marca{ margin-bottom:20px; }
+.marca__link{ display:block; width:min(100%,464px); border-radius:4px; }
+.marca__link:focus-visible{ outline:2px solid var(--ouro-hero); outline-offset:4px; }
+.marca__tag{ display:block; width:100%; height:auto; }
+.hero h1{ font-size:clamp(30px,3.4vw,43px); font-weight:300; max-width:17ch; }
+.hero h1 b{ font-weight:600; }
+.hero h1 .dourado{ color:var(--ouro-hero); }
+.hero__sub{ margin-top:16px; max-width:44ch; color:var(--tinta-2); font-size:clamp(15px,1.45vw,17px); }
+.hero__sub b{ color:var(--tinta); font-weight:500; }
+.selos{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
+.selo{
+  display:inline-flex; align-items:center; gap:7px; padding:7px 13px; border-radius:999px;
+  border:1px solid rgba(116,86,31,.26); background:rgba(255,255,255,.42);
+  font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--tinta-2);
+}
+.selo b{ color:var(--ouro-hero); font-weight:600; }
+
+/* ─── seção só de gestão ───────────────────────────────────── */
+.gestao-dia{ display:grid; grid-template-columns:.82fr 1.18fr; gap:clamp(28px,4vw,60px); align-items:center; margin-top:44px; }
+.gestao-dia figure{ margin:0; position:relative; border-radius:var(--r); overflow:hidden; border:1px solid var(--fio); }
+.gestao-dia figure::after{ content:""; position:absolute; inset:0; background:var(--ouro); mix-blend-mode:multiply; opacity:.12; }
+.gestao-dia figcaption{
+  position:absolute; z-index:2; left:0; right:0; bottom:0; padding:22px 20px 18px;
+  background:linear-gradient(180deg,transparent,rgba(22,19,15,.86));
+  color:var(--claro); text-align:left;
+}
+.gestao-dia figcaption b{ display:block; font-size:18px; font-weight:600; letter-spacing:-.02em; }
+.gestao-dia figcaption span{ font-size:10.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--ouro-luz); font-weight:600; }
+
+/* ─── figura das etapas do método ──────────────────────────── */
+.etapas{ margin:0; display:grid; place-items:center; }
+.etapas img{ width:min(100%,520px); }
+
+/* ─── convite em vídeo ───────────────────────────────────────── */
+.convite__caixa{ position:relative; max-width:880px; margin:44px auto 0; }
+.player{
+  position:relative; border-radius:var(--r); overflow:hidden; background:var(--breu);
+  border:1px solid var(--fio); box-shadow:0 34px 70px -40px rgba(35,26,12,.62);
+  aspect-ratio:16/9; display:grid; place-items:center;
+}
+.player img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.5; }
+.player__btn{
+  position:relative; z-index:2; display:inline-flex; flex-direction:column; align-items:center; gap:14px;
+  background:none; border:0; cursor:pointer; color:var(--claro);
+  font-family:var(--sans); font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
+}
+.player__ico{
+  width:74px; height:74px; border-radius:50%; display:grid; place-items:center;
+  background:var(--grad-cta); box-shadow:0 14px 34px -14px rgba(0,0,0,.8);
+  transition:transform .3s;
+}
+.player__ico svg{ width:24px; height:24px; margin-left:3px; fill:#FBF7EF; }
+.player__btn:hover .player__ico{ transform:scale(1.07); }
+
+/* ─── blocos de 3 e de 4 ─────────────────────────────────────── */
+.trio{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(16px,2.2vw,26px); margin-top:46px; }
+.cartao{
+  padding:clamp(24px,2.6vw,34px); border-radius:var(--r);
+  border:1px solid var(--fio); background:rgba(255,255,255,.55);
+}
+.cartao__ico{
+  width:48px; height:48px; border-radius:14px; display:grid; place-items:center;
+  border:1px solid var(--fio); background:rgba(201,169,106,.13); color:var(--ouro-txt);
+}
+.cartao__ico svg{ width:24px; height:24px; }
+.cartao h3{ font-size:20px; margin:18px 0 10px; font-weight:600; }
+.cartao p{ font-size:15px; color:var(--tinta-2); }
+
+.passos{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(14px,2vw,22px); margin-top:44px; }
+.passo{ padding:26px 24px; border-radius:var(--r); border:1px solid var(--fio); background:rgba(255,255,255,.5); }
+.passo__n{ font-size:10.5px; letter-spacing:.22em; color:var(--ouro-txt); font-weight:600; }
+.passo h3{ font-size:20px; margin:12px 0 9px; font-weight:600; }
+.passo p{ font-size:14.5px; color:var(--tinta-2); }
+
+/* ─── os dois dias ───────────────────────────────────────────── */
+.dias{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(16px,2.2vw,26px); margin-top:48px; }
+.dia{
+  border-radius:var(--r); padding:clamp(26px,3vw,40px); position:relative; overflow:hidden;
+  border:1px solid var(--fio-claro); background:linear-gradient(165deg,rgba(201,169,106,.10),rgba(201,169,106,.02));
+}
+.dia--dois{ border-color:var(--fio-forte); background:linear-gradient(165deg,rgba(201,169,106,.19),rgba(201,169,106,.03)); }
+.dia__tag{ font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--ouro-luz); font-weight:600; }
+.dia__d{ display:flex; align-items:baseline; gap:12px; margin:14px 0 6px; }
+.dia__d strong{ font-size:clamp(48px,6vw,74px); font-weight:600; line-height:.9; letter-spacing:-.05em; }
+.dia__d span{ font-family:var(--serif); font-style:italic; font-size:clamp(17px,2vw,22px); color:var(--claro-2); }
+.dia__h{ font-size:11.5px; letter-spacing:.15em; text-transform:uppercase; color:var(--ouro-luz); }
+.dia h3{ font-size:clamp(21px,2.3vw,26px); margin:22px 0 10px; }
+.dia__desc{ color:var(--claro-2); font-size:15.5px; }
+.quem{ margin-top:24px; padding-top:20px; border-top:1px solid var(--fio-claro); }
+.quem dt{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--claro-3); margin-bottom:9px; }
+.quem dd{ margin:0 0 12px; font-size:15px; display:flex; gap:10px; align-items:flex-start; color:var(--claro-2); }
+.quem dd:last-child{ margin-bottom:0; }
+.quem dd b{ color:var(--claro); font-weight:500; }
+.quem i{ font-style:normal; flex:none; width:17px; }
+.quem .sim i{ color:var(--ouro-luz); }
+.quem .nao{ color:var(--claro-3); }
+
+/* ─── módulos: ícone + texto, sem composição ─────────────────── */
+.modulos{ display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(14px,1.9vw,22px); margin-top:30px; }
+.modulo{
+  padding:clamp(22px,2.4vw,30px); border-radius:var(--r);
+  border:1px solid var(--fio-claro);
+  background:linear-gradient(165deg,rgba(201,169,106,.075),rgba(201,169,106,.012));
+}
+.modulo--gestao{ border-color:var(--fio-forte); background:linear-gradient(165deg,rgba(201,169,106,.17),rgba(201,169,106,.03)); }
+.modulo__foto{
+  margin:calc(-1 * clamp(22px,2.4vw,30px)) calc(-1 * clamp(22px,2.4vw,30px)) 20px;
+  aspect-ratio:4/3; overflow:hidden; border-bottom:1px solid var(--fio-claro);
+  border-radius:var(--r-sm) var(--r-sm) 0 0; padding:0; background:none;
+}
+.modulo__foto img{ width:100%; height:100%; object-fit:cover; }
+.modulo__foto--professores{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--fio-claro); }
+.modulo__foto--professores img{ min-width:0; object-position:center top; }
+.modulo__ico{
+  width:44px; height:44px; border-radius:13px; display:grid; place-items:center; margin-bottom:16px;
+  border:1px solid var(--fio-claro); background:rgba(201,169,106,.10); color:var(--ouro-luz);
+}
+.modulo__ico svg{ width:22px; height:22px; }
+.modulo__dia{ font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--ouro-luz); font-weight:600; }
+.secao--breu h3.modulo__t{ font-size:19px; font-weight:600; margin:8px 0 9px; letter-spacing:-.02em; }
+.modulo__d{ font-size:14px; color:var(--claro-2); line-height:1.55; }
+
+/* ─── lista com marcadores ───────────────────────────────────── */
+.dupla{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(28px,4vw,64px); align-items:center; }
+.marcas{ list-style:none; margin:28px 0 0; padding:0; }
+.marcas li{ display:flex; gap:12px; align-items:flex-start; padding:9px 0; font-size:15.5px; }
+.marcas li svg{ width:19px; height:19px; flex:none; margin-top:3px; color:var(--ouro-txt); }
+.secao--breu .marcas li svg{ color:var(--ouro-luz); }
+
+/* ─── modalidades ────────────────────────────────────────────── */
+.faixa-rot{
+  display:flex; align-items:center; gap:16px; margin:clamp(44px,5vw,68px) 0 10px;
+  font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--ouro-luz); font-weight:500;
+}
+.faixa-rot::after{ content:""; flex:1; height:1px; background:var(--fio-claro); }
+.faixa-nota{ color:var(--claro-2); max-width:64ch; font-size:15.5px; margin-bottom:28px; }
+.faixa-nota b{ color:var(--claro); font-weight:500; }
+
+.planos{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(16px,2.2vw,26px); }
+.plano{
+  border-radius:var(--r); padding:clamp(26px,3vw,38px); display:flex; flex-direction:column;
+  border:1px solid var(--fio-claro);
+  background:linear-gradient(165deg,rgba(201,169,106,.09),rgba(201,169,106,.015));
+}
+.plano--dest{ border-color:var(--fio-forte); background:linear-gradient(165deg,rgba(201,169,106,.17),rgba(201,169,106,.03)); }
+.plano__topo{ display:flex; justify-content:space-between; align-items:center; gap:14px; }
+.plano h3{ font-size:clamp(23px,2.7vw,30px); }
+.vagas{
+  font-size:10px; letter-spacing:.17em; text-transform:uppercase; color:var(--ouro-luz);
+  border:1px solid var(--fio-claro); padding:6px 12px; border-radius:999px; white-space:nowrap;
+}
+.plano__l{ margin-top:14px; color:var(--claro-2); font-size:15.5px; min-height:3.1em; }
+.plano__pr{ margin-top:24px; padding-top:22px; border-top:1px solid var(--fio-claro); }
+.preco{ font-size:clamp(38px,4.6vw,54px); font-weight:600; line-height:1; letter-spacing:-.04em; color:var(--claro); }
+.preco small{ font-size:.4em; font-weight:400; color:var(--claro-2); margin-right:6px; letter-spacing:0; }
+.parcela{ margin-top:9px; font-size:13px; color:var(--claro-2); letter-spacing:.03em; }
+.compo{
+  margin-top:18px; padding:14px 16px; border-radius:var(--r-sm);
+  border-left:2px solid var(--ouro); background:rgba(201,169,106,.09);
+  font-size:13px; line-height:1.55; color:var(--claro-2);
+}
+.compo b{ color:var(--ouro-luz); font-weight:500; }
+.plano .marcas{ margin-top:22px; }
+.plano .marcas li{ font-size:14.5px; color:var(--claro-2); border-bottom:1px solid rgba(201,169,106,.13); }
+.plano .btn{ margin-top:26px; }
+.plano__pe{ margin-top:auto; }
+
+.gestao{
+  border-radius:var(--r); padding:clamp(26px,3vw,38px);
+  border:1px solid var(--fio-claro); background:linear-gradient(165deg,rgba(201,169,106,.09),rgba(201,169,106,.015));
+}
+.gestao__cab{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:16px; }
+.gestao h3{ font-size:clamp(23px,2.7vw,30px); }
+.perfis{ margin-top:26px; border-top:1px solid var(--fio-claro); }
+.perfil{ display:grid; grid-template-columns:1fr auto auto; gap:clamp(16px,3vw,36px); align-items:center; padding:22px 0; border-bottom:1px solid var(--fio-claro); }
+.perfil__q{ font-size:16px; color:var(--claro); }
+.perfil__q span{ display:block; margin-top:4px; font-size:13px; color:var(--claro-2); }
+.perfil__p{ text-align:right; }
+.perfil__p .preco{ font-size:clamp(26px,3vw,34px); }
+
+/* ainda em dúvida */
+.duvida{ margin-top:clamp(44px,5vw,68px); }
+.duvida__l{ margin-top:24px; }
+.duvida__i{
+  display:grid; grid-template-columns:1fr auto; gap:clamp(16px,3vw,36px); align-items:center;
+  padding:18px 22px; border-radius:var(--r-sm); border:1px solid var(--fio-claro);
+  background:rgba(201,169,106,.045); margin-bottom:10px;
+}
+.duvida__f{ font-family:var(--serif); font-style:italic; font-size:clamp(16px,1.9vw,20px); color:var(--claro); }
+.duvida__r{ font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--ouro-luz); text-align:right; white-space:nowrap; }
+.duvida__r span{ display:block; text-transform:none; letter-spacing:0; font-size:12.5px; color:var(--claro-2); margin-top:3px; }
+
+/* ─── formulário de qualificação ────────────────────────────── */
+.qualificacao{ background:var(--papel-2); }
+.qualificacao__intro{ max-width:670px; margin-inline:auto; text-align:center; }
+.qualificacao__card{
+  max-width:760px; margin:clamp(34px,4vw,48px) auto 0; padding:clamp(24px,4vw,44px);
+  border-radius:var(--r); border:1px solid var(--fio-forte); color:var(--claro);
+  background:linear-gradient(155deg,#211C16,var(--breu) 62%); box-shadow:0 24px 70px rgba(23,19,15,.16);
+}
+.qualificacao__topo{ display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:28px; }
+.qualificacao__etapa{ margin:0; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ouro-luz); font-weight:600; }
+.qualificacao__progresso{ flex:1; max-width:250px; height:3px; border-radius:99px; overflow:hidden; background:rgba(235,217,174,.16); }
+.qualificacao__progresso span{ display:block; width:14.285%; height:100%; border-radius:inherit; background:var(--ouro-luz); transition:width .35s ease; }
+.qual-etapa[hidden],.qual-fim[hidden],.qualificacao__topo[hidden]{ display:none !important; }
+.qual-etapa fieldset{ min-width:0; margin:0; padding:0; border:0; }
+.qual-etapa legend{ width:100%; margin-bottom:10px; font-size:clamp(24px,3.2vw,34px); line-height:1.18; font-weight:500; letter-spacing:-.025em; }
+.qual-etapa__apoio{ margin:0 0 22px; color:var(--claro-2); font-size:14px; }
+.qual-opcoes{ display:grid; gap:10px; margin-top:24px; }
+.qual-opcao{ position:relative; display:block; cursor:pointer; }
+.qual-opcao input{ position:absolute; opacity:0; pointer-events:none; }
+.qual-opcao span{
+  position:relative; display:flex; align-items:center; min-height:58px; padding:14px 48px 14px 18px;
+  border:1px solid var(--fio-claro); border-radius:var(--r-sm); background:rgba(201,169,106,.045);
+  color:var(--claro-2); font-size:14.5px; line-height:1.42; transition:border-color .2s,background .2s,color .2s;
+}
+.qual-opcao span::after{
+  content:""; position:absolute; right:18px; width:17px; height:17px; border-radius:50%;
+  border:1px solid rgba(235,217,174,.42); box-shadow:inset 0 0 0 4px transparent; transition:.2s;
+}
+.qual-opcao:hover span{ border-color:var(--fio-forte); color:var(--claro); }
+.qual-opcao input:checked + span{ border-color:var(--ouro); background:rgba(201,169,106,.14); color:var(--claro); }
+.qual-opcao input:checked + span::after{ border-color:var(--ouro-luz); background:var(--ouro-luz); box-shadow:inset 0 0 0 4px var(--breu); }
+.qual-opcao input:focus-visible + span{ outline:2px solid var(--ouro-luz); outline-offset:3px; }
+.qual-acoes{ display:flex; align-items:center; gap:12px; margin-top:26px; }
+.qual-acoes .btn:last-child{ margin-left:auto; }
+.qual-voltar{ border:0; background:none; color:var(--claro-2); font:inherit; font-size:13px; cursor:pointer; padding:12px 4px; }
+.qual-voltar:hover{ color:var(--claro); }
+.qual-erro{ min-height:1.4em; margin:13px 0 0; color:#F3B7A9; font-size:12.5px; }
+.qual-campos{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:24px; }
+.qual-campo:first-child{ grid-column:1/-1; }
+.qual-campo label{ display:block; margin-bottom:7px; color:var(--claro-2); font-size:12px; letter-spacing:.04em; }
+.qual-campo input{
+  width:100%; min-height:52px; border:1px solid var(--fio-claro); border-radius:var(--r-sm);
+  padding:12px 14px; background:rgba(255,255,255,.055); color:var(--claro); font:inherit; font-size:15px;
+}
+.qual-campo input::placeholder{ color:var(--claro-3); }
+.qual-campo input:focus{ outline:2px solid var(--ouro-luz); outline-offset:2px; border-color:transparent; }
+.qual-consentimento{ position:relative; display:flex; gap:10px; align-items:flex-start; margin-top:18px; color:var(--claro-2); font-size:12.5px; line-height:1.5; cursor:pointer; }
+.qual-consentimento input{ flex:none; width:17px; height:17px; margin-top:2px; accent-color:var(--ouro); }
+.qual-honeypot{ position:absolute !important; left:-9999px !important; width:1px !important; height:1px !important; overflow:hidden !important; }
+.qual-enviar[aria-busy="true"]{ pointer-events:none; opacity:.7; }
+.qual-fim{ padding:clamp(16px,3vw,28px) 0; text-align:center; }
+.qual-fim h3{ margin:12px auto 14px; max-width:24ch; font-size:clamp(25px,3.4vw,36px); }
+.qual-fim p{ max-width:58ch; margin-inline:auto; color:var(--claro-2); }
+.qual-fim .acoes{ justify-content:center; margin-top:25px; }
+
+/* ─── retorno ────────────────────────────────────────────────── */
+.conta{ border-radius:var(--r); border:1px solid var(--fio-forte); background:rgba(255,255,255,.6); overflow:hidden; }
+.conta__l{ display:flex; justify-content:space-between; align-items:baseline; gap:18px; padding:20px clamp(20px,3vw,30px); border-bottom:1px solid var(--fio); }
+.conta__l:last-child{ border-bottom:0; }
+.conta__l dt{ flex:1; font-size:13px; letter-spacing:.06em; text-transform:uppercase; color:var(--tinta-2); }
+.conta__l dd{ margin:0; font-size:clamp(23px,2.8vw,30px); font-weight:600; letter-spacing:-.03em; white-space:nowrap; }
+.conta__l--soma{ background:rgba(201,169,106,.14); }
+.conta__l--soma dd{ color:var(--ouro-txt); }
+.aviso{
+  margin-top:22px; padding:16px 18px; border-radius:var(--r-sm);
+  border-left:2px solid var(--ouro); background:rgba(201,169,106,.11);
+  font-size:13px; line-height:1.62; color:var(--tinta-2);
+}
+.aviso b{ color:var(--tinta); font-weight:500; }
+.aviso--centro{
+  text-align:center; border-left:0; border-top:2px solid var(--ouro);
+  max-width:74ch; margin-inline:auto; padding:20px 26px;
+}
+.secao--breu .aviso{ background:rgba(201,169,106,.1); color:var(--claro-2); }
+.secao--breu .aviso b{ color:var(--claro); }
+
+/* ─── professores ────────────────────────────────────────────── */
+.time{ display:grid; grid-template-columns:repeat(4,1fr); gap:clamp(16px,2.2vw,26px); margin-top:46px; }
+.prof figure{ margin:0; position:relative; border-radius:var(--r); overflow:hidden; border:1px solid var(--fio); }
+.prof figure::after{ content:""; position:absolute; inset:0; background:var(--ouro); mix-blend-mode:multiply; opacity:.12; }
+.prof__p{ margin-top:16px; font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ouro-txt); font-weight:600; }
+.prof h3{ font-size:19px; margin:8px 0 9px; }
+.prof p{ font-size:14px; color:var(--tinta-2); line-height:1.6; }
+
+/* ─── para quem é ────────────────────────────────────────────── */
+.filtro{ display:grid; grid-template-columns:1fr 1fr; gap:clamp(16px,2.2vw,26px); margin-top:44px; }
+.filtro > div{ padding:clamp(24px,2.8vw,34px); border-radius:var(--r); border:1px solid var(--fio); background:rgba(255,255,255,.55); }
+.filtro > div:last-child{ background:transparent; }
+.filtro h3{ font-size:21px; margin-bottom:16px; }
+.filtro .marcas li{ border-bottom:1px solid var(--fio); }
+.filtro .marcas li:last-child{ border-bottom:0; }
+.nao-e{ color:var(--tinta-2); }
+.nao-e h3{ color:var(--tinta-2); }
+.nao-e .marcas li svg{ color:var(--tinta-3); }
+
+/* ─── galeria ────────────────────────────────────────────────── */
+.galeria{ position:relative; margin-top:44px; }
+.galeria__g{ columns:3; column-gap:clamp(12px,1.8vw,20px); }
+.galeria__g figure{ margin:0 0 clamp(12px,1.8vw,20px); break-inside:avoid; border-radius:var(--r-sm); overflow:hidden; border:1px solid var(--fio-claro); }
+
+/* ─── FAQ ────────────────────────────────────────────────────── */
+.faq{ max-width:780px; margin:44px auto 0; }
+details{
+  background:var(--breu); border-radius:var(--r-sm); margin-bottom:11px;
+  border:1px solid rgba(201,169,106,.16); overflow:hidden;
+  transition:border-color .3s ease, background-color .3s ease;
+}
+details[open]{ border-color:rgba(201,169,106,.32); background:var(--breu-2); }
+summary{
+  display:flex; justify-content:space-between; align-items:center; gap:20px;
+  padding:19px 24px; cursor:pointer; list-style:none;
+  font-size:15.5px; font-weight:400; color:var(--claro); line-height:1.4;
+}
+summary::-webkit-details-marker{ display:none; }
+summary:focus-visible{ outline:2px solid var(--ouro-luz); outline-offset:-4px; border-radius:var(--r-sm); }
+summary::after{
+  content:""; flex:none; width:11px; height:11px; border-right:1.5px solid var(--ouro-luz);
+  border-bottom:1.5px solid var(--ouro-luz); transform:rotate(45deg) translateY(-3px); transition:transform .3s;
+}
+details[open] summary::after{ transform:rotate(-135deg) translateY(-3px); }
+.faq--js details.is-closing summary::after{ transform:rotate(45deg) translateY(-3px); }
+details .resp{ padding:0 24px 22px; color:var(--claro-2); font-size:14.5px; overflow:hidden; }
+.faq--js details:not([open]) .resp{ height:0; padding-bottom:0; opacity:0; }
+details .resp b{ color:var(--claro); font-weight:500; }
+
+/* ─── fechamento ─────────────────────────────────────────────── */
+.pratico{ display:grid; grid-template-columns:repeat(5,1fr); gap:clamp(12px,1.6vw,18px); margin-top:clamp(46px,5vw,70px); }
+.pratico > div{ padding:22px 20px; border-radius:var(--r-sm); border:1px solid var(--fio-claro); background:rgba(201,169,106,.05); }
+.pratico dt{ font-size:9.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--ouro-luz); margin-bottom:10px; }
+.pratico dd{ margin:0; font-size:14px; color:var(--claro-2); line-height:1.5; }
+.pratico dd b{ display:block; color:var(--claro); font-weight:500; font-size:15px; margin-bottom:3px; }
+
+/* ─── rodapé ─────────────────────────────────────────────────── */
+.rodape{ background:var(--papel-2); border-top:1px solid var(--fio); padding-block:clamp(40px,5vw,58px); font-size:13px; color:var(--tinta-2); text-align:center; }
+.rodape__g{ display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:clamp(24px,4vw,52px); }
+.rodape__logo{ width:clamp(138px,15vw,178px); height:auto; margin:0 auto 14px; }
+.rodape h4{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--ouro-txt); margin-bottom:12px; font-weight:600; }
+.rodape a{ border-bottom:1px solid var(--fio); }
+.credito{
+  margin-top:2px; font-size:10.5px; letter-spacing:.06em; color:var(--tinta-3);
+}
+.credito a{ color:inherit; border-bottom:0; font-weight:600; transition:color .2s; }
+.credito a:hover{ color:var(--ouro-txt); }
+.rodape a:hover{ border-color:var(--ouro-txt); }
+.rodape__l{ margin-top:34px; padding-top:22px; border-top:1px solid var(--fio); font-size:12px; color:var(--tinta-3); display:flex; flex-direction:column; align-items:center; gap:8px; max-width:78ch; margin-inline:auto; }
+
+/* ─── barra fixa mobile ──────────────────────────────────────── */
+.barra-mob{
+  position:fixed; inset:auto 0 0; z-index:70; display:none; gap:9px;
+  padding:10px var(--gutter) calc(10px + env(safe-area-inset-bottom));
+  background:rgba(22,19,15,.96); backdrop-filter:blur(12px); border-top:1px solid var(--fio-claro);
+}
+.barra-mob .btn{ flex:1; padding:14px 10px; font-size:11px; gap:8px; }
+
+/* ─── modal ──────────────────────────────────────────────────── */
+dialog{ border:1px solid var(--fio-forte); border-radius:var(--r); padding:0; background:var(--breu); max-width:min(420px,92vw); overflow:hidden; }
+dialog::backdrop{ background:rgba(14,12,9,.88); backdrop-filter:blur(6px); }
+.fechar{
+  position:absolute; top:12px; right:12px; z-index:3; width:36px; height:36px; border-radius:50%;
+  border:1px solid var(--fio-claro); background:rgba(22,19,15,.75); color:var(--claro); font-size:19px; cursor:pointer;
+}
+
+/* ─── revelação ──────────────────────────────────────────────── */
+.rev{ opacity:0; transform:translateY(20px); transition:opacity .85s cubic-bezier(.22,.61,.36,1), transform .85s cubic-bezier(.22,.61,.36,1); }
+.rev.on{ opacity:1; transform:none; }
+
+/* ─── responsivo ─────────────────────────────────────────────── */
+@media (max-width:1080px){
+  .time{ grid-template-columns:repeat(2,1fr); }
+  .modulos{ grid-template-columns:repeat(2,1fr); }
+  .pratico{ grid-template-columns:repeat(3,1fr); }
+  .trio{ grid-template-columns:1fr; }
+  .passos{ grid-template-columns:repeat(2,1fr); }
+}
+/* o hero troca para a arte vertical antes das demais seções: entre
+   900 e 1000px a arte horizontal fica larga demais e corta os cartões */
+@media (max-width:1000px){
+  .hero{
+    display:block;
+    background-image:url("images/hero-mobile.webp");
+    background-position:center bottom;
+    background-size:100% auto;
+    min-height:0;
+  }
+  .hero__txt{ width:100%; padding-block:0 clamp(26px,5vw,38px); }
+  /* o espaçador vive dentro do container com padding, então a altura
+     vem de 100vw e não da própria largura */
+  .hero__vaga{ display:block; height:calc(100vw * 797 / 809); }
+}
+@media (max-width:900px){
+  .dias,.planos,.dupla,.filtro,.gestao-dia{ grid-template-columns:1fr; }
+  .gestao-dia figure{ max-width:420px; margin-inline:auto; }
+  .galeria__g{ columns:2; }
+  .rodape__g{ grid-template-columns:1fr 1fr; }
+  .perfil{ grid-template-columns:1fr; gap:14px; }
+  .perfil__p{ text-align:left; }
+  .perfil .btn{ width:100%; }
+}
+@media (max-width:760px){
+  :root{ --topo:54px; }
+  body{ padding-bottom:72px; font-size:16px; }
+  .barra-mob{ display:flex; }
+  .topo__esc{ display:none; }
+  .topo .btn{ display:none; }
+  .relogio{ margin-left:0; width:100%; justify-content:center; }
+  .passos,.modulos{ grid-template-columns:1fr; }
+  .qualificacao__card{ padding:24px 18px; }
+  .qualificacao__topo{ align-items:flex-start; flex-direction:column; gap:10px; }
+  .qualificacao__progresso{ width:100%; max-width:none; }
+  .qual-campos{ grid-template-columns:1fr; }
+  .qual-campo:first-child{ grid-column:auto; }
+  .qual-acoes{ align-items:stretch; flex-direction:column-reverse; }
+  .qual-acoes .btn,.qual-acoes .btn:last-child{ width:100%; margin-left:0; }
+  /* no mobile as duas fitas se sobrepõem: fica só uma */
+  .faixa__fita--a{ transform:translateY(-50%) rotate(-2.6deg); }
+  .faixa__fita--b{ display:none; }
+  .sem-mobile{ display:none; }
+  .duvida__i{ grid-template-columns:1fr; gap:8px; }
+  .duvida__r{ text-align:left; }
+  .marca{ margin-bottom:17px; }
+  .pratico{ grid-template-columns:1fr; }
+  .rodape__g{ grid-template-columns:1fr; }
+  .galeria__g{ columns:1; }
+}
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  .rev{ opacity:1; transform:none; transition:none; }
+  .trilha{ animation:none !important; }
+  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+
+<!-- End Google Tag Manager (noscript) -->
+
+<!-- ícones reutilizados -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.4 2.4L15.8 9.6"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m9.2 9.2 5.6 5.6M14.8 9.2l-5.6 5.6"/></symbol>
+  <symbol id="c-concorrencia" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.6" r="3.2"/><path d="M3.4 19.2c0-3 2.5-4.9 5.6-4.9s5.6 1.9 5.6 4.9"/><circle cx="17.2" cy="9.4" r="2.5"/><path d="M15.2 14.6c3-.5 5.4 1.1 5.4 4"/></symbol>
+  <symbol id="c-transformacao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 12.4a8.2 8.2 0 0 1-8.2 8.2"/><path d="M3.8 11.6A8.2 8.2 0 0 1 12 3.4"/><path d="m17.4 8.4 2.8-4.2 1 5.2M6.6 15.6l-2.8 4.2-1-5.2"/></symbol>
+  <symbol id="c-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 16.8 9.2 11l3.4 3.4 8-8.2"/><path d="M15.6 6.2h5v5"/><path d="M3.4 20.6h17.2"/></symbol>
+  <symbol id="m-gluteo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="14" r="5.4"/><circle cx="15.4" cy="14" r="5.4"/><path d="M12 8.2V3.6"/></symbol>
+  <symbol id="m-abdomen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.6" width="14" height="16.8" rx="5.2"/><path d="M12 6.4v11.2M8.7 10.2h6.6M8.7 13.8h6.6"/></symbol>
+  <symbol id="m-lipedema" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.6s4.3 4.7 4.3 7.8a4.3 4.3 0 0 1-8.6 0c0-3.1 4.3-7.8 4.3-7.8Z"/><path d="M3.4 18c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 2.2 1 3.7 0"/></symbol>
+  <symbol id="m-pernas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.4 4.2h9.2"/><path d="M9.2 4.2c0 4-1.3 5.8-1.3 8.8s1.3 4.6 1.3 7.4M14.8 4.2c0 4 1.3 5.8 1.3 8.8s-1.3 4.6-1.3 7.4"/></symbol>
+  <symbol id="m-fullbody" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.2"/><circle cx="12" cy="3.1" r="1.25"/><circle cx="12" cy="20.9" r="1.25"/><circle cx="3.1" cy="12" r="1.25"/><circle cx="20.9" cy="12" r="1.25"/></symbol>
+  <symbol id="m-gestao" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 20.4h17.2"/><path d="M7.2 20.4v-5.6M12 20.4v-9.4M16.8 20.4v-13.2"/></symbol>
+</svg>
+
+<!-- ══ BARRA FIXA SUPERIOR ══════════════════════════════════════ -->
+<header class="topo">
+  <div class="topo__in">
+    <p class="topo__esc">Turmas reduzidas · <b>exclusivo para médicos</b></p>
+    <div class="relogio" id="relogio" aria-label="Tempo restante até o início da imersão">
+      <span class="relogio__un"><span class="relogio__n" data-c="d">--</span><span class="relogio__l">dias</span></span>
+      <span class="relogio__sep">·</span>
+      <span class="relogio__un"><span class="relogio__n" data-c="h">--</span><span class="relogio__l">h</span></span>
+      <span class="relogio__sep">·</span>
+      <span class="relogio__un"><span class="relogio__n" data-c="m">--</span><span class="relogio__l">min</span></span>
+    </div>
+    <a href="#qualificacao" class="btn btn--mini" data-qualificacao="duvida">Quero participar <i><svg><use href="#i-seta"/></svg></i></a>
+  </div>
+</header>
+
+<main>
+
+<!-- ══ HERO ═════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="env hero__grade">
+
+    <div class="hero__txt rev on">
+      <div class="marca">
+        <a href="#qualificacao" class="marca__link" data-qualificacao="duvida" aria-label="Quero participar da Full Body Experience">
+          <img class="marca__tag" src="images/tag-hero.svg" width="464" height="76" alt="Clínica Supreme apresenta Full Body Experience, 19 e 20 de outubro">
+        </a>
+      </div>
+
+      <h1>O protocolo corporal que transforma a clínica em uma <b class="dourado">operação premium</b>.</h1>
+
+      <p class="hero__sub">Dois dias presenciais em Goiânia. <b>No dia 19</b>, os cinco protocolos Full Body aplicados sob supervisão. <b>No dia 20</b>, Gestão do Full Face ao Full Body: como criar um ecossistema corporal que transforma os resultados da sua clínica.</p>
+
+      <div class="acoes">
+        <a href="#qualificacao" class="btn" data-qualificacao="duvida">Quero participar <i><svg><use href="#i-seta"/></svg></i></a>
+        <a href="#qualificacao" class="btn btn--vazado" data-qualificacao="duvida">Receber orientação da equipe</a>
+      </div>
+
+      <div class="selos">
+        <span class="selo"><b>2</b> dias presenciais</span>
+        <span class="selo">Turmas reduzidas</span>
+        <span class="selo"><b>5</b> protocolos</span>
+      </div>
+    </div>
+
+    <div class="hero__vaga" aria-hidden="true"></div>
+  </div>
+</section>
+
+<!-- ══ FAIXA DIAGONAL ═══════════════════════════════════════════ -->
+<div class="faixa" aria-hidden="true">
+  <div class="faixa__fita faixa__fita--a"><div class="trilha" data-trilha>
+    <span>Supreme Full Body <em>Experience</em></span><span>·</span><span>19 e 20 de outubro</span><span>·</span><span>Goiânia</span><span>·</span><span>Harmonização corporal premium</span><span>·</span>
+  </div></div>
+  <div class="faixa__fita faixa__fita--b"><div class="trilha" data-trilha>
+    <span>Imersão para médicos</span><span>·</span><span>Turmas reduzidas</span><span>·</span><span>Supreme Full Body <em>Experience</em></span><span>·</span><span>5 protocolos</span><span>·</span>
+  </div></div>
+</div>
+
+<!-- ══ CONVITE EM VÍDEO ═════════════════════════════════════════ -->
+<section class="secao" id="convite">
+  <div class="env">
+    <span class="olho olho--centro rev">O convite</span>
+    <h2 class="tit tit--centro rev">Assista e conheça a <b>Full Body <span class="it">Experience</span></b></h2>
+
+    <div class="convite__caixa rev">
+      <div class="player">
+        <img src="images/convite-poster.webp" alt="" aria-hidden="true" loading="lazy">
+        <button class="player__btn" type="button" id="abrirConvite">
+          <span class="player__ico"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+          Ver o convite · 58s
+        </button>
+      </div>
+    </div>
+
+    <p class="texto texto--centro rev" style="margin-top:32px">A Dra. Maria Lígia e a Dra. Ana Machado explicam, em menos de um minuto, <b>o que muda na clínica quando o corporal entra no portfólio</b>, e por que os dois dias foram desenhados dessa forma.</p>
+
+    <div class="acoes acoes--centro rev">
+      <a href="#qualificacao" class="btn" data-qualificacao="duvida">Quero participar <i><svg><use href="#i-seta"/></svg></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 01 · O CENÁRIO ═══════════════════════════════════════════ -->
+<section class="secao secao--alt" id="cenario">
+  <div class="env">
+    <span class="olho olho--centro rev">O cenário</span>
+    <h2 class="tit tit--centro rev">O facial saturou.<b>O corporal <span class="it dourado">não</span>.</b></h2>
+    <p class="texto texto--centro rev" style="margin-top:20px">A mesma técnica que era um diferencial há cinco anos hoje é oferecida por dezenas de profissionais na mesma cidade.</p>
+
+    <div class="trio">
+      <article class="cartao rev">
+        <span class="cartao__ico"><svg><use href="#c-concorrencia"/></svg></span>
+        <h3>A concorrência multiplicou</h3>
+        <p>Preenchimento, bioestimulador e protocolo facial deixaram de ser diferencial. O paciente é impactado todos os dias por dezenas de profissionais oferecendo praticamente a mesma coisa, e o número de categorias autorizadas a atuar na estética cresceu rápido.</p>
+      </article>
+      <article class="cartao rev">
+        <span class="cartao__ico"><svg><use href="#c-transformacao"/></svg></span>
+        <h3>O paciente corporal compra outra coisa</h3>
+        <p>Ele não busca melhorar uma área. Busca transformação: voltar a se sentir seguro dentro da própria roupa. Isso muda o valor percebido do tratamento, e muda o que ele aceita investir quando entende o que está comprando.</p>
+      </article>
+      <article class="cartao rev">
+        <span class="cartao__ico"><svg><use href="#c-ticket"/></svg></span>
+        <h3>O ticket e a recorrência são outros</h3>
+        <p>Protocolos corporais premium ocupam faixas de investimento que o facial não alcança, com retorno mais frequente e um portfólio que não se esgota em uma sessão. É o espaço menos disputado da estética hoje.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 02 · COMO FUNCIONA — antes de qualquer preço ═════════════ -->
+<section class="secao secao--breu" id="como-funciona">
+  <span class="mono mono--esq mono--cheio" aria-hidden="true">S</span>
+  <div class="env">
+    <span class="olho rev">Como funciona</span>
+    <h2 class="tit rev">Antes do preço,<b>entenda os <span class="it dourado">dois dias</span>.</b></h2>
+    <p class="texto rev" style="margin-top:20px">São dois dias com públicos diferentes. O dia 19 é exclusivo para médicos. O dia 20 abre para a equipe da clínica. Entender essa separação resolve praticamente toda a dúvida sobre qual modalidade escolher.</p>
+
+    <div class="dias">
+      <article class="dia rev">
+        <p class="dia__tag">Dia 1 · exclusivo para médicos</p>
+        <p class="dia__d"><strong>19</strong><span>de outubro, segunda</span></p>
+        <p class="dia__h">A partir das 9h</p>
+        <h3>Imersão teórica e prática</h3>
+        <p class="dia__desc">Prática supervisionada na Clínica Supreme, percorrendo os cinco protocolos corporais do método.</p>
+        <dl class="quem">
+          <dt>Participa deste dia</dt>
+          <dd class="sim"><i>✓</i><span><b>Hands On</b>: executa os protocolos</span></dd>
+          <dd class="sim"><i>✓</i><span><b>Observador</b>: acompanha a aplicação e o raciocínio clínico</span></dd>
+          <dt style="margin-top:18px">Não participa</dt>
+          <dd class="nao"><i>×</i><span>Quem comprou somente o Módulo de Gestão</span></dd>
+        </dl>
+      </article>
+
+      <article class="dia dia--dois rev">
+        <p class="dia__tag">Dia 2 · aberto para a equipe</p>
+        <p class="dia__d"><strong>20</strong><span>de outubro, terça</span></p>
+        <p class="dia__h">Das 9h às 13h</p>
+        <h3>Módulo de Gestão</h3>
+        <p class="dia__desc">Do Full Face ao Full Body: posicionamento, precificação e fidelização, com Silvane Castro, Dra. Maria Lígia Mendonça e Dr. Arthur Rocha.</p>
+        <dl class="quem">
+          <dt>Participa deste dia</dt>
+          <dd class="sim"><i>✓</i><span><b>Hands On</b>: já está incluso no pacote</span></dd>
+          <dd class="sim"><i>✓</i><span><b>Observador</b> que adquiriu o módulo de gestão</span></dd>
+          <dd class="sim"><i>✓</i><span><b>Médico</b> que quer somente a gestão</span></dd>
+          <dd class="sim"><i>✓</i><span><b>Gestor, sócio ou equipe</b>: não precisa ser médico</span></dd>
+          <dt style="margin-top:18px">Não participa</dt>
+          <dd class="nao"><i>×</i><span>Ninguém fica de fora. Este é o dia aberto.</span></dd>
+        </dl>
+      </article>
+    </div>
+
+    <div class="rev">
+      <span class="olho" style="margin-top:clamp(38px,4vw,56px)">Os 6 módulos</span>
+      <div class="modulos">
+        <article class="modulo">
+          <figure class="modulo__foto">
+            <img src="images/modulos/gluteo.webp" width="760" height="570" alt="Antes e depois do protocolo Glúteo Supreme" loading="lazy">
+          </figure>
+          <span class="modulo__ico"><svg><use href="#m-gluteo"/></svg></span>
+          <p class="modulo__dia">Dia 19</p><h3 class="modulo__t">Glúteo Supreme</h3>
+          <p class="modulo__d">Volumização, sustentação e uso de enzimas.</p>
+        </article>
+        <article class="modulo">
+          <figure class="modulo__foto">
+            <img src="images/modulos/abdomen.webp" width="760" height="570" alt="Antes e depois do protocolo Abdômen Supreme" loading="lazy">
+          </figure>
+          <span class="modulo__ico"><svg><use href="#m-abdomen"/></svg></span>
+          <p class="modulo__dia">Dia 19</p><h3 class="modulo__t">Abdômen Supreme</h3>
+          <p class="modulo__d">Definição e marcação sem cirurgia.</p>
+        </article>
+        <article class="modulo">
+          <figure class="modulo__foto">
+            <img src="images/modulos/lipedema.webp" width="760" height="570" alt="Antes e depois do protocolo para lipedema" loading="lazy">
+          </figure>
+          <span class="modulo__ico"><svg><use href="#m-lipedema"/></svg></span>
+          <p class="modulo__dia">Dia 19</p><h3 class="modulo__t">Lipedema Protocol</h3>
+          <p class="modulo__d">Abordagem combinada e suporte inflamatório.</p>
+        </article>
+        <article class="modulo">
+          <figure class="modulo__foto">
+            <img src="images/modulos/pernas.webp" width="760" height="570" alt="Antes e depois do protocolo de pernas e embelezamento corporal" loading="lazy">
+          </figure>
+          <span class="modulo__ico"><svg><use href="#m-pernas"/></svg></span>
+          <p class="modulo__dia">Dia 19</p><h3 class="modulo__t">Pernas e Embelezamento Corporal</h3>
+          <p class="modulo__d">Celulite, flacidez e contorno.</p>
+        </article>
+        <article class="modulo">
+          <figure class="modulo__foto">
+            <img src="images/modulos/fullbody.webp" width="760" height="570" alt="Antes e depois de protocolo corporal integrado, em várias áreas" loading="lazy">
+          </figure>
+          <span class="modulo__ico"><svg><use href="#m-fullbody"/></svg></span>
+          <p class="modulo__dia">Dia 19</p><h3 class="modulo__t">Full Body Supreme</h3>
+          <p class="modulo__d">Protocolos globais e integrados.</p>
+        </article>
+        <article class="modulo modulo--gestao">
+          <figure class="modulo__foto modulo__foto--professores">
+            <img src="images/professores/maria-ligia.webp" width="560" height="747" alt="Dra. Maria Lígia Mendonça" loading="lazy">
+            <img src="images/professores/arthur-rocha.webp" width="560" height="747" alt="Dr. Arthur Rocha" loading="lazy">
+            <img src="images/professores/silvane-castro.webp" width="560" height="747" alt="Silvane Castro" loading="lazy">
+          </figure>
+          <span class="modulo__ico"><svg><use href="#m-gestao"/></svg></span>
+          <p class="modulo__dia">Dia 20</p><h3 class="modulo__t">Do Full Face ao Full Body</h3>
+          <p class="modulo__d">Gestão, posicionamento, precificação e fidelização.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FAIXA DIAGONAL ═══════════════════════════════════════════ -->
+<div class="faixa" aria-hidden="true">
+  <div class="faixa__fita faixa__fita--a"><div class="trilha" data-trilha>
+    <span>Tratar</span><span>·</span><span>Modelar</span><span>·</span><span>Sustentar</span><span>·</span><span>Ajustar</span><span>·</span><span>Método <em>Supreme</em></span><span>·</span>
+  </div></div>
+  <div class="faixa__fita faixa__fita--b"><div class="trilha" data-trilha>
+    <span>Supreme Full Body <em>Experience</em></span><span>·</span><span>19 e 20 de outubro</span><span>·</span><span>Goiânia</span><span>·</span>
+  </div></div>
+</div>
+
+<!-- ══ 03 · O MÉTODO ════════════════════════════════════════════ -->
+<section class="secao" id="metodo">
+  <div class="env">
+    <div class="dupla">
+      <!-- COMPOSIÇÃO 3 · pilha de imagens em perspectiva -->
+      <figure class="etapas rev">
+        <img src="images/metodo-etapas.webp" width="552" height="502" alt="As quatro etapas do método Supreme: tratar, modelar, sustentar e ajustar" loading="lazy">
+      </figure>
+
+      <div class="rev">
+        <span class="olho">O conceito Supreme</span>
+        <h2 class="tit">Tratar, modelar, sustentar,<b><span class="it dourado">ajustar</span>.</b></h2>
+        <p class="texto" style="margin-top:20px">A maioria dos profissionais aprende técnicas separadas. O problema é que o paciente premium não compra técnica, compra consistência. O método organiza a decisão clínica em quatro etapas, na ordem em que ela precisa acontecer.</p>
+        <ul class="marcas">
+          <li><svg><use href="#i-check"/></svg><span><b>Tratar</b>: o que limita o resultado antes da estética: retenção, processo inflamatório, lipedema.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Modelar</b>: contorno, definição e volumização com a técnica adequada a cada tipo de corpo.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Sustentar</b>: protocolos de manutenção pensados para durabilidade e recorrência.</span></li>
+          <li><svg><use href="#i-check"/></svg><span><b>Ajustar</b>: planejamento fino por objetivo estético, biotipo e histórico clínico.</span></li>
+        </ul>
+        <div class="acoes">
+          <a href="#qualificacao" class="btn" data-qualificacao="duvida">Quero participar <i><svg><use href="#i-seta"/></svg></i></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 04 · SOMENTE DE GESTÃO ═══════════════════════════════════ -->
+<section class="secao secao--alt" id="gestao">
+  <div class="env">
+    <span class="olho olho--centro rev">Somente de gestão</span>
+    <h2 class="tit tit--centro rev" style="max-width:24ch">Do Full Face ao Full Body:<b>o dia que muda a <span class="it dourado">conta da clínica</span>.</b></h2>
+    <p class="texto texto--centro rev" style="margin-top:20px">A técnica faz o médico executar. É o posicionamento que faz o paciente aceitar o valor. O dia 20 é o único da imersão aberto a quem não é médico, porque quem precifica, atende e negocia dentro da clínica precisa entender a mesma lógica.</p>
+
+    <div class="gestao-dia">
+      <figure class="rev">
+        <img src="images/professores/silvane-castro.webp" width="560" height="747" alt="Silvane Castro, CEO founder da Seven Gestão" loading="lazy">
+        <figcaption><span>Conduz o módulo</span><b>Silvane Castro</b></figcaption>
+      </figure>
+
+      <div class="rev">
+        <p class="texto">CEO founder da Seven Gestão, advisor de negócios de saúde, empresária e palestrante. Coordenadora do Núcleo de Saúde da Câmara de Comércio Brasil-China, <b>Silvane conduz o módulo de gestão</b> ao lado da Dra. Maria Lígia Mendonça e do Dr. Arthur Rocha.</p>
+        <ul class="marcas">
+          <li><svg><use href="#i-check"/></svg><span>Como integrar face, corpo e experiência para aumentar resultados</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Precificação e posicionamento de protocolos premium</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Fidelização e construção de autoridade clínica</span></li>
+          <li><svg><use href="#i-check"/></svg><span>O ecossistema corporal que sustenta o resultado da clínica</span></li>
+        </ul>
+        <p class="texto" style="margin-top:22px"><b>Dia 20 de outubro, das 9h às 13h.</b> Aberto a médicos, gestores, sócios e equipe. Quem faz o Hands On já tem o módulo incluso.</p>
+        <div class="acoes">
+          <button type="button" class="btn" data-qualificacao="duvida">Inscrever quem cuida da gestão <i><svg><use href="#i-seta"/></svg></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 05 · MODALIDADES ═════════════════════════════════════════
+     Seção crítica do briefing. Duas faixas, nunca três cards soltos:
+     faixa 1 = médico, os dois dias · faixa 2 = só o dia 20.
+     ═══════════════════════════════════════════════════════════ -->
+<section class="secao secao--breu" id="modalidades">
+  <span class="mono mono--dir" aria-hidden="true">S</span>
+  <div class="env">
+    <span class="olho rev">Modalidades</span>
+    <h2 class="tit rev">Agora sim: escolha como<b>você quer <span class="it dourado">viver</span> a imersão.</b></h2>
+    <p class="texto rev" style="margin-top:20px">São <b>dois caminhos</b>. Médico faz os dois dias. Quem cuida da gestão vem só no dia 20.</p>
+
+    <p class="faixa-rot rev">Para o médico · os dois dias</p>
+    <p class="faixa-nota rev"><b>No dia 19, uma executa e a outra acompanha.</b> A outra diferença é o dia 20: o Módulo de Gestão já vem no Hands On e, no Observador, é opcional.</p>
+
+    <div class="planos">
+      <article class="plano plano--dest rev">
+        <div class="plano__topo"><h3>Hands On</h3><span class="vagas">Turma reduzida</span></div>
+        <p class="plano__l">Você executa os protocolos, com supervisão direta dos professores durante todo o dia 19.</p>
+        <ul class="marcas">
+          <li><svg><use href="#i-check"/></svg><span>Dia 19 executando os cinco protocolos</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Dia 20, Módulo de Gestão completo</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Material clínico dos protocolos</span></li>
+        </ul>
+        <div class="plano__pe">
+          <div class="plano__pr">
+            <p class="preco"><small>R$</small>16.899</p>
+            <p class="parcela">à vista · ou em até 6x de R$ 2.816,50</p>
+            <p class="compo">Imersão Hands On <b>R$ 14.900</b> + Módulo de Gestão <b>R$ 1.999</b>.<br>O mesmo módulo custa <b>R$ 3.790</b> avulso. Dentro do pacote, entra por R$ 1.999.</p>
+          </div>
+          <button type="button" class="btn btn--bloco" data-qualificacao="hands_on">Quero me candidatar ao Hands On <i><svg><use href="#i-seta"/></svg></i></button>
+        </div>
+      </article>
+
+      <article class="plano rev">
+        <div class="plano__topo"><h3>Observador</h3><span class="vagas">Turma reduzida</span></div>
+        <p class="plano__l">Você acompanha de perto toda a aplicação e o raciocínio clínico por trás de cada decisão, sem executar.</p>
+        <ul class="marcas">
+          <li><svg><use href="#i-check"/></svg><span>Dia 19 acompanhando os cinco protocolos</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Material clínico dos protocolos</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Módulo de Gestão do dia 20 opcional</span></li>
+        </ul>
+        <div class="plano__pe">
+          <div class="plano__pr">
+            <p class="preco"><small>R$</small>10.900</p>
+            <p class="parcela">à vista · ou em até 6x de R$ 1.816,67</p>
+            <p class="compo">O <b>Módulo de Gestão</b> do dia 20 não entra neste pacote. Pode ser somado por <b>R$ 1.999</b>, contra <b>R$ 3.790</b> do valor avulso.</p>
+          </div>
+          <button type="button" class="btn btn--vazado btn--bloco" data-qualificacao="observador">Quero me candidatar como Observador <i><svg><use href="#i-seta"/></svg></i></button>
+        </div>
+      </article>
+    </div>
+
+    <p class="faixa-rot rev">Para a gestão · só o dia 20</p>
+    <div class="gestao rev">
+      <div class="gestao__cab"><span class="vagas">Turma reduzida</span></div>
+      <div class="perfis">
+        <div class="perfil">
+          <div class="perfil__q">Médico e Gestor de clínica<span>Para quem já domina a técnica e vem pela parte de negócio.</span></div>
+          <div class="perfil__p"><p class="preco"><small>R$</small>3.790</p><p class="parcela">ou 6x de R$ 631,67</p></div>
+          <button type="button" class="btn btn--vazado" data-qualificacao="duvida">Quero só o Módulo de Gestão</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="duvida rev">
+      <p class="faixa-rot" style="margin-top:0">Em uma frase</p>
+      <div class="duvida__l">
+        <div class="duvida__i"><p class="duvida__f">“Quero executar o protocolo com supervisão.”</p><p class="duvida__r">Hands On</p></div>
+        <div class="duvida__i"><p class="duvida__f">“Quero acompanhar o raciocínio clínico, sem executar.”</p><p class="duvida__r">Observador</p></div>
+        <div class="duvida__i"><p class="duvida__f">“Vou só ao dia 20, pela parte de gestão.”</p><p class="duvida__r">Módulo de Gestão</p></div>
+      </div>
+      <div class="acoes">
+        <button type="button" class="btn btn--vazado" data-qualificacao="duvida">Ainda em dúvida? Receba orientação</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ QUALIFICAÇÃO ════════════════════════════════════════════ -->
+<section class="secao qualificacao" id="qualificacao">
+  <div class="env">
+    <div class="qualificacao__intro">
+      <span class="olho olho--centro rev">Quero participar</span>
+      <h2 class="tit tit--centro rev">Conte um pouco sobre você.<b>Leva menos de <span class="it dourado">dois minutos</span>.</b></h2>
+      <p class="texto texto--centro rev" style="margin-top:20px">Suas respostas ajudam nossa equipe a entender seu momento e orientar a modalidade mais adequada.</p>
+    </div>
+
+    <div class="qualificacao__card rev" id="qualificacaoCard">
+      <div class="qualificacao__topo" id="qualificacaoTopo">
+        <p class="qualificacao__etapa" id="qualificacaoEtapa">Etapa 1 de 7</p>
+        <div class="qualificacao__progresso" id="qualificacaoProgresso" role="progressbar" aria-label="Progresso do formulário" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"><span></span></div>
+      </div>
+
+      <form id="formQualificacao" action="lead.php" method="post" novalidate>
+        <div class="qual-etapa" data-etapa="1">
+          <fieldset>
+            <legend>Você é médico(a)?</legend>
+            <div class="qual-opcoes">
+              <label class="qual-opcao"><input type="radio" name="medico" value="sim" required><span>Sim, sou médico(a)</span></label>
+              <label class="qual-opcao"><input type="radio" name="medico" value="nao" required><span>Não sou médico(a)</span></label>
+            </div>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="btn" data-proximo>Continuar <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+
+        <div class="qual-etapa" data-etapa="2" hidden>
+          <fieldset>
+            <legend>Qual é sua principal área de atuação médica?</legend>
+            <div class="qual-opcoes">
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="dermatologia" required><span>Dermatologia</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="cirurgia_plastica" required><span>Cirurgia Plástica</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="clinica_medica" required><span>Clínica Médica / Clínica Geral</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="endocrinologia" required><span>Endocrinologia</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="ginecologia" required><span>Ginecologia</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="medicina_esporte" required><span>Medicina do Esporte</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="medicina_estetica" required><span>Atuo com Medicina Estética</span></label>
+              <label class="qual-opcao"><input type="radio" name="especialidade" value="outra" required><span>Outra especialidade</span></label>
+            </div>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="qual-voltar" data-voltar>Voltar</button><button type="button" class="btn" data-proximo>Continuar <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+
+        <div class="qual-etapa" data-etapa="3" hidden>
+          <fieldset>
+            <legend>Qual opção melhor descreve sua atuação com estética atualmente?</legend>
+            <div class="qual-opcoes">
+              <label class="qual-opcao"><input type="radio" name="atuacao_estetica" value="facial_corporal" required><span>Já atuo com estética facial e corporal</span></label>
+              <label class="qual-opcao"><input type="radio" name="atuacao_estetica" value="facial_expandir" required><span>Atuo com estética facial e quero expandir para corporal</span></label>
+              <label class="qual-opcao"><input type="radio" name="atuacao_estetica" value="iniciando" required><span>Estou iniciando minha atuação em estética</span></label>
+              <label class="qual-opcao"><input type="radio" name="atuacao_estetica" value="medico_sem_estetica" required><span>Sou médico(a), mas atualmente não atuo com estética</span></label>
+            </div>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="qual-voltar" data-voltar>Voltar</button><button type="button" class="btn" data-proximo>Continuar <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+
+        <div class="qual-etapa" data-etapa="4" hidden>
+          <fieldset>
+            <legend>Qual experiência mais combina com o que você busca no Full Body Experience?</legend>
+            <div class="qual-opcoes">
+              <label class="qual-opcao"><input type="radio" name="modalidade_interesse" value="hands_on" required><span>Hands On: quero executar os protocolos com supervisão</span></label>
+              <label class="qual-opcao"><input type="radio" name="modalidade_interesse" value="observador" required><span>Observador: quero acompanhar os protocolos e o raciocínio clínico</span></label>
+              <label class="qual-opcao"><input type="radio" name="modalidade_interesse" value="duvida" required><span>Ainda estou em dúvida e quero orientação da equipe</span></label>
+            </div>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="qual-voltar" data-voltar>Voltar</button><button type="button" class="btn" data-proximo>Continuar <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+
+        <div class="qual-etapa" data-etapa="5" hidden>
+          <fieldset>
+            <legend>Você consegue participar presencialmente em Goiânia na data do evento?</legend>
+            <p class="qual-etapa__apoio">19 e 20 de outubro de 2026</p>
+            <div class="qual-opcoes">
+              <label class="qual-opcao"><input type="radio" name="disponibilidade" value="disponivel" required><span>Sim, já tenho disponibilidade</span></label>
+              <label class="qual-opcao"><input type="radio" name="disponibilidade" value="consigo_organizar" required><span>Sim, consigo me organizar para participar</span></label>
+              <label class="qual-opcao"><input type="radio" name="disponibilidade" value="confirmar_agenda" required><span>Ainda preciso confirmar minha agenda</span></label>
+              <label class="qual-opcao"><input type="radio" name="disponibilidade" value="nao" required><span>Não consigo participar nessa data</span></label>
+            </div>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="qual-voltar" data-voltar>Voltar</button><button type="button" class="btn" data-proximo>Continuar <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+
+        <div class="qual-etapa" data-etapa="6" hidden>
+          <fieldset>
+            <legend>Quando você pretende decidir sobre sua participação?</legend>
+            <div class="qual-opcoes">
+              <label class="qual-opcao"><input type="radio" name="prazo_decisao" value="proximos_dias" required><span>Quero falar com a equipe e decidir nos próximos dias</span></label>
+              <label class="qual-opcao"><input type="radio" name="prazo_decisao" value="esta_semana" required><span>Pretendo decidir ainda esta semana</span></label>
+              <label class="qual-opcao"><input type="radio" name="prazo_decisao" value="proximas_semanas" required><span>Estou avaliando para as próximas semanas</span></label>
+              <label class="qual-opcao"><input type="radio" name="prazo_decisao" value="buscando_informacoes" required><span>Neste momento estou apenas buscando informações</span></label>
+            </div>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="qual-voltar" data-voltar>Voltar</button><button type="button" class="btn" data-proximo>Continuar <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+
+        <div class="qual-etapa" data-etapa="7" hidden>
+          <fieldset>
+            <legend>Para finalizar, informe seus dados de contato.</legend>
+            <p class="qual-etapa__apoio">Nossa equipe usará esses dados somente para conversar sobre o Full Body Experience.</p>
+            <div class="qual-campos">
+              <div class="qual-campo"><label for="qualNome">Nome completo</label><input id="qualNome" name="nome" type="text" autocomplete="name" maxlength="120" placeholder="Seu nome completo" required></div>
+              <div class="qual-campo"><label for="qualTelefone">WhatsApp/telefone</label><input id="qualTelefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(62) 99999-9999" required></div>
+              <div class="qual-campo"><label for="qualEmail">E-mail</label><input id="qualEmail" name="email" type="email" autocomplete="email" maxlength="160" placeholder="voce@exemplo.com" required></div>
+            </div>
+            <div class="qual-honeypot" aria-hidden="true"><label for="qualWebsite">Não preencha</label><input id="qualWebsite" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+            <label class="qual-consentimento"><input name="consentimento" type="checkbox" value="sim" required><span>Autorizo o contato da equipe da Clínica Supreme pelos dados informados para receber orientações sobre esta edição.</span></label>
+          </fieldset>
+          <p class="qual-erro" role="alert"></p>
+          <div class="qual-acoes"><button type="button" class="qual-voltar" data-voltar>Voltar</button><button type="submit" class="btn qual-enviar">Enviar informações <i><svg><use href="#i-seta"/></svg></i></button></div>
+        </div>
+      </form>
+
+      <div class="qual-fim" id="qualificacaoDesqualificado" hidden tabindex="-1">
+        <span class="olho olho--centro">Agradecemos seu interesse</span>
+        <h3>Neste momento, esta experiência é direcionada aos profissionais que atendem aos critérios desta edição.</h3>
+        <p>Suas respostas não foram enviadas como lead e nenhum dado de contato foi solicitado.</p>
+      </div>
+
+      <div class="qual-fim" id="qualificacaoSucesso" hidden tabindex="-1">
+        <span class="olho olho--centro">Cadastro recebido</span>
+        <h3>Recebemos suas informações!</h3>
+        <p>Nossa equipe entrará em contato para entender seu momento e orientar sobre a modalidade mais adequada.</p>
+        <div class="acoes"><a class="btn" id="qualificacaoWhatsApp" href="#" target="_blank" rel="noopener">Falar com a equipe no WhatsApp <i><svg><use href="#i-seta"/></svg></i></a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 06 · O RETORNO ═══════════════════════════════════════════ -->
+<section class="secao secao--alt" id="retorno">
+  <div class="env">
+    <span class="olho rev">O retorno</span>
+    <h2 class="tit rev">Um paciente paga<b>a <span class="it dourado">imersão</span>.</b></h2>
+    <div class="dupla" style="margin-top:40px">
+      <div class="rev">
+        <p class="texto">A conta que interessa não é quanto custa a imersão. É quantos pacientes você precisa atender para ela se pagar, e a partir de qual deles o protocolo vira margem.</p>
+        <p class="texto" style="margin-top:14px">É por isso que o dia 20 existe. A técnica faz o médico executar; é o posicionamento que faz o paciente aceitar o valor.</p>
+        <div class="aviso"><b>Cenário ilustrativo.</b> A faixa usada aqui foi construída a partir de valores praticados no mercado de harmonização corporal premium. Não é promessa nem garantia de resultado financeiro. O retorno depende da sua praça, do seu posicionamento, da sua estrutura e da sua operação comercial.</div>
+      </div>
+      <dl class="conta rev">
+        <div class="conta__l"><dt>Protocolo Full Body, faixa de mercado</dt><dd>R$ 50.000</dd></div>
+        <div class="conta__l"><dt>Investimento no Hands On</dt><dd>R$ 16.899</dd></div>
+        <div class="conta__l conta__l--soma"><dt>Pacientes para cobrir a imersão</dt><dd>1</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 07 · QUEM CONDUZ ═════════════════════════════════════════ -->
+<section class="secao" id="professores">
+  <div class="env">
+    <span class="olho olho--centro rev">Quem conduz</span>
+    <h2 class="tit tit--centro rev">Quem está na sala<b>com <span class="it dourado">você</span>.</b></h2>
+    <p class="texto texto--centro rev" style="margin-top:20px">Um time formado por quem constrói protocolo, resultado clínico e posicionamento de mercado todos os dias, não por quem só ensina.</p>
+
+    <div class="time">
+      <article class="prof rev">
+        <figure><img src="images/professores/maria-ligia.webp" width="560" height="747" alt="Dra. Maria Lígia Mendonça" loading="lazy"></figure>
+        <p class="prof__p">Idealizadora</p><h3>Dra. Maria Lígia Mendonça</h3>
+        <p>Médica dermatologista, fundadora da Clínica Supreme. Atuação voltada para harmonização facial e corporal avançada e protocolos premium.</p>
+      </article>
+      <article class="prof rev">
+        <figure><img src="images/professores/ana-machado.webp" width="560" height="747" alt="Dra. Ana Machado" loading="lazy"></figure>
+        <p class="prof__p">Corpo &amp; contorno</p><h3>Dra. Ana Machado</h3>
+        <p>Médica especialista em tratamentos corporais e protocolos avançados, com abordagens combinadas para contorno, definição e sustentação.</p>
+      </article>
+      <article class="prof rev">
+        <figure><img src="images/professores/arthur-rocha.webp" width="560" height="747" alt="Dr. Arthur Rocha" loading="lazy"></figure>
+        <p class="prof__p">Participação especial</p><h3>Dr. Arthur Rocha</h3>
+        <p>Médico nutrólogo. Traz medicação, associação terapêutica e suporte clínico complementar em casos de retenção, inflamação sistêmica e lipedema.</p>
+      </article>
+      <article class="prof rev">
+        <figure><img src="images/professores/silvane-castro.webp" width="560" height="747" alt="Silvane Castro" loading="lazy"></figure>
+        <p class="prof__p">Módulo de gestão</p><h3>Silvane Castro</h3>
+        <p>CEO founder da Seven Gestão, advisor de negócios de saúde e palestrante. Coordenadora do Núcleo de Saúde da Câmara Brasil-China.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 08 · PARA QUEM É / NÃO É ═════════════════════════════════ -->
+<section class="secao secao--alt" id="para-quem">
+  <div class="env">
+    <span class="olho olho--centro rev">Antes de decidir</span>
+    <h2 class="tit tit--centro rev">Para quem é.<b>E para quem <span class="it dourado">não é</span>.</b></h2>
+    <p class="texto texto--centro rev" style="margin-top:20px">Uma turma reduzida só funciona se as pessoas certas estiverem nela. Prefira desistir agora a descobrir isso no dia 19.</p>
+
+    <div class="filtro">
+      <div class="rev">
+        <h3>É para você se</h3>
+        <ul class="marcas">
+          <li><svg><use href="#i-check"/></svg><span>Já atua com harmonização facial e quer expandir para o corporal, ampliando ticket médio e portfólio.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Quer entrar no corporal premium com protocolo claro, seguro e replicável, não com técnica solta.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Atende casos de lipedema, celulite e flacidez e busca uma abordagem clínica combinada.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Entende que autoridade e recorrência vêm de uma experiência completa, não de um procedimento isolado.</span></li>
+          <li><svg><use href="#i-check"/></svg><span>Quer trazer quem cuida da gestão junto, para que a clínica inteira saia alinhada.</span></li>
+        </ul>
+      </div>
+      <div class="nao-e rev">
+        <h3>Não é para você se</h3>
+        <ul class="marcas">
+          <li><svg><use href="#i-x"/></svg><span>Procura um curso rápido para aprender uma técnica e aplicar no dia seguinte sem critério clínico.</span></li>
+          <li><svg><use href="#i-x"/></svg><span>Espera garantia de faturamento. Aqui se ensina protocolo e posicionamento. O resultado depende da sua operação.</span></li>
+          <li><svg><use href="#i-x"/></svg><span>Não é médico e quer participar do dia 19. O hands-on é restrito por exigência técnica e legal.</span></li>
+          <li><svg><use href="#i-x"/></svg><span>Está procurando o menor preço do mercado. Esta imersão é cara, e a página não esconde isso.</span></li>
+          <li><svg><use href="#i-x"/></svg><span>Quer conteúdo gravado. Os dois dias são presenciais, em Goiânia, e não há versão on-line.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 09 · RESULTADOS ══════════════════════════════════════════
+     A confirmação de "sou profissional da área médica" foi retirada
+     a pedido do cliente em 18/08. A marcação de conteúdo técnico-
+     científico (item 7.1 do briefing) segue no aviso da galeria.
+     ═══════════════════════════════════════════════════════════ -->
+<section class="secao secao--breu" id="resultados">
+  <span class="mono mono--esq mono--cheio" aria-hidden="true">S</span>
+  <div class="env">
+    <span class="olho olho--centro rev">Resultados</span>
+    <h2 class="tit tit--centro rev">Registros clínicos<b>dos <span class="it dourado">protocolos</span>.</b></h2>
+    <p class="texto texto--centro rev" style="margin-top:20px">Casos conduzidos na Clínica Supreme com os protocolos ensinados na imersão.</p>
+
+    <div class="galeria rev" id="galeria">
+      <div class="galeria__g">
+        <figure><img src="images/resultados/antes-depois-03-gluteo-supreme.webp" width="800" height="701" alt="Registro clínico: antes e depois de protocolo de glúteo" loading="lazy"></figure>
+        <figure><img src="images/resultados/antes-depois-05-gluteo-pernas.webp" width="800" height="390" alt="Registro clínico: antes e depois de protocolo de glúteo e pernas" loading="lazy"></figure>
+        <figure><img src="images/resultados/antes-depois-07-abdomen.webp" width="880" height="866" alt="Registro clínico: antes e depois de protocolo de abdômen" loading="lazy"></figure>
+        <figure><img src="images/resultados/antes-depois-04-gluteo-aplicacao.webp" width="800" height="1422" alt="Registro clínico: aplicação e resultado de protocolo de glúteo" loading="lazy"></figure>
+        <figure><img src="images/resultados/antes-depois-06-abdomen-flacidez.webp" width="800" height="401" alt="Registro clínico: antes e depois de protocolo para flacidez abdominal" loading="lazy"></figure>
+        <figure><img src="images/resultados/antes-depois-02-gluteo-perfil.webp" width="800" height="1244" alt="Registro clínico: antes e depois de protocolo de glúteo, vista de perfil" loading="lazy"></figure>
+      </div>
+    </div>
+
+    <div class="aviso aviso--centro rev"><b>Conteúdo técnico-científico dirigido a profissionais da área médica.</b> Os resultados podem variar de acordo com avaliação individual, indicação médica, resposta biológica e adesão ao plano terapêutico. <b>Imagens publicadas mediante autorização de uso de imagem dos pacientes.</b></div>
+  </div>
+</section>
+
+<!-- ══ FAIXA DIAGONAL ═══════════════════════════════════════════ -->
+<div class="faixa" aria-hidden="true">
+  <div class="faixa__fita faixa__fita--a"><div class="trilha" data-trilha>
+    <span>Hands On</span><span>·</span><span>Observador</span><span>·</span><span>Módulo de Gestão</span><span>·</span><span>Supreme Full Body <em>Experience</em></span><span>·</span>
+  </div></div>
+  <div class="faixa__fita faixa__fita--b"><div class="trilha" data-trilha>
+    <span>Clínica Supreme</span><span>·</span><span>Goiânia</span><span>·</span><span>19 e 20 de outubro</span><span>·</span><span>Imersão para médicos</span><span>·</span>
+  </div></div>
+</div>
+
+<!-- ══ 10 · FAQ ═════════════════════════════════════════════════ -->
+<section class="secao" id="faq">
+  <div class="env">
+    <span class="olho olho--centro rev">Perguntas frequentes</span>
+    <h2 class="tit tit--centro rev">O que costuma ficar em <b class="it dourado">aberto</b></h2>
+
+    <div class="faq rev">
+      <details name="faq-full-body"><summary>Qual é a diferença entre Hands On e Observador?</summary><div class="resp"><p>No dia 19, <b>o Hands On executa os protocolos e o Observador acompanha</b>, sem executar. Os dois têm os mesmos protocolos, os mesmos professores e o mesmo material. A outra diferença é o dia 20: <b>o Módulo de Gestão já vem no Hands On</b> e, no Observador, é opcional, por R$ 1.999.</p></div></details>
+      <details name="faq-full-body"><summary>Não sou médico. Posso participar?</summary><div class="resp"><p>Do <b>dia 20</b>, sim. O Módulo de Gestão é aberto para gestores, sócios e equipe de clínica, por R$ 1.499. O <b>dia 19 é restrito a médicos</b>, por exigência técnica e legal do que é aplicado ali.</p></div></details>
+      <details name="faq-full-body"><summary>Sou médico e quero só a gestão. Como funciona?</summary><div class="resp"><p>Você compra o <b>Módulo de Gestão avulso, por R$ 3.790</b>, e participa apenas do dia 20, das 9h às 13h. É o mesmo módulo que está incluso nos pacotes Hands On e Observador. Dentro deles, entra por R$ 1.999.</p></div></details>
+      <details name="faq-full-body"><summary>Posso levar meu gestor comigo?</summary><div class="resp"><p>Pode. Você faz a sua modalidade normalmente e inscreve o acompanhante no Módulo de Gestão por <b>R$ 1.499</b>. Ele participa do dia 20 com você. Não precisa ser médico.</p></div></details>
+      <details name="faq-full-body"><summary>O Módulo de Gestão está incluso na minha modalidade?</summary><div class="resp"><p>No <b>Hands On</b>, sim: já entra na composição do pacote. No <b>Observador</b>, é opcional e custa <b>R$ 1.999</b> à parte, contra R$ 3.790 do valor avulso para médico.</p></div></details>
+      <details name="faq-full-body"><summary>Preciso já atuar com harmonização corporal para participar?</summary><div class="resp"><p>Não. A imersão foi estruturada para levar você da lógica do protocolo até a aplicação prática, mesmo que sua atuação hoje seja majoritariamente facial. O que se espera é formação médica e prática clínica em estética.</p></div></details>
+      <details name="faq-full-body"><summary>Vou sair aplicando os protocolos na clínica?</summary><div class="resp"><p>O dia 19 é hands-on, com prática supervisionada em Glúteo, Abdômen, Lipedema, Pernas e Full Body Supreme. Você sai com o raciocínio clínico e o protocolo estruturado. A velocidade de implantação depende da sua estrutura e do seu perfil de paciente.</p></div></details>
+      <details name="faq-full-body"><summary>A turma é grande?</summary><div class="resp"><p>Não. <b>As turmas são reduzidas</b>, porque a prática do dia 19 é supervisionada de perto e isso só funciona com poucos médicos por professor. O número exato de cada modalidade a equipe comercial confirma no atendimento.</p></div></details>
+      <details name="faq-full-body"><summary>Como funciona o pagamento?</summary><div class="resp"><p>Inscrição por link on-line, à vista ou <b>parcelado em até 6x</b>. Cada modalidade tem o seu link: ao clicar no botão da modalidade escolhida você vai direto para o checkout correspondente.</p></div></details>
+      <details name="faq-full-body"><summary>Quando a minha vaga é confirmada?</summary><div class="resp"><p><b>A vaga só é confirmada após o pagamento</b>, por ordem de inscrição. Enquanto o pagamento não é concluído, a vaga segue disponível para outro inscrito.</p></div></details>
+      <details name="faq-full-body"><summary>Posso trocar de modalidade depois de pagar?</summary><div class="resp"><p>As condições de troca de modalidade e de reembolso constam no contrato de inscrição. <!-- PENDÊNCIA 4 · texto a ser validado pelo jurídico do cliente antes de publicar --> Fale com a equipe comercial antes de concluir a compra se ainda estiver em dúvida sobre qual escolher.</p></div></details>
+      <details name="faq-full-body"><summary>Terei suporte depois da imersão?</summary><div class="resp"><p>Sim. Há acompanhamento próximo à imersão para dúvidas sobre a aplicação dos protocolos na sua prática clínica.</p></div></details>
+    </div>
+
+    <div class="acoes acoes--centro rev">
+      <a href="#qualificacao" class="btn" data-qualificacao="duvida">Quero participar <i><svg><use href="#i-seta"/></svg></i></a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 11 · FECHAMENTO ══════════════════════════════════════════ -->
+<section class="secao secao--breu" id="inscricao">
+  <span class="mono mono--dir" aria-hidden="true">S</span>
+  <div class="env" style="text-align:center">
+    <span class="olho olho--centro rev">Inscrições</span>
+    <h2 class="tit tit--centro rev" style="max-width:26ch">As <span class="it dourado">turmas são reduzidas</span><b>e fecham por ordem de pagamento.</b></h2>
+    <div class="acoes acoes--centro rev">
+      <a href="#qualificacao" class="btn" data-qualificacao="duvida">Quero participar <i><svg><use href="#i-seta"/></svg></i></a>
+      <button type="button" class="btn btn--vazado" data-qualificacao="duvida">Receber orientação da equipe</button>
+    </div>
+
+    <dl class="pratico rev" style="text-align:left">
+      <div><dt>Datas</dt><dd><b>19 e 20 de outubro</b>Dia 19 a partir das 9h<br>Dia 20 das 9h às 13h</dd></div>
+      <div><dt>Local</dt><dd><b>Clínica Supreme</b>Goiânia, GO</dd></div>
+      <div><dt>Turmas</dt><dd><b>Reduzidas</b>Hands On, Observador<br>e Módulo de Gestão</dd></div>
+      <div><dt>Pagamento</dt><dd><b>Até 6x</b>À vista ou parcelado,<br>por link on-line</dd></div>
+      <div><dt>Confirmação</dt><dd><b>Após o pagamento</b>Por ordem de inscrição</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<!-- ══ RODAPÉ ═══════════════════════════════════════════════════ -->
+<footer class="rodape">
+  <div class="env">
+    <div class="rodape__g">
+      <div>
+        <img class="rodape__logo" src="images/%5BFull%20Body%20Experience%5D%20Logo%201.png" width="1726" height="884" alt="Supreme Lifestyle Clinic" loading="lazy">
+        <p>Imersão presencial de harmonização corporal premium dirigida a médicos.<br>Clínica Supreme, Goiânia/GO.</p>
+      </div>
+      <div>
+        <h4>Responsável técnica</h4>
+        <p>Dra. Maria Lígia Mendonça<br>CRM-GO 14358 · RQE 8544<br>Dermatologia</p>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <p><a href="#modalidades">Ver modalidades</a><br><a href="#qualificacao" data-qualificacao="duvida">Solicitar contato</a></p>
+      </div>
+    </div>
+    <div class="rodape__l">
+      <span>Conteúdo técnico-científico dirigido a profissionais da área médica. Não constitui publicidade de procedimento ao público leigo nem promessa de resultado.</span>
+      <span>© 2026 Clínica Supreme · SAUDE E BEM ESTAR SERVICOS MEDICOS LTDA · CNPJ 20.625.670/0001-00</span>
+      <span class="credito">Desenvolvido por <a href="https://3ads.com.br" target="_blank" rel="noopener">3ADS</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ══ BARRA FIXA MOBILE ════════════════════════════════════════ -->
+<nav class="barra-mob" aria-label="Ações rápidas">
+  <a href="#qualificacao" class="btn" data-qualificacao="duvida">Quero participar</a>
+  <a href="#qualificacao" class="btn btn--vazado" data-qualificacao="duvida">Receber orientação</a>
+</nav>
+
+<!-- ══ MODAL DO CONVITE ═════════════════════════════════════════ -->
+<dialog id="modalConvite" aria-label="Convite em vídeo">
+  <button class="fechar" type="button" id="fecharConvite" aria-label="Fechar">×</button>
+  <video id="videoConvite" controls playsinline preload="none" poster="images/convite-poster.webp" width="540" height="960">
+    <source src="images/convite-full-body.mp4" type="video/mp4">
+  </video>
+</dialog>
+
+<!-- ══ DADOS ESTRUTURADOS ═══════════════════════════════════════ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationEvent",
+  "name": "Supreme Full Body Experience",
+  "description": "Imersão presencial de harmonização corporal premium para médicos, com dois dias na Clínica Supreme: prática supervisionada nos cinco protocolos Full Body e módulo de gestão, posicionamento e precificação.",
+  "startDate": "2026-10-19T09:00:00-03:00",
+  "endDate": "2026-10-20T13:00:00-03:00",
+  "eventStatus": "https://schema.org/EventScheduled",
+  "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
+  "inLanguage": "pt-BR",
+  "image": "https://fullbodyexperience.com.br/images/og-cover.jpg",
+  "url": "https://fullbodyexperience.com.br/",
+  "location": {
+    "@type": "Place",
+    "name": "Clínica Supreme",
+    "address": { "@type": "PostalAddress", "addressLocality": "Goiânia", "addressRegion": "GO", "addressCountry": "BR" }
+  },
+  "organizer": { "@type": "Organization", "name": "Clínica Supreme", "url": "https://fullbodyexperience.com.br/" },
+  "performer": [
+    { "@type": "Person", "name": "Dra. Maria Lígia Mendonça" },
+    { "@type": "Person", "name": "Dra. Ana Machado" },
+    { "@type": "Person", "name": "Dr. Arthur Rocha" },
+    { "@type": "Person", "name": "Silvane Castro" }
+  ],
+  "offers": [
+    { "@type": "Offer", "name": "Hands On", "price": "16899.00", "priceCurrency": "BRL", "availability": "https://schema.org/InStock", "url": "https://fullbodyexperience.com.br/#modalidades", "validFrom": "2026-08-18T00:00:00-03:00" },
+    { "@type": "Offer", "name": "Observador", "price": "10900.00", "priceCurrency": "BRL", "availability": "https://schema.org/InStock", "url": "https://fullbodyexperience.com.br/#modalidades", "validFrom": "2026-08-18T00:00:00-03:00" },
+    { "@type": "Offer", "name": "Módulo de Gestão, médico avulso", "price": "3790.00", "priceCurrency": "BRL", "availability": "https://schema.org/InStock", "url": "https://fullbodyexperience.com.br/#modalidades", "validFrom": "2026-08-18T00:00:00-03:00" },
+    { "@type": "Offer", "name": "Módulo de Gestão, gestor acompanhante", "price": "1499.00", "priceCurrency": "BRL", "availability": "https://schema.org/InStock", "url": "https://fullbodyexperience.com.br/#modalidades", "validFrom": "2026-08-18T00:00:00-03:00" }
+  ]
+}
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO — é aqui que se mexe antes de publicar.
+   Enquanto CHECKOUT vier vazio, o botão da modalidade cai para o
+   WhatsApp com a mensagem certa, em vez de levar a lugar nenhum.
+   ══════════════════════════════════════════════════════════════ */
+const CONFIG = {
+  // Hands On e Observador passam pelo formulário de qualificação.
+  // PENDÊNCIA 2 · links de checkout do Módulo de Gestão (Monique)
+  checkout: {
+    hands_on:      "",
+    observador:    "",
+    gestao_gestor: "",
+    gestao_medico: ""
+  },
+  // PENDÊNCIA 3 · confirmar o número comercial oficial.
+  // O valor abaixo é o que está na LP atual do SprintHub.
+  whatsapp: "5562998432153",
+
+  // Rastreamento direto opcional. O GTM-MS8VK2NT já está instalado.
+  // Manter vazio se Pixel e GA4 forem configurados no GTM, para evitar duplicidade.
+  metaPixelId: "",
+  ga4Id: "",
+
+  // Início da imersão, para o contador. Não reinicia e não é falso.
+  inicio: "2026-10-19T09:00:00-03:00"
+};
+
+const MENSAGENS = {
+  hands_on:      "Olá, vim pela página da Full Body Experience e quero saber mais sobre a modalidade Hands On.",
+  observador:    "Olá, vim pela página da Full Body Experience e quero saber mais sobre a modalidade Observador.",
+  gestao_gestor: "Olá, vim pela página da Full Body Experience e quero inscrever um gestor no Módulo de Gestão do dia 20.",
+  gestao_medico: "Olá, sou médico, vim pela página da Full Body Experience e quero saber mais sobre o Módulo de Gestão avulso.",
+  qualificado:   "Olá, preenchi o formulário de qualificação da Full Body Experience e gostaria de falar com a equipe.",
+  whatsapp:      "Olá, vim pela página da Full Body Experience e gostaria de tirar uma dúvida."
+};
+
+const EVENTOS = {
+  hands_on: "clique_hands_on",
+  observador: "clique_observador",
+  gestao_gestor: "clique_gestao_gestor",
+  gestao_medico: "clique_gestao_medico",
+  whatsapp: "clique_whatsapp"
+};
+
+const VALORES = { hands_on:16899, observador:10900, gestao_gestor:1499, gestao_medico:3790 };
+window.dataLayer = window.dataLayer || [];
+
+/* ── carga condicional de Pixel e GA4 ───────────────────────── */
+(function(){
+  if (CONFIG.metaPixelId) {
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+    (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', CONFIG.metaPixelId); fbq('track', 'PageView');
+  }
+  if (CONFIG.ga4Id) {
+    const s = document.createElement('script');
+    s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + CONFIG.ga4Id;
+    document.head.appendChild(s);
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function(){ dataLayer.push(arguments); };
+    gtag('js', new Date()); gtag('config', CONFIG.ga4Id);
+  }
+})();
+
+function track(evento, dados){
+  dados = dados || {};
+  if (window.dataLayer) dataLayer.push(Object.assign({ event: evento }, dados));
+  if (window.gtag) gtag('event', evento, dados);
+  if (window.fbq) fbq('trackCustom', evento, dados);
+  if (!window.dataLayer && !CONFIG.metaPixelId && !CONFIG.ga4Id) console.info('[rastreio pendente]', evento, dados);
+}
+
+/* ── UTMs preservadas na passagem para checkout e WhatsApp ──── */
+const PARAMS_REPASSE = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
+const PARAMS_RASTREIO = PARAMS_REPASSE.concat(['utm_id','gbraid','wbraid']);
+
+/* Guarda a última origem com UTM por 30 dias: se a pessoa voltar sem parâmetros,
+   o lead ainda chega com a campanha que a trouxe. */
+const CHAVE_ORIGEM = 'fbx_origem';
+function origemDoLead(){
+  const busca = new URLSearchParams(location.search);
+  const atual = {};
+  PARAMS_RASTREIO.forEach(p => { if (busca.get(p)) atual[p] = busca.get(p); });
+  try {
+    if (Object.keys(atual).length) {
+      localStorage.setItem(CHAVE_ORIGEM, JSON.stringify({ salvo_em: Date.now(), dados: atual }));
+      return atual;
+    }
+    const salvo = JSON.parse(localStorage.getItem(CHAVE_ORIGEM) || 'null');
+    if (salvo && Date.now() - salvo.salvo_em < 30 * 864e5) return salvo.dados || {};
+  } catch(e){}
+  return atual;
+}
+origemDoLead();
+function cookie(nome){
+  const achado = document.cookie.split('; ').find(c => c.startsWith(nome + '='));
+  return achado ? decodeURIComponent(achado.slice(nome.length + 1)) : '';
+}
+function comUtms(url){
+  try{
+    const origem = new URLSearchParams(location.search);
+    const destino = new URL(url, location.href);
+    PARAMS_REPASSE.forEach(p => { if (origem.has(p)) destino.searchParams.set(p, origem.get(p)); });
+    return destino.toString();
+  } catch(e){ return url; }
+}
+function linkWhats(modalidade){
+  const texto = MENSAGENS[modalidade] || MENSAGENS.whatsapp;
+  const busca = new URLSearchParams(location.search);
+  const utms = PARAMS_REPASSE.filter(p => busca.has(p)).map(p => `${p}=${busca.get(p)}`).join(' | ');
+  const sufixo = utms ? `\n\n[origem: ${utms}]` : '';
+  return `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(texto + sufixo)}`;
+}
+
+/* ── CTAs ───────────────────────────────────────────────────── */
+document.querySelectorAll('[data-modalidade]').forEach(el => {
+  el.addEventListener('click', ev => {
+    ev.preventDefault();
+    const m = el.dataset.modalidade;
+    track(EVENTOS[m], { modalidade: m, valor: VALORES[m] || 0, moeda: 'BRL' });
+
+    if (m === 'whatsapp') { window.open(linkWhats(m), '_blank', 'noopener'); return; }
+
+    const url = CONFIG.checkout[m];
+    if (url) {
+      if (window.fbq) fbq('track', 'InitiateCheckout', { value: VALORES[m], currency: 'BRL', content_name: m });
+      window.location.href = comUtms(url);
+    } else {
+      console.warn(`[checkout ausente] Modalidade "${m}" sem link em CONFIG.checkout — caindo para o WhatsApp.`);
+      window.open(linkWhats(m), '_blank', 'noopener');
+    }
+  });
+});
+
+/* ── FAQ em sanfona exclusiva com animação progressiva ─────── */
+(function(){
+  const faq = document.querySelector('.faq');
+  if (!faq) return;
+
+  const itens = [...faq.querySelectorAll('details')];
+  const reduzirMovimento = matchMedia('(prefers-reduced-motion: reduce)');
+  const animacoes = new WeakMap();
+  faq.classList.add('faq--js');
+
+  function cancelar(item){
+    const animacao = animacoes.get(item);
+    if (animacao) animacao.cancel();
+    animacoes.delete(item);
+  }
+
+  function abrir(item){
+    const resumo = item.querySelector('summary');
+    const resposta = item.querySelector('.resp');
+    cancelar(item);
+    item.classList.remove('is-closing');
+    item.open = true;
+    resumo.setAttribute('aria-expanded', 'true');
+
+    if (reduzirMovimento.matches) return;
+    const altura = resposta.scrollHeight;
+    const animacao = resposta.animate([
+      { height:'0px', opacity:0, paddingBottom:'0px' },
+      { height:`${altura}px`, opacity:1, paddingBottom:'22px' }
+    ], { duration:320, easing:'cubic-bezier(.22,.61,.36,1)' });
+    animacoes.set(item, animacao);
+    animacao.finished.catch(() => {}).finally(() => {
+      if (animacoes.get(item) === animacao) animacoes.delete(item);
+    });
+  }
+
+  function fechar(item){
+    if (!item.open) return;
+    const resumo = item.querySelector('summary');
+    const resposta = item.querySelector('.resp');
+    cancelar(item);
+    resumo.setAttribute('aria-expanded', 'false');
+    item.classList.add('is-closing');
+
+    if (reduzirMovimento.matches) {
+      item.open = false;
+      item.classList.remove('is-closing');
+      return;
+    }
+
+    const altura = resposta.getBoundingClientRect().height;
+    const animacao = resposta.animate([
+      { height:`${altura}px`, opacity:1, paddingBottom:'22px' },
+      { height:'0px', opacity:0, paddingBottom:'0px' }
+    ], { duration:280, easing:'cubic-bezier(.55,.06,.68,.19)', fill:'forwards' });
+    animacoes.set(item, animacao);
+    animacao.finished.then(() => {
+      if (animacoes.get(item) !== animacao) return;
+      item.open = false;
+      item.classList.remove('is-closing');
+      animacoes.delete(item);
+      animacao.cancel();
+    }).catch(() => {});
+  }
+
+  itens.forEach(item => {
+    const resumo = item.querySelector('summary');
+    item.removeAttribute('name');
+    resumo.setAttribute('aria-expanded', String(item.open));
+    resumo.addEventListener('click', evento => {
+      evento.preventDefault();
+      const deveAbrir = !item.open || item.classList.contains('is-closing');
+      if (deveAbrir) {
+        itens.forEach(outro => { if (outro !== item) fechar(outro); });
+        abrir(item);
+      } else {
+        fechar(item);
+      }
+    });
+  });
+})();
+
+/* ── formulário de qualificação ────────────────────────────── */
+(function(){
+  const form = document.getElementById('formQualificacao');
+  if (!form) return;
+
+  const card = document.getElementById('qualificacaoCard');
+  const topo = document.getElementById('qualificacaoTopo');
+  const textoEtapa = document.getElementById('qualificacaoEtapa');
+  const progresso = document.getElementById('qualificacaoProgresso');
+  const barra = progresso.querySelector('span');
+  const etapas = [...form.querySelectorAll('[data-etapa]')];
+  const desqualificado = document.getElementById('qualificacaoDesqualificado');
+  const sucesso = document.getElementById('qualificacaoSucesso');
+  const whatsSucesso = document.getElementById('qualificacaoWhatsApp');
+  const telefone = document.getElementById('qualTelefone');
+  const botaoEnviar = form.querySelector('.qual-enviar');
+  const textoEnviar = botaoEnviar.innerHTML;
+  let etapaAtual = 1;
+  let iniciado = false;
+  let enviando = false;
+  let leadDisparado = false;
+
+  function marcarInicio(origem, interesse){
+    if (iniciado) return;
+    iniciado = true;
+    track('formulario_qualificacao_iniciado', { origem: origem || 'formulario', interesse_inicial: interesse || 'nao_informado' });
+  }
+
+  function erroDaEtapa(etapa, mensagem){
+    const erro = etapa.querySelector('.qual-erro');
+    if (erro) erro.textContent = mensagem || '';
+  }
+
+  function mostrarEtapa(numero, moverFoco){
+    etapaAtual = Math.max(1, Math.min(numero, etapas.length));
+    etapas.forEach(etapa => { etapa.hidden = Number(etapa.dataset.etapa) !== etapaAtual; });
+    textoEtapa.textContent = `Etapa ${etapaAtual} de ${etapas.length}`;
+    progresso.setAttribute('aria-valuenow', String(etapaAtual));
+    barra.style.width = `${etapaAtual / etapas.length * 100}%`;
+    erroDaEtapa(etapas[etapaAtual - 1], '');
+    if (moverFoco) {
+      const titulo = etapas[etapaAtual - 1].querySelector('legend');
+      if (titulo) { titulo.tabIndex = -1; titulo.focus({ preventScroll:true }); }
+      card.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+  }
+
+  function valorMarcado(nome){
+    const campo = form.querySelector(`input[name="${nome}"]:checked`);
+    return campo ? campo.value : '';
+  }
+
+  function encerrarDesqualificado(motivo){
+    form.hidden = true;
+    topo.hidden = true;
+    sucesso.hidden = true;
+    desqualificado.hidden = false;
+    desqualificado.focus({ preventScroll:true });
+    card.scrollIntoView({ behavior:'smooth', block:'center' });
+    track('formulario_desqualificado', { motivo });
+  }
+
+  const camposPorEtapa = {
+    1:'medico', 2:'especialidade', 3:'atuacao_estetica',
+    4:'modalidade_interesse', 5:'disponibilidade', 6:'prazo_decisao'
+  };
+
+  form.querySelectorAll('[data-proximo]').forEach(botao => {
+    botao.addEventListener('click', () => {
+      marcarInicio('formulario');
+      const etapa = etapas[etapaAtual - 1];
+      const nome = camposPorEtapa[etapaAtual];
+      const valor = valorMarcado(nome);
+      if (!valor) {
+        erroDaEtapa(etapa, 'Selecione uma opção para continuar.');
+        const primeiro = etapa.querySelector('input[type="radio"]');
+        if (primeiro) primeiro.focus();
+        return;
+      }
+      if (etapaAtual === 1 && valor === 'nao') { encerrarDesqualificado('nao_medico'); return; }
+      if (etapaAtual === 5 && valor === 'nao') { encerrarDesqualificado('sem_disponibilidade'); return; }
+      mostrarEtapa(etapaAtual + 1, true);
+    });
+  });
+
+  form.querySelectorAll('[data-voltar]').forEach(botao => {
+    botao.addEventListener('click', () => mostrarEtapa(etapaAtual - 1, true));
+  });
+
+  form.addEventListener('change', () => {
+    marcarInicio('formulario');
+    erroDaEtapa(etapas[etapaAtual - 1], '');
+  });
+
+  document.querySelectorAll('[data-qualificacao]').forEach(gatilho => {
+    gatilho.addEventListener('click', evento => {
+      evento.preventDefault();
+      const interesse = gatilho.dataset.qualificacao || 'duvida';
+      const opcao = form.querySelector(`input[name="modalidade_interesse"][value="${interesse}"]`);
+      if (opcao) opcao.checked = true;
+      marcarInicio('cta', interesse);
+      document.getElementById('qualificacao').scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  });
+
+  telefone.addEventListener('input', () => {
+    const digitos = telefone.value.replace(/\D/g, '').slice(0, 13);
+    const nacional = digitos.startsWith('55') && digitos.length > 11 ? digitos.slice(2) : digitos;
+    const prefixo = nacional !== digitos ? '+55 ' : '';
+    if (nacional.length <= 2) telefone.value = prefixo + nacional;
+    else if (nacional.length <= 6) telefone.value = `${prefixo}(${nacional.slice(0,2)}) ${nacional.slice(2)}`;
+    else if (nacional.length <= 10) telefone.value = `${prefixo}(${nacional.slice(0,2)}) ${nacional.slice(2,6)}-${nacional.slice(6)}`;
+    else telefone.value = `${prefixo}(${nacional.slice(0,2)}) ${nacional.slice(2,7)}-${nacional.slice(7,11)}`;
+  });
+
+  function dispararLead(dados){
+    if (leadDisparado) return;
+    leadDisparado = true;
+    const parametros = {
+      lead_qualificado:true,
+      especialidade:dados.especialidade,
+      atuacao_estetica:dados.atuacao_estetica,
+      modalidade_interesse:dados.modalidade_interesse,
+      disponibilidade:dados.disponibilidade,
+      prazo_decisao:dados.prazo_decisao
+    };
+    if (window.dataLayer) dataLayer.push(Object.assign({ event:'Lead' }, parametros));
+    if (CONFIG.metaPixelId && window.fbq) fbq('track', 'Lead', { content_name:'formulario_qualificacao', content_category:dados.modalidade_interesse });
+    if (CONFIG.ga4Id && window.gtag) gtag('event', 'generate_lead', { currency:'BRL', value:0, modalidade_interesse:dados.modalidade_interesse });
+  }
+
+  form.addEventListener('submit', async evento => {
+    evento.preventDefault();
+    marcarInicio('formulario');
+    const etapa = etapas[etapaAtual - 1];
+    if (!form.checkValidity()) {
+      erroDaEtapa(etapa, 'Confira os campos obrigatórios antes de enviar.');
+      form.reportValidity();
+      return;
+    }
+    if (enviando) return;
+    enviando = true;
+    erroDaEtapa(etapa, '');
+    botaoEnviar.setAttribute('aria-busy', 'true');
+    botaoEnviar.textContent = 'Enviando...';
+
+    const dados = Object.assign(Object.fromEntries(new FormData(form).entries()), origemDoLead(), {
+      pagina: location.href.split('#')[0],
+      referrer: document.referrer,
+      fbp: cookie('_fbp'),
+      fbc: cookie('_fbc'),
+      ga_client_id: cookie('_ga').split('.').slice(-2).join('.')
+    });
+
+    try {
+      const controle = new AbortController();
+      const limite = setTimeout(() => controle.abort(), 12000);
+      const resposta = await fetch(form.action, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Accept':'application/json' },
+        credentials:'same-origin',
+        body:JSON.stringify(dados),
+        signal:controle.signal
+      });
+      clearTimeout(limite);
+      const retorno = await resposta.json().catch(() => ({}));
+      if (!resposta.ok || !retorno.ok) throw new Error(retorno.message || 'Não foi possível enviar agora.');
+
+      if (!retorno.suppressed) dispararLead(dados);
+      form.hidden = true;
+      topo.hidden = true;
+      desqualificado.hidden = true;
+      whatsSucesso.href = linkWhats('qualificado');
+      sucesso.hidden = false;
+      sucesso.focus({ preventScroll:true });
+      card.scrollIntoView({ behavior:'smooth', block:'center' });
+    } catch (erro) {
+      const mensagem = erro.name === 'AbortError'
+        ? 'O envio demorou mais que o esperado. Verifique sua conexão e tente novamente.'
+        : (erro.message || 'Não foi possível enviar agora. Tente novamente.');
+      erroDaEtapa(etapa, mensagem);
+    } finally {
+      enviando = false;
+      botaoEnviar.removeAttribute('aria-busy');
+      botaoEnviar.innerHTML = textoEnviar;
+    }
+  });
+
+  mostrarEtapa(1, false);
+})();
+
+/* ── contador regressivo real ───────────────────────────────── */
+(function(){
+  const alvo = new Date(CONFIG.inicio).getTime();
+  const campos = { d:document.querySelector('[data-c="d"]'), h:document.querySelector('[data-c="h"]'), m:document.querySelector('[data-c="m"]') };
+  const barra = document.getElementById('relogio');
+  function tick(){
+    const resta = alvo - Date.now();
+    if (resta <= 0){ if (barra) barra.innerHTML = '<span class="relogio__l" style="letter-spacing:.18em">A imersão começou</span>'; return; }
+    campos.d.textContent = Math.floor(resta / 864e5);
+    campos.h.textContent = String(Math.floor(resta % 864e5 / 36e5)).padStart(2,'0');
+    campos.m.textContent = String(Math.floor(resta % 36e5 / 6e4)).padStart(2,'0');
+  }
+  tick(); setInterval(tick, 30000);
+})();
+
+/* ── marquee: duplica o conteúdo para o laço não ter emenda ─── */
+(function(){
+  const trilhas = [...document.querySelectorAll('[data-trilha]')].map(el => ({ el, unidade: el.innerHTML }));
+  function monta(){
+    // piso de 1200px protege contra leitura de largura 0 (aba oculta, iframe ainda sem layout)
+    const alvo = Math.max(innerWidth, document.documentElement.clientWidth, 1200) * 1.3;
+    trilhas.forEach(({ el, unidade }) => {
+      el.innerHTML = unidade;
+      let guarda = 0;
+      while (el.scrollWidth < alvo && guarda++ < 24) el.insertAdjacentHTML('beforeend', unidade);
+      el.insertAdjacentHTML('beforeend', el.innerHTML);   // 2 metades idênticas → translateX(-50%) fecha o laço
+    });
+  }
+  monta();
+  let espera; addEventListener('resize', () => { clearTimeout(espera); espera = setTimeout(monta, 250); });
+})();
+
+/* ── vídeo do convite ───────────────────────────────────────── */
+(function(){
+  const modal = document.getElementById('modalConvite');
+  const abrir = document.getElementById('abrirConvite');
+  const fechar = document.getElementById('fecharConvite');
+  const video = document.getElementById('videoConvite');
+  if (!modal || !abrir) return;
+  abrir.addEventListener('click', () => { modal.showModal(); video.play(); track('abriu_convite'); });
+  fechar.addEventListener('click', () => modal.close());
+  modal.addEventListener('close', () => video.pause());
+  modal.addEventListener('click', ev => { if (ev.target === modal) modal.close(); });
+})();
+
+/* ── revelação na entrada + ViewContent nas modalidades ─────── */
+(function(){
+  const itens = document.querySelectorAll('.rev:not(.on)');
+  if (!('IntersectionObserver' in window)) { itens.forEach(i => i.classList.add('on')); return; }
+  const obs = new IntersectionObserver((entradas) => {
+    entradas.forEach(e => { if (e.isIntersecting){ e.target.classList.add('on'); obs.unobserve(e.target); } });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: .06 });
+  itens.forEach((el, i) => { el.style.transitionDelay = `${Math.min(i % 4, 3) * 70}ms`; obs.observe(el); });
+
+  const modalidades = document.getElementById('modalidades');
+  if (modalidades){
+    const vc = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (e.isIntersecting){
+          if (window.fbq) fbq('track','ViewContent',{ content_name:'modalidades', content_type:'product_group' });
+          track('viu_modalidades');
+          vc.disconnect();
+        }
+      });
+    }, { threshold: .2 });
+    vc.observe(modalidades);
+  }
+})();
+
+/* ── profundidade de rolagem ────────────────────────────────── */
+(function(){
+  const marcos = [25,50,75,100];
+  const vistos = new Set();
+  let travado = false;
+  addEventListener('scroll', () => {
+    if (travado) return;
+    travado = true;
+    requestAnimationFrame(() => {
+      const doc = document.documentElement;
+      const pct = (doc.scrollTop + innerHeight) / doc.scrollHeight * 100;
+      marcos.forEach(m => { if (pct >= m && !vistos.has(m)){ vistos.add(m); track('scroll_depth', { profundidade: m }); } });
+      travado = false;
+    });
+  }, { passive:true });
+})();
+</script>
+</body>
+</html>

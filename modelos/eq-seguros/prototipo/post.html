@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como os seguros embarcados ajudam empresas a aumentar a receita | Blog EQ Seguros</title>
+<meta name="description" content="Artigo sobre embedded insurance e novas receitas para parceiros.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="crumbbar"><div class="wrap"><div class="crumb"><a href="index.html">Home</a><span class="sep">›</span><a href="blog.html">Blog</a><span class="sep">›</span><b>Artigo</b></div></div></div>
+<section class="phero"><div class="wrap" style="max-width:820px;"><div class="rv-init"><span class="kicker">Educação financeira</span><h1>Como os seguros embarcados ajudam empresas a aumentar a receita sem complicar a jornada do cliente</h1><p class="lead">Publicado por Equipe EQ · 12 min de leitura</p></div></div></section>
+<section class="sec"><div class="wrap prose rv-init"><div class="imgbox" style="margin-bottom:30px;"><img src="assets/blog02.png" alt=""></div><p>O seguro embarcado, ou <i>embedded insurance</i>, é a prática de oferecer proteção dentro da jornada em que o cliente já está, sem obrigá-lo a sair para contratar em outro lugar. Na prática, o parceiro passa a ser o canal de distribuição, e o seguro deixa de ser um produto à parte para virar parte da experiência.</p><h2>Por que isso importa para o parceiro</h2><p>Para quem já tem base de clientes e uma jornada de venda estruturada, o seguro embarcado abre uma linha de receita recorrente com custo de aquisição próximo de zero, porque o cliente já está ali.</p><ul><li>Nova receita sobre a base existente</li><li>Baixo custo de aquisição</li><li>Aumento do valor por cliente</li><li>Diferencial competitivo na oferta</li></ul><h2>O papel da integração</h2><p>O que viabiliza esse modelo é a integração técnica. Com uma API única, o parceiro cotiza, emite e acompanha sinistros sem precisar construir uma operação de seguros do zero.</p><h3>Como começar</h3><p>O caminho costuma ser: entender o perfil da base, desenhar o produto adequado em conjunto com a seguradora, integrar via API e acompanhar os resultados com dados.</p></div></section>
+<section class="sec dark has-div-top has-div-bot"><div class="divider top"><svg viewBox="230 0 1460 36.3"><path class="div-paper" d="M306.991 2.71H-6V-20.12H1927V2.71H1613.62C1597.38 2.71 1583.15 8.69 1578.88 17.31L1576.73 21.66C1572.46 30.28 1558.23 36.26 1541.99 36.26H378.617C362.377 36.26 348.148 30.28 343.882 21.66L341.727 17.31C337.46 8.69 323.231 2.71 306.991 2.71Z"/></svg></div><div class="wrap"><div class="sechead center rv-init"><h2>Quer ajuda com este tema?</h2><p class="lead">Fale com um especialista da EQ Seguros.</p></div><div class="btn-row rv-init" style="justify-content:center;"><a class="btn btn-primary" href="contato.html">Falar com especialista</a></div></div><div class="divider bottom"><svg viewBox="230 0 1460 56.38"><path class="div-paper" d="M306.991 33.55H-6V56.38H1927V33.55H1613.62C1597.38 33.55 1583.15 27.57 1578.88 18.95L1576.73 14.6C1572.46 5.98 1558.23 0 1541.99 0H378.617C362.377 0 348.148 5.98 343.882 14.6L341.727 18.95C337.46 27.57 323.231 33.55 306.991 33.55Z"/></svg></div></section>
+<section class="sec"><div class="wrap"><div class="sechead rv-init"><span class="kicker">Relacionados</span><h2>Leia também</h2></div><div class="post-grid"><a class="post rv-init" href="post.html"><div class="pimg"><img src="assets/blog01.png" alt="Proposta sendo apresentada ao cliente"></div><div class="pbody"><span class="tag">Seguros</span><h4>Cross-sell de seguros: como ampliar o portfólio com a mesma base</h4></div></a><a class="post rv-init" href="post.html"><div class="pimg"><img src="assets/blog03.png" alt="Integração via API em ambiente digital"></div><div class="pbody"><span class="tag">Tecnologia</span><h4>Da cotação ao certificado: como uma API transforma a distribuição</h4></div></a><a class="post rv-init" href="post.html"><div class="pimg"><img src="assets/blog01.png" alt="Proposta sendo apresentada ao cliente"></div><div class="pbody"><span class="tag">Crédito</span><h4>Consignado público: o que o servidor precisa saber</h4></div></a></div></div></section>
+
+<div id="site-footer"></div>
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feirão Seminovos — Até 2 anos de garantia | Autorio</title>
+<meta name="description" content="Feirão Seminovos Autorio: seminovos multimarcas com laudo cautelar aprovado, até 2 anos de garantia, entrada facilitada e taxas a partir de 0,99%.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="images/hero-multimarcas.webp" type="image/webp">
+
+<style>
+/* ===== Design Tokens — Feirão Seminovos Autorio (laranja + amarelo + grafite, CTA verde WhatsApp) ===== */
+:root{
+  --primary:#1c1c1c;
+  --primary-deep:#151515;
+  --primary-deeper:#0e0e0e;
+  --orange:#F28A0A;
+  --orange-deep:#E25A00;
+  --amber:#F5A93B;
+  --yellow:#FFE27A;
+  --accent:#F5A300;
+  --accent-deep:#c46a00;
+  --btn-fill:#168A45;
+  --btn-fill-deep:#0F6E36;
+
+  --bg:#FFFFFF;
+  --surface-2:#F6F3EE;
+  --t1:#1c1c1c;
+  --t2:#4d4d4d;
+  --t3:#7a7a7a;
+  --border:#E8E3DA;
+
+  --on-dark-2:#cccccc;
+  --on-dark-3:#999999;
+  --border-dark:rgba(255,255,255,.16);
+
+  --dark:linear-gradient(135deg,#2a2a2a 0%,#0e0e0e 100%);
+  --shadow-md:0 12px 32px rgba(0,0,0,.16);
+
+  --radius:6px;
+  --radius-md:12px;
+  --max:1240px;
+  --font-base:'Archivo',Arial,sans-serif;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-base);color:var(--t1);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit;text-decoration:none}
+ul{list-style:none}
+.container{width:min(var(--max),calc(100% - 48px));margin-inline:auto}
+
+/* ===== Tipografia ===== */
+.eyebrow{font-size:.8rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--accent-deep);display:inline-flex;align-items:center;gap:10px;margin-bottom:14px}
+h1,h2{font-weight:900;text-transform:uppercase;line-height:1.04;letter-spacing:-.01em}
+h1{font-size:clamp(2rem,4.2vw,3.3rem)}
+h2{font-size:clamp(1.6rem,3vw,2.4rem);color:var(--primary-deep);margin-bottom:14px}
+.accent{color:var(--accent)}
+
+/* ===== Botões ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--font-base);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.03em;padding:16px 30px;border-radius:var(--radius);border:2px solid transparent;cursor:pointer;transition:background .18s ease,color .18s ease,transform .18s ease;white-space:nowrap}
+.btn svg{width:20px;height:20px;fill:currentColor;flex:none}
+.btn-primary{background:var(--btn-fill);color:#fff;box-shadow:0 6px 16px rgba(15,110,54,.22)}
+.btn-primary:hover{background:var(--btn-fill-deep);transform:translateY(-1px)}
+.btn-dark{background:var(--primary-deep);color:#fff}
+.btn-dark:hover{background:#000}
+
+/* ===== Header ===== */
+.header{position:sticky;top:0;z-index:50;background:rgba(14,14,14,.94);backdrop-filter:saturate(140%) blur(10px);border-bottom:1px solid var(--border-dark)}
+.header .container{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.brand img{height:38px;width:auto}
+.nav{display:flex;align-items:center;gap:30px}
+.nav a.link{color:var(--on-dark-2);font-size:.95rem;font-weight:600}
+.nav a.link:hover{color:#fff}
+.header .btn{padding:11px 20px;font-size:.85rem;box-shadow:none}
+
+/* ===== Hero ===== */
+.hero{position:relative;overflow:hidden;background:var(--amber);color:var(--primary-deep)}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.hero::before{width:620px;height:620px;right:-200px;top:-300px;background:radial-gradient(circle at 30% 70%,#F7A52E 0%,var(--orange-deep) 75%)}
+.hero::after{width:300px;height:300px;left:-110px;top:38%;border:54px solid transparent;background:linear-gradient(135deg,var(--yellow),var(--orange)) border-box;-webkit-mask:linear-gradient(#000 0 0) padding-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) padding-box exclude,linear-gradient(#000 0 0);opacity:.85}
+.hero .container{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:center;gap:clamp(24px,5vw,64px);padding-block:clamp(36px,5vw,64px)}
+.hero-logo{width:min(100%,500px);justify-self:center;filter:drop-shadow(0 18px 24px rgba(90,40,0,.35))}
+.hero h1{margin-bottom:16px;max-width:16ch}
+.hero-cars{width:100%;max-width:660px;aspect-ratio:8/3;object-fit:contain;margin:4px 0 12px;filter:drop-shadow(0 16px 18px rgba(90,40,0,.22))}
+.hero-offers{display:grid;gap:3px;font-size:1.02rem;font-weight:700;color:#2b1a05}
+.hero-note{margin-top:8px;font-size:.9rem;font-weight:600;color:#4d310d}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:26px}
+
+/* ===== Faixa de benefícios (identidade do Feirão) ===== */
+.benefits{background:linear-gradient(90deg,var(--orange-deep) 0%,var(--orange) 22%,#FBC04A 60%,var(--yellow) 100%);color:var(--primary-deep)}
+.benefits ul{display:grid;grid-template-columns:repeat(4,1fr)}
+.benefits li{display:flex;align-items:center;gap:14px;min-width:0;padding:26px 20px;border-left:1px solid rgba(0,0,0,.14)}
+.benefits li:first-child{border-left:0;padding-left:0}
+.benefits li div{min-width:0}
+.benefits svg{width:46px;height:46px;flex:none;fill:none;stroke:var(--primary-deep);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.benefits span{display:block;font-size:.82rem;font-weight:600;text-transform:uppercase;line-height:1.2}
+.benefits strong{display:block;font-size:1.3rem;font-weight:900;text-transform:uppercase;line-height:1.05}
+.benefits strong.big{font-size:2rem}
+
+/* ===== Barra de filtros ===== */
+.filters{background:var(--surface-2);border-bottom:1px solid var(--border);position:sticky;top:63px;z-index:40}
+.filters .container{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-block:14px}
+.chip{font-family:var(--font-base);font-size:.92rem;font-weight:700;color:var(--t2);background:#fff;border:1px solid var(--border);border-radius:100px;padding:9px 18px;cursor:pointer;transition:all .15s ease}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chip.is-active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.filters .count{margin-left:auto;font-size:.9rem;color:var(--t3);font-weight:600}
+
+/* ===== Catálogo ===== */
+.catalog{padding:clamp(44px,6vw,72px) 0}
+.cat-head{margin-bottom:34px}
+.cat-head p{color:var(--t2);max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+
+.car-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-md);overflow:hidden;display:flex;flex-direction:column;transition:transform .2s ease,box-shadow .2s ease}
+.car-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+
+/* Carrossel de fotos (scroll-snap + setas) */
+.carousel{position:relative;background:#111;border-bottom:4px solid var(--accent)}
+.track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;aspect-ratio:4/3;overscroll-behavior-x:contain}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always}
+.slide img{width:100%;height:100%;object-fit:cover}
+.slide.is-portrait img{object-fit:contain}
+.car-nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:var(--primary-deep);font-size:1.5rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding-bottom:3px;box-shadow:0 2px 8px rgba(0,0,0,.3);transition:background .15s ease,opacity .15s ease}
+.car-nav:hover{background:#fff}
+.car-nav.prev{left:10px}
+.car-nav.next{right:10px}
+.car-nav:disabled{opacity:.35;cursor:default}
+.car-count{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.68);color:#fff;font-size:.75rem;font-weight:600;padding:3px 10px;border-radius:100px;letter-spacing:.04em}
+.car-badge{position:absolute;top:12px;left:12px;font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:4px;background:var(--accent);color:var(--primary-deeper)}
+
+.car-body{padding:18px 20px 20px;display:flex;flex-direction:column;flex:1;gap:5px}
+.car-tag{font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-deep)}
+.car-name{font-weight:900;font-size:1.4rem;text-transform:uppercase;color:var(--primary-deep);line-height:1.08}
+.car-spec{font-size:.9rem;color:var(--t3);margin-bottom:6px}
+.car-price{margin-top:auto;padding-top:12px;border-top:1px solid var(--border)}
+.car-price small{display:block;font-size:.76rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.car-price strong{font-weight:900;font-size:1.75rem;color:var(--primary-deep);letter-spacing:-.01em;line-height:1.1}
+.car-price strong span{font-size:1rem;font-weight:700;color:var(--t2)}
+.car-cta{margin-top:14px;width:100%;padding:14px 20px;font-size:.95rem}
+
+/* ===== Faixa CTA ===== */
+.cta-band{background:var(--dark);color:#fff;padding:clamp(48px,6vw,72px) 0;border-top:4px solid var(--accent)}
+.cta-band .container{display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap}
+.cta-band h2{color:#fff;margin-bottom:8px}
+.cta-band p{color:var(--on-dark-2);max-width:52ch}
+
+/* ===== Footer ===== */
+.footer{background:var(--primary-deeper);color:var(--on-dark-2);padding:56px 0 28px}
+.footer-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:48px}
+.footer .brand img{height:50px;margin-bottom:18px}
+.footer p{font-size:.95rem;line-height:1.7;max-width:50ch}
+.footer .cnpj{margin-top:12px;font-size:.88rem;color:var(--on-dark-3)}
+.footer h4{color:#fff;font-weight:800;font-size:1rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em}
+.footer .legal p{font-size:.85rem;color:var(--on-dark-3);margin-bottom:12px;max-width:none}
+.footer-bottom{border-top:1px solid var(--border-dark);margin-top:44px;padding-top:22px;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;font-size:.85rem;color:var(--on-dark-3)}
+.footer-bottom a{color:var(--accent)}
+
+/* ===== WhatsApp flutuante ===== */
+.whatsapp-float{position:fixed;right:22px;bottom:22px;z-index:80;width:60px;height:60px;border-radius:50%;background:#25D366;box-shadow:0 10px 28px rgba(37,211,102,.45);display:grid;place-items:center}
+.whatsapp-float svg{width:32px;height:32px;fill:#fff}
+
+/* ===== Responsivo ===== */
+@media (max-width:1000px){
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .benefits ul{grid-template-columns:repeat(2,1fr)}
+  .benefits li:nth-child(3){border-left:0;padding-left:0}
+  .benefits li:nth-child(n+3){border-top:1px solid rgba(0,0,0,.14)}
+}
+@media (max-width:900px){.nav .link{display:none}}
+@media (max-width:760px){
+  .hero .container{grid-template-columns:1fr;text-align:center;padding-top:28px}
+  .hero-logo{width:min(56%,300px)}
+  .hero .container{gap:14px}
+  .hero h1{font-size:clamp(1.6rem,7vw,2.2rem)}
+  .hero p{font-size:1rem}
+  .hero-cta{margin-top:20px}
+  .hero h1,.hero p{margin-inline:auto}
+  .hero-cars{margin-inline:auto}
+  .hero-cta{justify-content:center}
+  .hero::before{width:380px;height:380px;right:-160px;top:-200px}
+  .hero::after{display:none}
+}
+@media (max-width:600px){
+  .container{width:calc(100% - 32px)}
+  .brand img{height:30px}
+  .header .btn{padding:10px 14px;font-size:.78rem}
+  .filters{top:55px}
+  .filters .count{display:none}
+  .filters .container{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .chip{flex:none}
+  .grid{grid-template-columns:1fr}
+  .benefits li{padding:18px 12px;gap:10px}
+  .benefits li:nth-child(odd){padding-left:0}
+  .benefits svg{width:34px;height:34px}
+  .benefits span{font-size:.68rem}
+  .benefits strong{font-size:1rem}
+  .benefits strong.big{font-size:1.5rem}
+  .hero-cta .btn,.cta-band .btn{width:100%}
+  .footer-grid{grid-template-columns:1fr;gap:32px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.car-card,.btn{transition:none}}
+</style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="header">
+  <div class="container">
+    <a class="brand" href="#" aria-label="Autorio">
+      <img src="images/logo-autorio.png" alt="Autorio Chevrolet" width="628" height="506">
+    </a>
+    <nav class="nav" aria-label="Navegação principal">
+      <a class="link" href="#catalogo">Seminovos</a>
+      <a class="link" href="#condicoes">Condições</a>
+      <a class="link" href="#contato">Contato</a>
+      <a class="btn btn-primary" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== BENEFÍCIOS ===== -->
+<section id="condicoes" class="benefits" aria-label="Condições do Feirão">
+  <div class="container">
+    <ul>
+      <li>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="30" cy="13" r="8"/><path d="M30 8.500v9M32.500 11h-3.700a1.500 1.500 0 0 0 0 3h2.400a1.500 1.500 0 0 1 0 3h-3.700"/><path d="M5 28h6v13H5zM11 30h8l6 3h7a3 3 0 0 1 0 6H22"/><path d="M11 39l11 3 20-8a3 3 0 0 0-3-5l-7 3"/></svg>
+        <div><strong>Entrada facilitada</strong><span>em 10x sem juros</span></div>
+      </li>
+      <li>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M12 36L36 12"/><circle cx="15" cy="15" r="5"/><circle cx="33" cy="33" r="5"/></svg>
+        <div><span>Taxas a partir de</span><strong class="big">0,99%</strong></div>
+      </li>
+      <li>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M30 42H10V6h20l8 8v10"/><path d="M30 6v8h8M16 20h14M16 27h10M16 34h6"/><circle cx="35" cy="35" r="8"/><path d="M31 35l3 3 5-6"/></svg>
+        <div><span>Laudo cautelar</span><strong>Aprovado</strong></div>
+      </li>
+      <li>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l15 6v11c0 10-6.500 17-15 21-8.500-4-15-11-15-21V11z"/><path d="M17 24l5 5 9-10"/></svg>
+        <div><strong class="big">2 anos</strong><span>de garantia</span></div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="container">
+    <img class="hero-logo" src="images/logo-feirao.webp" alt="Feirão Seminovos Autorio" width="628" height="506">
+    <div>
+      <h1>Seminovos com até 2 anos de garantia</h1>
+      <img class="hero-cars" src="images/hero-multimarcas.webp" alt="Quatro veículos seminovos multimarcas lado a lado" width="1600" height="600" fetchpriority="high" decoding="async">
+      <ul class="hero-offers" aria-label="Condições em destaque">
+        <li>Entrada facilitada</li>
+        <li>Taxas a partir de 0,99%</li>
+        <li>Carros revisados e laudo cautelar aprovado</li>
+      </ul>
+      <p class="hero-note">Consulte condições.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        <a class="btn btn-dark" href="#catalogo">Ver os seminovos</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FILTROS ===== -->
+<div class="filters">
+  <div class="container">
+    <button class="chip is-active" data-filter="all">Todos</button>
+    <button class="chip" data-filter="hatch">Hatch</button>
+    <button class="chip" data-filter="seda">Sedã</button>
+    <button class="chip" data-filter="suv">SUV</button>
+    <span class="count">11 veículos</span>
+  </div>
+</div>
+
+<!-- ===== CATÁLOGO ===== -->
+<section id="catalogo" class="catalog">
+  <div class="container">
+    <div class="cat-head">
+      <span class="eyebrow">Estoque do Feirão</span>
+      <h2>Escolha o seu <span class="accent">seminovo</span></h2>
+      <p>Veja as fotos de cada veículo e chame um vendedor no WhatsApp para solicitar o seu orçamento.</p>
+    </div>
+
+    <!-- Cards dos veículos (nome e descrição conforme as pastas do Drive).
+         Para adicionar/editar, copie um bloco <article class="car-card"> e troque fotos/nome/valores. -->
+    <div class="grid">
+
+      <!-- TRACKER TURBO RS 2024/2025 -->
+      <article class="car-card" data-cat="suv">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Tracker Turbo RS 2024/2025">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/01.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 1 de 15" width="1000" height="750" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/02.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/03.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/04.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/05.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/06.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/07.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-turbo-rs-2024/08.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-turbo-rs-2024/09.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-turbo-rs-2024/10.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-turbo-rs-2024/11.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/12.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/13.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/14.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-turbo-rs-2024/15.webp" alt="Chevrolet Tracker Turbo RS 2024/2025 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <span class="car-badge">13.800 km</span>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2024/2025</span>
+          <h3 class="car-name">Tracker Turbo RS</h3>
+          <p class="car-spec">13.800 km · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 122.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- TRACKER PREMIER 2024/2025 -->
+      <article class="car-card" data-cat="suv">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Tracker Premier 2024/2025">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/01.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 1 de 15" width="1000" height="750" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/02.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/03.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/04.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/05.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/06.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/07.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-premier-2024/08.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-premier-2024/09.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-premier-2024/10.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/tracker-premier-2024/11.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/12.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/13.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/14.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/tracker-premier-2024/15.webp" alt="Chevrolet Tracker Premier 2024/2025 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <span class="car-badge">15.000 km</span>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2024/2025</span>
+          <h3 class="car-name">Tracker Premier</h3>
+          <p class="car-spec">15.000 km · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 119.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- SONIC RS 2026/2027 -->
+      <article class="car-card" data-cat="suv">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Sonic RS 2026/2027">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/01.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 1 de 15" width="1000" height="750" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/02.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/03.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/04.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/05.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/06.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/07.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/sonic-rs-2026/08.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/sonic-rs-2026/09.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/sonic-rs-2026/10.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/11.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 11 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/sonic-rs-2026/12.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 12 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/13.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/14.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/sonic-rs-2026/15.webp" alt="Chevrolet Sonic RS 2026/2027 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <span class="car-badge">0 km</span>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">SUV · 2026/2027</span>
+          <h3 class="car-name">Sonic RS</h3>
+          <p class="car-spec">0 km · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 129.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX PLUS PREMIER 2025/2026 -->
+      <article class="car-card" data-cat="seda">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix Plus Premier 2025/2026">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/01.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 1 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/02.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/03.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/04.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/05.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/06.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/07.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-plus-premier-2025/08.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-plus-premier-2025/09.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-plus-premier-2025/10.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-plus-premier-2025/11.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/12.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/13.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/14.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-plus-premier-2025/15.webp" alt="Chevrolet Onix Plus Premier 2025/2026 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Sedã · 2025/2026</span>
+          <h3 class="car-name">Onix Plus Premier</h3>
+          <p class="car-spec">Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 109.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX TURBO LTZ 2024/2025 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix Turbo LTZ 2024/2025">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/01.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 1 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/02.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/03.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/04.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/05.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/06.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/07.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024-2025/08.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024-2025/09.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024-2025/10.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024-2025/11.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/12.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/13.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/14.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024-2025/15.webp" alt="Chevrolet Onix Turbo LTZ 2024/2025 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2024/2025</span>
+          <h3 class="car-name">Onix Turbo LTZ</h3>
+          <p class="car-spec">Câmbio Automático · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 90.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX TURBO PREMIER 2023/2024 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix Turbo Premier 2023/2024">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/01.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 1 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/02.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/03.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/04.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/05.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/06.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/07.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-premier-2023/08.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-premier-2023/09.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-premier-2023/10.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-premier-2023/11.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/12.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/13.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/14.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-premier-2023/15.webp" alt="Chevrolet Onix Turbo Premier 2023/2024 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2023/2024</span>
+          <h3 class="car-name">Onix Turbo Premier</h3>
+          <p class="car-spec">Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 86.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX TURBO LTZ 2024/2024 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix Turbo LTZ 2024/2024">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/01.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 1 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/02.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/03.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/04.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/05.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/06.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/07.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024/08.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024/09.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024/10.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-ltz-2024/11.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/12.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/13.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/14.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-ltz-2024/15.webp" alt="Chevrolet Onix Turbo LTZ 2024/2024 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2024/2024</span>
+          <h3 class="car-name">Onix Turbo LTZ</h3>
+          <p class="car-spec">Câmbio Automático · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 80.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX TURBO RS 2022/2023 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix Turbo RS 2022/2023">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/01.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 1 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/02.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/03.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/04.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/05.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/06.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/07.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-rs-2022/08.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-rs-2022/09.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-rs-2022/10.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-turbo-rs-2022/11.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 11 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/12.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 12 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/13.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/14.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-turbo-rs-2022/15.webp" alt="Chevrolet Onix Turbo RS 2022/2023 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2022/2023</span>
+          <h3 class="car-name">Onix Turbo RS</h3>
+          <p class="car-spec">Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 74.890<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX LS 1.0 2025/2025 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix LS 1.0 2025/2025">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/01.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 1 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/02.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 2 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/03.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 3 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/04.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 4 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/05.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 5 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/06.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 6 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-ls-2025/07.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 7 de 13" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-ls-2025/08.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 8 de 13" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-ls-2025/09.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 9 de 13" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-ls-2025/10.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 10 de 13" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/11.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 11 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/12.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 12 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-ls-2025/13.webp" alt="Chevrolet Onix LS 1.0 2025/2025 — foto 13 de 13" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <span class="car-badge">0 km</span>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/13</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2025/2025</span>
+          <h3 class="car-name">Onix LS 1.0</h3>
+          <p class="car-spec">0 km · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 72.000<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX LT 1.0 FLEX 2024/2025 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix LT 1.0 Flex 2024/2025">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/01.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 1 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/02.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 2 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/03.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 3 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/04.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 4 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/05.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 5 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/06.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 6 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/07.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 7 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2024/08.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 8 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2024/09.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 9 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2024/10.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 10 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/11.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 11 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2024/12.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 12 de 15" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/13.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 13 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/14.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 14 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2024/15.webp" alt="Chevrolet Onix LT 1.0 Flex 2024/2025 — foto 15 de 15" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/15</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2024/2025</span>
+          <h3 class="car-name">Onix LT 1.0 Flex</h3>
+          <p class="car-spec">Câmbio Manual · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 68.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+      <!-- ONIX LT 1.0 FLEX 2022/2023 -->
+      <article class="car-card" data-cat="hatch">
+        <div class="carousel" aria-roledescription="carrossel" aria-label="Fotos do Chevrolet Onix LT 1.0 Flex 2022/2023">
+          <ul class="track">
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/01.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 1 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/02.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 2 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/03.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 3 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/04.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 4 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/05.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 5 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/06.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 6 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/07.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 7 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2022/08.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 8 de 16" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2022/09.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 9 de 16" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2022/10.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 10 de 16" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2022/11.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 11 de 16" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/12.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 12 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide is-portrait"><img src="images/veiculos/onix-lt-2022/13.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 13 de 16" width="750" height="1000" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/14.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 14 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/15.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 15 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+            <li class="slide"><img src="images/veiculos/onix-lt-2022/16.webp" alt="Chevrolet Onix LT 1.0 Flex 2022/2023 — foto 16 de 16" width="1000" height="750" loading="lazy" decoding="async"></li>
+          </ul>
+          <button class="car-nav prev" type="button" aria-label="Foto anterior">‹</button>
+          <button class="car-nav next" type="button" aria-label="Próxima foto">›</button>
+          <span class="car-count" aria-hidden="true"><b>1</b>/16</span>
+        </div>
+        <div class="car-body">
+          <span class="car-tag">Hatch · 2022/2023</span>
+          <h3 class="car-name">Onix LT 1.0 Flex</h3>
+          <p class="car-spec">Câmbio Manual · Laudo cautelar aprovado</p>
+          <div class="car-price"><small>Por</small><strong>R$ 59.900<span>,00</span></strong></div>
+          <a class="btn btn-primary car-cta" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Falar com vendedor</a>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAIXA CTA ===== -->
+<section class="cta-band">
+  <div class="container">
+    <div>
+      <h2>Não achou o modelo <span class="accent">ideal</span>?</h2>
+      <p>Fale com o time comercial da Autorio e consulte outros seminovos e condições disponíveis para o seu perfil.</p>
+    </div>
+    <a class="btn btn-primary" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>Solicitar orçamento</a>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer id="contato" class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="brand" href="#" aria-label="Autorio"><img src="images/logo-autorio.png" alt="Autorio Chevrolet" width="628" height="506" loading="lazy"></a>
+        <p>Concessionária Chevrolet Autorio. Seminovos com procedência, laudo cautelar aprovado e atendimento dedicado do primeiro contato à entrega.</p>
+        <p class="cnpj">Auto Rio · CNPJ 00.062.851/0001-69</p>
+      </div>
+      <div class="legal">
+        <h4>Informações legais</h4>
+        <p>Feirão de Seminovos Autorio: ofertas válidas até 31/10. Taxas a partir de 0,99% ao mês, com 60% de entrada e saldo em até 24 parcelas, mediante financiamento pelo Banco GM, sujeito à aprovação de cadastro. Condições válidas para veículos a partir dos modelos 2022/2023.</p>
+        <p>Garantia de até 2 anos para veículos a partir do ano/modelo 2021, com até 100.000 km rodados, que não estejam cobertos pela garantia de fábrica e possuem produção nacional. Para os demais veículos, consulte as condições de garantia. Entrada em até 10x sem juros nos cartões Visa e Mastercard, limitada ao valor total de R$ 20.000,00.</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© Autorio Chevrolet. Todos os direitos reservados.</span>
+      <span>Feito por <a href="#">3ADS</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== WhatsApp flutuante ===== -->
+<a class="whatsapp-float" href="https://tintim.link/whatsapp/da0e8764-2846-4dcc-a7d2-c2a6366cd91c/b88e49ea-9191-4a31-8c49-b676442bb331" target="_blank" rel="noopener" aria-label="Falar no WhatsApp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.207zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg></a>
+
+<script>
+/* Filtro de categorias */
+(function(){
+  var chips = document.querySelectorAll('.filters .chip');
+  var cards = document.querySelectorAll('.car-card');
+  var count = document.querySelector('.filters .count');
+  function apply(f){
+    var n = 0;
+    cards.forEach(function(c){
+      var show = (f === 'all' || c.dataset.cat === f);
+      c.style.display = show ? '' : 'none';
+      if (show) n++;
+    });
+    if (count) count.textContent = n + (n === 1 ? ' veículo' : ' veículos');
+  }
+  chips.forEach(function(ch){
+    ch.addEventListener('click', function(){
+      chips.forEach(function(x){ x.classList.remove('is-active'); });
+      ch.classList.add('is-active');
+      apply(ch.dataset.filter);
+    });
+  });
+})();
+
+/* Carrossel de fotos de cada veículo (arrastar no mobile, setas no desktop) */
+(function(){
+  document.querySelectorAll('.carousel').forEach(function(c){
+    var track = c.querySelector('.track');
+    var prev = c.querySelector('.prev'), next = c.querySelector('.next');
+    var num = c.querySelector('.car-count b');
+    var total = track.children.length;
+    function index(){ return Math.round(track.scrollLeft / track.clientWidth); }
+    function update(){
+      var i = index();
+      num.textContent = i + 1;
+      prev.disabled = i <= 0;
+      next.disabled = i >= total - 1;
+    }
+    function go(d){ track.scrollTo({ left: (index() + d) * track.clientWidth, behavior: 'smooth' }); }
+    prev.addEventListener('click', function(){ go(-1); });
+    next.addEventListener('click', function(){ go(1); });
+    track.addEventListener('scroll', function(){ window.requestAnimationFrame(update); }, { passive: true });
+    update();
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico de Liderança para Farmácias | Score WFA</title>
+<meta name="description" content="Faça o diagnóstico gratuito de liderança para farmácias. Descubra seu Score WFA, o nível de maturidade da equipe e três prioridades para evoluir.">
+
+<meta name="author" content="Cinthya Lobo">
+<meta name="theme-color" content="#141110">
+<meta name="color-scheme" content="light">
+<link rel="canonical" href="https://diagnostico.wolffarma.com.br/">
+<link rel="alternate" hreflang="pt-BR" href="https://diagnostico.wolffarma.com.br/">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="https://diagnostico.wolffarma.com.br/sitemap.xml">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Wolf Farma Alfa">
+<meta property="og:title" content="Diagnóstico de Liderança para Farmácias | Score WFA">
+<meta property="og:description" content="Avalie gratuitamente a maturidade da liderança da sua farmácia e descubra as três prioridades de maior impacto para a equipe.">
+<meta property="og:url" content="https://diagnostico.wolffarma.com.br/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Diagnóstico de Liderança para Farmácias | Score WFA">
+<meta name="twitter:description" content="Descubra o nível de maturidade da liderança da sua farmácia em cerca de 3 minutos.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23141110'/%3E%3Cpath d='M50 8 L61 20 L84 14 L74 34 L84 44 L64 41 L67 60 L50 78 L33 60 L36 41 L16 44 L26 34 L16 14 L39 20 Z' fill='%23A31D1D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link id="fontes-google" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&amp;family=Instrument+Serif:ital@0;1&amp;display=optional" rel="stylesheet" media="print">
+<link rel="stylesheet" href="assets/score.min.css?v=20260915">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://diagnostico.wolffarma.com.br/#website",
+      "url": "https://diagnostico.wolffarma.com.br/",
+      "name": "Score de Liderança Wolf Farma Alfa",
+      "alternateName": "Score WFA",
+      "inLanguage": "pt-BR",
+      "publisher": { "@id": "https://diagnostico.wolffarma.com.br/#cinthya-lobo" }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://diagnostico.wolffarma.com.br/#cinthya-lobo",
+      "name": "Cinthya Lobo",
+      "url": "https://diagnostico.wolffarma.com.br/"
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://diagnostico.wolffarma.com.br/#diagnostico",
+      "name": "Score de Liderança da Farmácia",
+      "url": "https://diagnostico.wolffarma.com.br/",
+      "description": "Diagnóstico gratuito que avalia a maturidade da liderança de farmácias e apresenta três prioridades para evolução da equipe.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Qualquer dispositivo com navegador",
+      "inLanguage": "pt-BR",
+      "isAccessibleForFree": true,
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+      "provider": { "@id": "https://diagnostico.wolffarma.com.br/#cinthya-lobo" }
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://diagnostico.wolffarma.com.br/#perguntas-frequentes",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "O que é o Score de Liderança da Farmácia?",
+          "acceptedAnswer": { "@type": "Answer", "text": "É um diagnóstico gratuito que avalia como a equipe da farmácia é conduzida e identifica o nível de maturidade da liderança." }
+        },
+        {
+          "@type": "Question",
+          "name": "Para quem é o diagnóstico de liderança?",
+          "acceptedAnswer": { "@type": "Answer", "text": "O diagnóstico foi criado para donos, gestores e líderes de farmácias que desejam desenvolver a gestão e a autonomia da equipe." }
+        },
+        {
+          "@type": "Question",
+          "name": "Quanto tempo leva para responder?",
+          "acceptedAnswer": { "@type": "Answer", "text": "São 12 perguntas sobre a rotina de liderança, respondidas em cerca de 3 minutos." }
+        },
+        {
+          "@type": "Question",
+          "name": "O que recebo ao concluir o diagnóstico?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Você recebe uma pontuação de 25 a 75, seu nível de maturidade, uma leitura individualizada e as três prioridades de maior impacto para evoluir a liderança." }
+        }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+
+<a class="skip-link" href="#conteudo">Ir para o conteúdo principal</a>
+
+<header class="topbar">
+  <div class="wrap topbar-row">
+    <a class="brand-link" href="/portal-lps/modelos/cinthya-lobo/" aria-label="Score de Liderança Wolf Farma Alfa, página inicial">
+      <img class="brand-logo" src="assets/logo.svg" alt="Cinthya Lobo" width="199" height="46">
+    </a>
+    <span class="topbar-tag">Score de Liderança</span>
+  </div>
+</header>
+
+<main id="conteudo">
+
+  <!-- ================= TELA 1 · LANDING ================= -->
+  <section class="tela" id="tela-intro" data-tela="intro">
+
+    <div class="hero">
+      <div class="wrap hero-copy">
+        <span class="eyebrow">Diagnóstico gratuito para farmácias</span>
+        <h1>Qual é o nível de maturidade da <span class="hl">liderança</span> da sua farmácia?</h1>
+        <p class="lead">Responda 12 perguntas sobre a rotina da sua equipe e receba o seu Score de Liderança, a leitura do seu momento e as três prioridades para chegar ao próximo nível.</p>
+        <p class="hero-proof">Uma ferramenta do Método Wolf Farma Alfa - WFA para desenvolver líderes e equipes no varejo farmacêutico.</p>
+        <ul class="chips" aria-label="Como é o diagnóstico">
+          <li>12 perguntas</li>
+          <li>Cerca de 3 minutos</li>
+          <li>Resultado na hora</li>
+        </ul>
+        <button class="btn btn-primary btn-lg" type="button" data-acao="iniciar">Fazer meu diagnóstico <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+
+    <section class="section">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Como funciona</span>
+          <h2>Um retrato <span class="strong">honesto</span> de como a sua equipe é conduzida hoje</h2>
+        </div>
+        <ol class="passos">
+          <li>
+            <span class="passo-n">01</span>
+            <h3>Responda sobre a sua rotina</h3>
+            <p>Liderança, metas, acompanhamento, delegação, feedback e autonomia da equipe. Sem resposta certa: marque o que acontece de fato.</p>
+          </li>
+          <li>
+            <span class="passo-n">02</span>
+            <h3>Receba o seu Score</h3>
+            <p>Uma nota de 25 a 75, calculada pelo peso de cada dimensão na maturidade da liderança, e o nível em que sua farmácia está.</p>
+          </li>
+          <li>
+            <span class="passo-n">03</span>
+            <h3>Saiba o que priorizar</h3>
+            <p>Uma leitura individualizada das suas respostas e as três prioridades de maior impacto para a sua liderança avançar.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section niveis-band">
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow on-dark">Os quatro níveis</span>
+          <h2>Em qual deles a sua liderança está?</h2>
+        </div>
+        <div class="niveis" id="listaNiveis"><!-- preenchido via JS a partir da config --></div>
+      </div>
+    </section>
+
+    <section class="section faq-section" id="perguntas-frequentes" aria-labelledby="faq-titulo">
+      <div class="wrap faq-wrap">
+        <div class="section-head">
+          <span class="eyebrow">Perguntas frequentes</span>
+          <h2 id="faq-titulo">Entenda o diagnóstico de liderança para farmácias</h2>
+        </div>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>O que é o Score de Liderança da Farmácia?</summary>
+            <p>É um diagnóstico gratuito que avalia como a equipe da farmácia é conduzida e identifica o nível de maturidade da liderança.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Para quem é o diagnóstico de liderança?</summary>
+            <p>O diagnóstico foi criado para donos, gestores e líderes de farmácias que desejam desenvolver a gestão e a autonomia da equipe.</p>
+          </details>
+          <details class="faq-item">
+            <summary>Quanto tempo leva para responder?</summary>
+            <p>São 12 perguntas sobre a rotina de liderança, respondidas em cerca de 3 minutos.</p>
+          </details>
+          <details class="faq-item">
+            <summary>O que recebo ao concluir o diagnóstico?</summary>
+            <p>Você recebe uma pontuação de 25 a 75, seu nível de maturidade, uma leitura individualizada e as três prioridades de maior impacto para evoluir a liderança.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section tight cta-final">
+      <div class="wrap">
+        <h2>Descubra o seu nível em <span class="hl">3 minutos</span>.</h2>
+        <button class="btn btn-primary btn-lg" type="button" data-acao="iniciar">Começar o diagnóstico <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+  </section>
+
+  <!-- ================= TELA 2 · QUESTIONÁRIO ================= -->
+  <section class="tela tela-quiz" id="tela-quiz" data-tela="quiz" hidden>
+    <div class="wrap quiz-wrap">
+      <div class="quiz-top">
+        <button class="link-voltar" type="button" data-acao="voltar">← Voltar</button>
+        <span class="quiz-contador" id="quizContador">Pergunta 1 de 12</span>
+      </div>
+      <progress class="progresso" max="12" value="0" id="quizProgresso">0 de 12</progress>
+
+      <div class="quiz-card" id="quizCard">
+        <span class="eyebrow" id="quizDimensao">Liderança</span>
+        <h2 class="quiz-pergunta" id="quizPergunta" tabindex="-1">Como a liderança funciona hoje na sua farmácia?</h2>
+        <p class="quiz-apoio" id="quizApoio" hidden></p>
+        <div class="opcoes" id="quizOpcoes" role="radiogroup" aria-labelledby="quizPergunta"></div>
+        <p class="quiz-dica">Dica: use as teclas 1, 2 e 3.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TELA 3 · CAPTURA DO LEAD ================= -->
+  <section class="tela tela-lead" id="tela-lead" data-tela="lead" hidden>
+    <div class="wrap lead-grid">
+      <div class="lead-copy">
+        <span class="eyebrow">Diagnóstico concluído</span>
+        <h2>Seu Score de Liderança <span class="hl">está pronto.</span></h2>
+        <p class="lead">Preencha seus dados para ver o resultado completo: seu nível, a leitura das suas respostas e as três prioridades para a sua liderança avançar.</p>
+        <button class="link-voltar" type="button" data-acao="revisar">← Revisar respostas</button>
+      </div>
+
+      <form class="form-lead" id="formLead" novalidate>
+        <div class="campo">
+          <label for="f-nome">Nome</label>
+          <input id="f-nome" name="nome" type="text" autocomplete="name" required>
+          <span class="erro" aria-live="polite"></span>
+        </div>
+        <div class="campo">
+          <label for="f-email">E-mail</label>
+          <input id="f-email" name="email" type="email" autocomplete="email" required>
+          <span class="erro" aria-live="polite"></span>
+        </div>
+        <div class="campo">
+          <label for="f-whatsapp">WhatsApp</label>
+          <input id="f-whatsapp" name="whatsapp" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(00) 00000-0000" required>
+          <span class="erro" aria-live="polite"></span>
+        </div>
+        <div class="campo">
+          <label for="f-empresa">Nome da farmácia/empresa</label>
+          <input id="f-empresa" name="empresa" type="text" autocomplete="organization" required>
+          <span class="erro" aria-live="polite"></span>
+        </div>
+        <div class="campo">
+          <label for="f-colaboradores">Quantidade de colaboradores</label>
+          <select id="f-colaboradores" name="colaboradores" required>
+            <option value="">Selecione</option>
+          </select>
+          <span class="erro" aria-live="polite"></span>
+        </div>
+        <div class="campo campo-full">
+          <label for="f-desafio">Qual é hoje o seu maior desafio na liderança da equipe?</label>
+          <textarea id="f-desafio" name="desafio" rows="3" maxlength="600" required></textarea>
+          <span class="erro" aria-live="polite"></span>
+        </div>
+        <label class="consentimento campo-full">
+          <input type="checkbox" name="consentimento" required>
+          <span>Concordo em receber meu diagnóstico e contatos da equipe Cinthya Lobo, conforme a política de privacidade.</span>
+        </label>
+        <span class="erro erro-consent campo-full" aria-live="polite"></span>
+        <button class="btn btn-primary btn-lg campo-full" type="submit">Ver meu resultado <span aria-hidden="true">→</span></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= TELA 4 · RESULTADO ================= -->
+  <section class="tela tela-resultado" id="tela-resultado" data-tela="resultado" hidden>
+
+    <!-- Bloco 1 · Nível atual -->
+    <div class="res-hero">
+      <div class="wrap res-hero-grid">
+        <div>
+          <span class="eyebrow on-dark" id="resSaudacao">Seu resultado</span>
+          <p class="res-rotulo">Seu nível atual é</p>
+          <h1 class="res-nivel" id="resNivel">—</h1>
+          <p class="res-desc" id="resNivelDesc"></p>
+        </div>
+        <div class="res-score-box">
+          <span class="hc-label">Score de Liderança</span>
+          <div class="res-score"><strong id="resScore">0</strong><span>/ 75</span></div>
+          <div class="escala" id="resEscala" aria-hidden="true"></div>
+          <div class="escala-legenda" id="resLegenda" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap res-corpo">
+      <!-- Bloco 2 · Leitura individualizada -->
+      <article class="res-bloco">
+        <span class="res-num">02</span>
+        <div>
+          <h2>Leitura das suas respostas</h2>
+          <div class="res-leitura" id="resLeitura"></div>
+        </div>
+      </article>
+
+      <!-- Bloco 3 · Três prioridades -->
+      <article class="res-bloco">
+        <span class="res-num">03</span>
+        <div>
+          <h2>Suas três prioridades agora</h2>
+          <p class="res-sub">Ordenadas pelo impacto na maturidade da sua liderança.</p>
+          <ol class="prioridades" id="resPrioridades"></ol>
+        </div>
+      </article>
+    </div>
+
+    <!-- Bloco 4 · Próximo passo (CTA) -->
+    <div class="res-cta">
+      <div class="wrap res-cta-inner">
+        <div>
+          <span class="eyebrow on-dark">Próximo passo</span>
+          <h2 id="ctaTitulo">Você já sabe o que precisa ser desenvolvido.</h2>
+          <p id="ctaTexto"></p>
+        </div>
+        <a class="btn btn-light btn-lg" id="ctaBotao" href="#"></a>
+      </div>
+    </div>
+
+    <!-- Painel de validação (só no protótipo) -->
+    <div class="wrap">
+      <details class="painel" id="painel" hidden>
+        <summary>Painel de validação do protótipo <small>cálculo, regras aplicadas e dados que seriam enviados</small></summary>
+        <div class="painel-corpo">
+          <h3>Pontuação por questão</h3>
+          <div class="tabela-scroll"><table id="painelTabela"></table></div>
+          <h3>Regras aplicadas pelo motor</h3>
+          <ul id="painelRegras"></ul>
+          <h3>Payload para CRM / IA</h3>
+          <pre id="painelPayload"></pre>
+        </div>
+      </details>
+      <div class="res-acoes">
+        <button class="btn btn-outline" type="button" data-acao="refazer">Refazer diagnóstico</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="rodape">
+  <div class="wrap rodape-row">
+    <span>© 2026 Cinthya Lobo · Método Wolf Farma Alfa - WFA</span>
+    <span>Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener noreferrer" aria-label="Acessar o site da 3ADS em uma nova aba">3ADS</a></span>
+  </div>
+</footer>
+
+<script src="config/integracoes.min.js?v=20260915" defer></script>
+<script src="config/diagnostico.min.js?v=20260915" defer></script>
+<script src="assets/motor.min.js?v=20260915" defer></script>
+<script src="assets/app.min.js?v=20260915" defer></script>
+</body>
+</html>

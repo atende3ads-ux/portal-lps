@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulador de aparelho auditivo | Opimed</title>
+  <meta name="description" content="Veja como você ficaria com um aparelho auditivo. Responda 5 perguntas, envie 2 fotos e receba a simulação com 2 modelos indicados para você.">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- SVG sprite -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm4.7 8.2-5.2 5.6a1 1 0 0 1-1.45.02l-2.7-2.7a1 1 0 1 1 1.4-1.42l1.97 1.97 4.5-4.84a1 1 0 0 1 1.47 1.37Z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.9 5.6a3 3 0 0 0 1.9 1.9l5.7 2-5.7 1.9a3 3 0 0 0-1.9 1.9L12 21.5l-1.9-5.7a3 3 0 0 0-1.9-1.9l-5.7-1.9 5.7-2a3 3 0 0 0 1.9-1.9L12 2.5Z"/></symbol>
+    <symbol id="i-quiz" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="m8 9 1.5 1.5L12 8M8 15l1.5 1.5L12 14M15 9.5h1.5M15 15.5h1.5"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1.2-1.8a1 1 0 0 1 .8-.4h4.6a1 1 0 0 1 .8.4L16.3 6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8Z"/><circle cx="12" cy="12.5" r="3.4"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m21 15.5-4.6-4.6L7 20"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 6.2A9.7 9.7 0 0 1 12 6c5.5 0 9 6 9 6a15.6 15.6 0 0 1-3 3.6M6.5 7.6A15.3 15.3 0 0 0 3 12s3.5 6 9 6a8.7 8.7 0 0 0 3.4-.7M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M10 3v4M14 3v4M10 17v4M14 17v4M3 10h4M3 14h4M17 10h4M17 14h4"/></symbol>
+    <symbol id="i-feather" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4c-7 0-12 4-12 10v3l9-9M8 17H5m3 0v3M8 14h6.5"/><path d="M20 4c0 5-2.5 9-6.5 10"/></symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7.5" width="16" height="9" rx="2.5"/><path d="M21.5 10.5v3M11.5 9.5 9.5 12h3l-2 2.5"/></symbol>
+    <symbol id="i-cell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2.6"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></symbol>
+    <symbol id="i-ear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9.5a5.5 5.5 0 1 1 10.3 2.7c-.9 1.6-2.3 2.3-2.3 4.3a3.5 3.5 0 0 1-6.6 1.6"/><path d="M10 10a2.5 2.5 0 1 1 4.3 1.7c-.8.8-1.8 1.3-1.8 2.8"/></symbol>
+    <symbol id="i-behind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 10a4.5 4.5 0 1 1 8.3 2.3c-.8 1.4-1.8 2-1.8 3.7a3 3 0 0 1-5.6 1.4"/><path d="M6.5 5.5c-1.8 1.6-2.3 5.5-.7 8.5"/></symbol>
+    <symbol id="i-bud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="10" r="5.5"/><circle cx="11" cy="10" r="1.8"/><path d="M14 14.8 16.5 20"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.7 2.2c-.8.5-1.3 1-1.3 2M12 16.8v.2"/></symbol>
+    <symbol id="i-group" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M16 6.3a3 3 0 0 1 0 5.4M17.5 14.3c1.8.6 3 2.2 3 4.7"/></symbol>
+    <symbol id="i-tv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2.5"/><path d="M8.5 20.5h7"/></symbol>
+    <symbol id="i-noise" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10.5v3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.5"/><path d="M11 17.5h2"/></symbol>
+    <symbol id="i-minus-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12h7"/></symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3.5c4.5 0 4.5 10 9 10H20M4 17h3.5c1.5 0 2.5-1.1 3.3-2.5M20 7h-3.5c-1.5 0-2.5 1.1-3.3 2.5M17.5 4.5 20 7l-2.5 2.5M17.5 14.5 20 17l-2.5 2.5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.6L4 15.5M4 20v-4.5h4.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></symbol>
+  </svg>
+
+  <!-- ================= HEADER ================= -->
+  <header class="header">
+    <div class="container header__inner">
+      <a href="#topo" class="header__brand" aria-label="Opimed">
+        <img src="assets/logo-opimed.webp" alt="Opimed desde 1989" class="logo" width="120" height="60">
+      </a>
+      <nav class="header__nav" aria-label="Seções">
+        <a href="#como-funciona">Como funciona</a>
+        <a href="#modelos">Modelos</a>
+        <a href="#opimed">A Opimed</a>
+        <a href="#duvidas">Dúvidas</a>
+      </nav>
+      <button type="button" class="btn" data-open-sim>Simular agora</button>
+    </div>
+  </header>
+
+  <main id="topo">
+
+    <!-- ================= S01 | HERO ================= -->
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow"><svg aria-hidden="true"><use href="#i-spark"/></svg> Simulador com inteligência artificial</p>
+          <h1 class="h1">Veja como você ficaria com um <strong>aparelho auditivo</strong></h1>
+          <p class="lead">Responda 5 perguntas, envie 2 fotos do seu ouvido e receba a simulação com os 2 modelos que mais combinam com o que você procura.</p>
+          <div class="cta-row">
+            <button type="button" class="btn btn--lg" data-open-sim>Simular como eu ficaria de aparelho auditivo <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+          <ul class="hero__facts">
+            <li><svg aria-hidden="true"><use href="#i-check-circle"/></svg> 5 perguntas rápidas</li>
+            <li><svg aria-hidden="true"><use href="#i-check-circle"/></svg> 2 fotos do ouvido</li>
+            <li><svg aria-hidden="true"><use href="#i-check-circle"/></svg> 2 modelos simulados em você</li>
+          </ul>
+        </div>
+
+        <div class="hero__visual" aria-hidden="true">
+          <div class="shot">
+            <img src="https://opimed.com.br/wp-content/uploads/2024/06/opimed-aparelho-auditivo.jpg" alt="" width="1094" height="730" fetchpriority="high">
+            <span class="shot__scan"></span>
+            <span class="shot__focus"><i></i><i></i><i></i><i></i></span>
+            <span class="shot__label"><svg><use href="#i-spark"/></svg> Simulação gerada por IA</span>
+          </div>
+          <div class="hero__chip">
+            <div class="hero__chip-img"><img src="https://aparelhosauditivos.opimed.com.br/wp-content/uploads/sites/2/2024/07/SmartRIC-1-2048x2048.png" alt=""></div>
+            <div>
+              <p class="hero__chip-kicker">Modelo indicado</p>
+              <p class="hero__chip-name">Moment Smart RIC</p>
+              <p class="hero__chip-meta">Widex · Receptor no canal</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= S02 | MARCAS ================= -->
+    <section class="brands" aria-label="Marcas disponíveis na simulação">
+      <div class="container brands__inner">
+        <p class="brands__text">Simulação com modelos das marcas que a Opimed representa</p>
+        <div class="brands__logos">
+          <img src="https://aparelhosauditivos.opimed.com.br/wp-content/uploads/sites/2/2024/06/Widex_logo_white.png" alt="Widex" loading="lazy">
+          <img src="https://aparelhosauditivos.opimed.com.br/wp-content/uploads/sites/2/2024/06/Signia.png" alt="Signia" loading="lazy">
+          <img src="https://aparelhosauditivos.opimed.com.br/wp-content/uploads/sites/2/2024/06/Resound.png" alt="ReSound" loading="lazy">
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= S03 | COMO FUNCIONA ================= -->
+    <section class="section" id="como-funciona">
+      <div class="container">
+        <div class="section__head reveal">
+          <h2 class="h2">Como funciona a simulação</h2>
+          <p class="body">Três etapas, feitas pelo celular ou computador. No final, você vê o aparelho no seu próprio ouvido.</p>
+        </div>
+
+        <ol class="steps reveal">
+          <li class="card step">
+            <span class="step__num">1</span>
+            <span class="step__icon"><svg aria-hidden="true"><use href="#i-quiz"/></svg></span>
+            <h3 class="h3">Responda 5 perguntas</h3>
+            <p class="body body--sm">Conte o que mais importa para você: um aparelho mais discreto, mais tecnológico, recarregável, e como gostaria de usá-lo no dia a dia.</p>
+          </li>
+          <li class="card step">
+            <span class="step__num">2</span>
+            <span class="step__icon"><svg aria-hidden="true"><use href="#i-camera"/></svg></span>
+            <h3 class="h3">Envie 2 fotos do ouvido</h3>
+            <p class="body body--sm">Uma foto de lado e uma de frente. A inteligência artificial usa as imagens para posicionar o aparelho no formato do seu ouvido.</p>
+          </li>
+          <li class="card step step--dark">
+            <span class="step__num">3</span>
+            <span class="step__icon"><svg aria-hidden="true"><use href="#i-spark"/></svg></span>
+            <h3 class="h3">Veja a simulação</h3>
+            <p class="body body--sm">A IA seleciona 2 modelos diferentes com base nas suas respostas e mostra como cada um ficaria em você.</p>
+          </li>
+        </ol>
+
+        <div class="cta-row cta-row--center reveal">
+          <button type="button" class="btn btn--lg" data-open-sim>Simular como eu ficaria de aparelho auditivo <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= S04 | O QUE VOCÊ RECEBE ================= -->
+    <section class="section section--surface">
+      <div class="container split">
+        <div class="split__media reveal" aria-hidden="true">
+          <div class="preview">
+            <div class="preview__bar">
+              <span class="preview__dot"></span> Sua simulação
+            </div>
+            <div class="preview__img">
+              <img src="https://opimed.com.br/wp-content/uploads/2024/06/opimed-aparelho-auditivo.jpg" alt="" loading="lazy">
+              <div class="seg seg--static"><span class="is-active">De lado</span><span>De frente</span></div>
+            </div>
+            <div class="preview__models">
+              <div class="preview__model is-active">
+                <img src="https://aparelhosauditivos.opimed.com.br/wp-content/uploads/sites/2/2024/07/SmartRIC-1-2048x2048.png" alt="" loading="lazy">
+                <div><b>Moment Smart RIC</b><span>Widex</span></div>
+              </div>
+              <div class="preview__model">
+                <img src="https://aparelhosauditivos.opimed.com.br/wp-content/uploads/sites/2/2025/04/stylettoIX.webp" alt="" loading="lazy">
+                <div><b>Styletto IX</b><span>Signia</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="reveal">
+          <p class="eyebrow"><svg aria-hidden="true"><use href="#i-check-circle"/></svg> O que você recebe</p>
+          <h2 class="h2">Dois modelos escolhidos para você, vistos no seu ouvido</h2>
+          <p class="body">Em vez de imaginar, você compara. A simulação mostra cada modelo indicado na sua foto, de lado e de frente, e explica por que ele combina com as suas respostas.</p>
+          <ul class="checklist">
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg> 2 modelos diferentes, selecionados pelas suas preferências</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg> Imagens de lado e de frente com cada aparelho</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg> O motivo de cada indicação, em linguagem simples</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg> Contato de um especialista Opimed para os próximos passos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= S05 | MODELOS ================= -->
+    <section class="section" id="modelos">
+      <div class="container">
+        <div class="section__head reveal">
+          <h2 class="h2">3 marcas, 15 modelos na simulação</h2>
+          <p class="body">A inteligência artificial escolhe entre os aparelhos abaixo os 2 que mais se aproximam do que você respondeu.</p>
+        </div>
+
+        <div class="tabs reveal" role="tablist" aria-label="Marcas" id="brandTabs"></div>
+        <div class="models reveal" id="modelGrid" role="tabpanel"></div>
+        <p class="note reveal">[PROTÓTIPO] Lista montada a partir do site da Opimed. Validar os 5 modelos de cada marca que entram no banco de dados da simulação.</p>
+      </div>
+    </section>
+
+    <!-- ================= S06 | OPIMED ================= -->
+    <section class="section section--dark" id="opimed">
+      <div class="container split">
+        <div class="reveal">
+          <h2 class="h2">Por trás da simulação, uma equipe que cuida da audição desde 1989</h2>
+          <p class="body">A simulação mostra como o aparelho fica em você. A indicação final é feita por um fonoaudiólogo da Opimed, depois de avaliar a sua audição e a sua rotina.</p>
+          <div class="cta-row">
+            <button type="button" class="btn btn--light btn--lg" data-open-sim>Simular como eu ficaria de aparelho auditivo <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+          </div>
+        </div>
+        <ul class="stats reveal">
+          <li><b>+60 mil</b><span>pacientes atendidos</span></li>
+          <li><b>+102 mil</b><span>aparelhos adaptados</span></li>
+          <li><b>17</b><span>unidades em 8 estados e no DF</span></li>
+          <li><b>Até 5 anos</b><span>de Garantia Premium</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================= S07 | FAQ ================= -->
+    <section class="section" id="duvidas">
+      <div class="container container--narrow">
+        <div class="section__head section__head--center reveal">
+          <h2 class="h2">Dúvidas sobre a simulação</h2>
+        </div>
+
+        <div class="faq reveal">
+          <details>
+            <summary>Como a simulação é feita?</summary>
+            <p class="faq__a">Você responde 5 perguntas sobre o que procura em um aparelho auditivo e envia 2 fotos do ouvido, uma de lado e uma de frente. Com essas informações, a inteligência artificial seleciona 2 modelos e gera imagens de como cada um ficaria em você.</p>
+          </details>
+          <details>
+            <summary>Como devo tirar as fotos?</summary>
+            <p class="faq__a">Em um lugar bem iluminado, com o cabelo afastado do ouvido e sem brincos grandes ou fones. Uma foto de lado, mostrando o ouvido inteiro, e uma de frente, com o rosto reto para a câmera.</p>
+          </details>
+          <details>
+            <summary>Quais aparelhos aparecem na simulação?</summary>
+            <p class="faq__a">A simulação trabalha com 15 modelos das marcas Widex, Signia e ReSound. Para cada pessoa, a IA escolhe os 2 que mais se aproximam das respostas dadas.</p>
+          </details>
+          <details>
+            <summary>A simulação substitui a avaliação auditiva?</summary>
+            <p class="faq__a">Não. Ela mostra a aparência do aparelho em você. A indicação do modelo adequado depende de uma avaliação com fonoaudiólogo.</p>
+          </details>
+          <details>
+            <summary>O que acontece com as minhas fotos?</summary>
+            <p class="faq__a">[VALIDAR COM A OPIMED] As fotos são usadas para gerar a sua simulação, conforme a Política de Privacidade da Opimed.</p>
+          </details>
+          <details>
+            <summary>Posso fazer a simulação para um familiar?</summary>
+            <p class="faq__a">Sim. Basta responder pensando no que a pessoa procura e enviar as fotos do ouvido dela.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= S08 | CTA FINAL ================= -->
+    <section class="section section--surface final">
+      <div class="container">
+        <div class="card final__card reveal">
+          <div>
+            <h2 class="h2">Veja agora como você ficaria</h2>
+            <p class="body">5 perguntas, 2 fotos e a simulação com 2 modelos indicados para você.</p>
+          </div>
+          <button type="button" class="btn btn--lg" data-open-sim>Simular como eu ficaria de aparelho auditivo <svg aria-hidden="true"><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= RODAPÉ ================= -->
+  <footer class="footer">
+    <div class="footer__top">
+      <div class="container">Dúvidas sobre audição? <a href="tel:08001001989">0800-100-1989</a></div>
+    </div>
+    <div class="container footer__main">
+      <img src="assets/logo-opimed.webp" alt="Opimed desde 1989" class="logo logo--invert" width="132" height="66">
+      <p class="footer__about">Especialistas em saúde auditiva desde 1989.</p>
+      <div class="footer__bottom">
+        <p>OPIMED DO BRASIL LTDA · CNPJ 01.191.654/0001-02</p>
+        <p><a href="#">Política de Privacidade</a> · Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener">3ADS</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= BOTÃO FLUTUANTE (vai em todo o site) ================= -->
+  <button type="button" class="fab" id="fab" data-open-sim>
+    <span class="fab__icon"><svg aria-hidden="true"><use href="#i-spark"/></svg></span>
+    <span class="fab__text">Simule agora como você ficaria com um aparelho auditivo</span>
+  </button>
+
+  <!-- ================= SIMULADOR (quiz → fotos → contato → resultado) ================= -->
+  <div class="sim" id="sim" role="dialog" aria-modal="true" aria-label="Simulador de aparelho auditivo" hidden>
+    <div class="sim__top">
+      <img src="assets/logo-opimed.webp" alt="Opimed" class="logo" width="96" height="48">
+      <ol class="sim__phases" id="simPhases">
+        <li>Perguntas</li>
+        <li>Fotos</li>
+        <li>Contato</li>
+        <li>Simulação</li>
+      </ol>
+      <button type="button" class="sim__close" id="simClose" aria-label="Fechar simulador"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sim__progress"><span id="simBar"></span></div>
+    <div class="sim__body" id="simBody"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

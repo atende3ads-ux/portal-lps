@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp API Oficial | Automação, Chatbot e Disparo em Massa | Neppo</title>
+<meta name="description" content="API Oficial do Meta com chatbot de IA, disparo em massa e CRM/ERP integrado — e zero risco de banimento. Agende uma demonstração com a Neppo.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ─── Variables ─── */
+:root {
+  /* Marca Neppo */
+  --green:      #65CC65;
+  --green-dark: #54B954;
+  --green-glow: rgba(101,204,101,.18);
+  --purple:     #7A00AD;
+  --purple-dark:#66008F;
+  --navy:       #252C3B;
+  --navy-2:     #2A3140;
+  --navy-3:     #313A4C;
+  --navy-4:     #3A4356;
+  --white:      #ffffff;
+  --off-white:  #F4FBF4;
+  --gray-1:     #E6E8EA;
+  --gray-2:     #B0B3BC;
+  --gray-3:     #7A7A7A;
+  --radius:     10px;
+  --radius-lg:  20px;
+  --shadow-sm:  0 2px 12px rgba(37,44,59,.08);
+  --shadow-md:  0 8px 32px rgba(37,44,59,.12);
+  --shadow-lg:  0 20px 60px rgba(37,44,59,.18);
+  --transition: .25s ease;
+}
+
+/* ─── Reset ─── */
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { font-family:'Outfit',system-ui,sans-serif; color:var(--navy); background:var(--white); line-height:1.7; -webkit-font-smoothing:antialiased; }
+a { text-decoration:none; color:inherit; }
+img { max-width:100%; display:block; }
+ul { list-style:none; }
+
+/* ─── Utility ─── */
+.container { max-width:1140px; margin:0 auto; padding:0 24px; }
+.text-green { color:var(--green); }
+.badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:rgba(101,204,101,.12); border:1px solid rgba(101,204,101,.3);
+  color:var(--green); font-size:12px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; padding:5px 14px; border-radius:100px;
+}
+
+/* ─── WF Navigation bar (remover na versão real) ─── */
+.wf-bar {
+  background:#1B2029; border-bottom:2px solid var(--green);
+  padding:8px 24px; display:flex; justify-content:space-between; align-items:center;
+  font-size:11px; color:#666; position:sticky; top:0; z-index:200;
+}
+.wf-bar strong { color:var(--green); }
+.wf-pages { display:flex; gap:8px; }
+.wf-pages a {
+  color:#555; padding:3px 12px; border-radius:4px;
+  border:1px solid #333; font-size:11px; transition:all .2s;
+}
+.wf-pages a.active { background:var(--green); color:var(--navy); font-weight:600; border-color:var(--green); }
+
+/* ─── Header ─── */
+.site-header {
+  background:var(--navy); height:72px; position:sticky; top:33px; z-index:100;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+.site-header .container {
+  height:100%; display:flex; align-items:center; justify-content:space-between;
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-mark {
+  width:36px; height:36px; border-radius:7px;
+  background:linear-gradient(135deg,var(--green),#54B954);
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; font-weight:700; color:var(--navy);
+}
+.logo-text { font-size:20px; font-weight:600; color:var(--white); letter-spacing:-.5px; }
+.logo-text span { color:var(--green); }
+
+nav.main-nav { display:flex; align-items:center; gap:6px; }
+nav.main-nav a {
+  color:rgba(255,255,255,.6); font-size:14px; font-weight:500;
+  padding:8px 14px; border-radius:7px; transition:all var(--transition);
+}
+nav.main-nav a.active { color:var(--green); }
+.btn-header {
+  background:var(--green); color:var(--navy); font-weight:600;
+  padding:10px 22px; border-radius:7px; font-size:14px;
+  transition:all var(--transition); margin-left:8px;
+}
+.btn-header:hover { background:var(--green-dark); transform:translateY(-1px); }
+
+/* ─── Hero ─── */
+.hero {
+  background:linear-gradient(180deg, #F1FFEF 0%, #FFFFFF 100%);
+  padding:88px 0 80px;
+  overflow:hidden; position:relative;
+}
+.hero-grid {
+  display:grid; grid-template-columns:1.15fr 0.85fr; gap:48px; align-items:start;
+}
+.hero-content { position:relative; z-index:2; }
+.hero-content .badge { margin-bottom:22px; }
+.hero-content h1 {
+  font-size:clamp(30px,3.8vw,50px); font-weight:700; color:var(--navy);
+  line-height:1.1; margin-bottom:22px; letter-spacing:-.02em;
+}
+.hero-content h1 em { color:var(--green); font-style:normal; }
+.hero-content p {
+  font-size:18px; color:var(--gray-3); line-height:1.75;
+  margin-bottom:36px; max-width:500px;
+}
+.hero-content p strong { color:var(--navy); font-weight:600; }
+.hero-btns { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:48px; }
+.btn-primary {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--green); color:var(--navy); font-weight:600;
+  padding:16px 32px; border-radius:10px; font-size:16px;
+  transition:all var(--transition); box-shadow:0 4px 20px rgba(101,204,101,.3);
+}
+.btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(101,204,101,.4); background:var(--green-dark); }
+.btn-outline {
+  display:inline-flex; align-items:center; gap:8px;
+  background:var(--purple); border:2px solid var(--purple); color:var(--white);
+  padding:14px 28px; border-radius:10px; font-size:16px; font-weight:600;
+  transition:all var(--transition); box-shadow:0 4px 20px rgba(122,0,173,.28);
+}
+.btn-outline:hover { background:var(--purple-dark); border-color:var(--purple-dark); transform:translateY(-2px); box-shadow:0 8px 30px rgba(122,0,173,.38); }
+
+.hero-numbers { display:flex; gap:36px; flex-wrap:wrap; }
+.hero-num strong { display:block; font-size:32px; font-weight:700; color:var(--green); line-height:1; }
+.hero-num span { font-size:13px; color:var(--gray-3); margin-top:4px; display:block; }
+
+/* Hero visual — WhatsApp chat mockup */
+.phone-mockup {
+  background:var(--navy-3); border-radius:var(--radius-lg);
+  border:1px solid rgba(255,255,255,.08); overflow:hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,.5); max-width:380px; margin:0 auto;
+}
+.phone-topbar {
+  background:var(--navy-4); padding:14px 20px;
+  display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,.06);
+}
+.phone-topbar-dot { width:10px; height:10px; border-radius:50%; }
+.phone-topbar-dot:nth-child(1) { background:#ff5f57; }
+.phone-topbar-dot:nth-child(2) { background:#ffbd2e; }
+.phone-topbar-dot:nth-child(3) { background:#28c840; }
+.phone-topbar-title { font-size:12px; color:rgba(255,255,255,.4); margin-left:8px; font-weight:500; }
+
+.phone-body { padding:20px; display:flex; flex-direction:column; gap:12px; min-height:400px; }
+.chat-msg { max-width:82%; }
+.chat-msg.recv { align-self:flex-start; }
+.chat-msg.sent { align-self:flex-end; }
+.chat-bubble {
+  padding:10px 14px; border-radius:10px; font-size:13px; line-height:1.5;
+}
+.chat-msg.recv .chat-bubble { background:rgba(255,255,255,.06); color:rgba(255,255,255,.8); border-bottom-left-radius:4px; }
+.chat-msg.sent .chat-bubble { background:rgba(101,204,101,.15); color:rgba(255,255,255,.9); border-bottom-right-radius:4px; }
+.chat-meta { font-size:10px; color:rgba(255,255,255,.25); margin-top:4px; padding:0 4px; }
+
+.catalog-card {
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+  border-radius:10px; overflow:hidden; max-width:82%; align-self:flex-start;
+}
+.catalog-img {
+  height:90px; background:linear-gradient(135deg, rgba(101,204,101,.18), rgba(122,0,173,.12));
+  display:flex; align-items:center; justify-content:center; font-size:28px;
+}
+.catalog-info { padding:10px 12px; }
+.catalog-info h5 { font-size:13px; color:var(--white); margin-bottom:4px; }
+.catalog-info p { font-size:12px; color:var(--green); font-weight:600; margin:0; }
+
+.pay-link-card {
+  background:rgba(101,204,101,.08); border:1px solid rgba(101,204,101,.25);
+  border-radius:10px; padding:12px 14px; max-width:82%; align-self:flex-end;
+}
+.pay-link-card .pl-label { font-size:10px; color:var(--green); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+.pay-link-card .pl-link { font-size:12px; color:rgba(255,255,255,.85); word-break:break-all; }
+.pay-link-card .pl-btn {
+  margin-top:8px; background:var(--green); color:var(--navy); font-weight:600;
+  font-size:12px; text-align:center; padding:7px; border-radius:6px;
+}
+
+.status-pill {
+  align-self:center; background:rgba(101,204,101,.1); border:1px solid rgba(101,204,101,.2);
+  color:var(--green); font-size:11px; font-weight:600; padding:5px 14px; border-radius:100px;
+  text-align:center;
+}
+
+/* ─── Hero lead form ─── */
+.hero-form-card {
+  background:var(--white); border-radius:var(--radius-lg); padding:30px;
+  box-shadow:0 18px 50px rgba(37,44,59,.12); position:relative; z-index:2;
+}
+.hero-form-card h3 { font-size:19px; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.hero-form-card .hf-sub { font-size:13px; color:var(--gray-3); margin-bottom:20px; line-height:1.5; }
+.lead-form { display:flex; flex-direction:column; gap:12px; }
+.lf-field { display:flex; flex-direction:column; gap:5px; }
+.lf-field label { font-size:11px; font-weight:600; color:var(--gray-3); text-transform:uppercase; letter-spacing:.06em; }
+.lf-field input, .lf-field select {
+  padding:11px 13px; border:1px solid var(--gray-1); border-radius:7px;
+  font-size:14px; font-family:inherit; color:var(--navy); background:var(--off-white);
+  transition:all var(--transition);
+}
+.lf-field input:focus, .lf-field select:focus { outline:none; border-color:var(--green); background:var(--white); }
+.lf-field select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237A7A7A'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; }
+.lf-submit {
+  width:100%; justify-content:center; border:none; cursor:pointer; margin-top:4px;
+  font-family:inherit;
+}
+.lf-note { font-size:11px; color:var(--gray-3); text-align:center; margin-top:10px; }
+
+/* ─── Section base ─── */
+section { padding:80px 0; }
+.section-eyebrow {
+  font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--green); margin-bottom:12px;
+}
+.section-title {
+  font-size:clamp(26px,3vw,40px); font-weight:700;
+  color:var(--navy); line-height:1.15; margin-bottom:16px; letter-spacing:-.02em;
+}
+.section-title.light { color:var(--white); }
+.section-sub { font-size:17px; color:var(--gray-3); max-width:600px; line-height:1.7; }
+.section-sub.light { color:rgba(255,255,255,.6); }
+.section-head { margin-bottom:56px; }
+.section-head.center { text-align:center; }
+.section-head.center .section-sub { margin:0 auto; }
+
+/* ─── Problem section ─── */
+.problem-section { background:var(--off-white); }
+.problem-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.problem-card {
+  background:var(--white); border-radius:var(--radius);
+  padding:28px 24px; box-shadow:var(--shadow-sm);
+  border-top:3px solid transparent;
+  transition:all var(--transition);
+}
+.problem-icon { width:30px; height:30px; margin-bottom:14px; }
+.problem-card h3 { font-size:17px; font-weight:600; margin-bottom:10px; color:var(--navy); }
+.problem-card p { font-size:14px; color:var(--gray-3); line-height:1.65; }
+
+/* ─── Features / Benefits ─── */
+.features-section { background:var(--navy); }
+.features-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.feature-card {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:var(--radius); padding:28px 24px; transition:all var(--transition);
+  position:relative; overflow:hidden;
+}
+.feature-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--green), transparent);
+  opacity:0; transition:opacity var(--transition);
+}
+.feature-icon-wrap {
+  width:48px; height:48px; border-radius:10px;
+  background:rgba(101,204,101,.1); display:flex; align-items:center; justify-content:center;
+  color:var(--green); margin-bottom:18px;
+}
+.feature-icon-wrap svg { width:24px; height:24px; }
+.feature-card h3 { font-size:17px; font-weight:600; color:var(--white); margin-bottom:10px; }
+.feature-card p { font-size:14px; color:rgba(255,255,255,.5); line-height:1.7; }
+.feature-chip {
+  display:inline-block; margin-top:14px; font-size:11px; font-weight:600;
+  background:rgba(101,204,101,.1); color:var(--green); padding:3px 10px;
+  border-radius:100px; text-transform:uppercase; letter-spacing:.05em;
+}
+
+/* ─── Differentiator ─── */
+.diff-section { background:var(--white); }
+.diff-grid { display:flex; flex-direction:column; gap:32px; }
+.diff-table-wrap { width:100%; overflow-x:auto; border-radius:var(--radius); box-shadow:var(--shadow-md); }
+.diff-table { width:100%; min-width:720px; border-radius:var(--radius); overflow:hidden; background:var(--white); }
+.diff-table thead tr { background:var(--navy); }
+.diff-table th { padding:16px 18px; color:rgba(255,255,255,.7); font-size:13px; font-weight:600; text-align:left; }
+.diff-table th:first-child { color:var(--white); }
+.diff-table th.hl { color:var(--green); background:#1B212B; }
+.diff-table tbody tr { border-bottom:1px solid var(--gray-1); }
+.diff-table tbody tr:last-child { border-bottom:none; }
+.diff-table td { padding:14px 18px; font-size:13px; color:var(--navy); }
+.diff-table td.hl { background:rgba(101,204,101,.04); font-weight:600; color:#2E7D32; }
+.check-green { color:var(--green); font-size:16px; font-weight:600; }
+.check-gray  { color:var(--gray-2); font-size:16px; }
+.diff-callout {
+  background:var(--navy); border-radius:var(--radius); padding:32px;
+  color:var(--white); border-left:4px solid var(--green);
+}
+.diff-callout h3 { font-size:20px; font-weight:600; margin-bottom:12px; }
+.diff-callout p { font-size:15px; color:rgba(255,255,255,.65); line-height:1.7; margin-bottom:20px; }
+.diff-list { display:grid; grid-template-columns:1fr 1fr; gap:10px 32px; }
+.diff-list li { display:flex; align-items:flex-start; gap:10px; font-size:14px; color:rgba(255,255,255,.7); }
+.diff-list li::before { content:'✦'; color:var(--green); flex-shrink:0; font-size:12px; margin-top:2px; }
+
+/* ─── WhatsApp Voz (split + imagem) ─── */
+.voice-section { background:var(--navy); }
+.voice-grid { display:grid; grid-template-columns:1fr 1fr; gap:56px; align-items:center; }
+.voice-content h2 { font-size:clamp(26px,3vw,38px); font-weight:700; color:var(--white); line-height:1.15; letter-spacing:-.02em; margin-bottom:16px; }
+.voice-lead { font-size:17px; color:rgba(255,255,255,.65); line-height:1.7; margin-bottom:28px; }
+.voice-list { display:flex; flex-direction:column; gap:14px; margin-bottom:32px; }
+.voice-list li { position:relative; padding-left:26px; font-size:15px; color:rgba(255,255,255,.78); line-height:1.5; }
+.voice-list li::before { content:'✦'; position:absolute; left:0; top:1px; color:var(--green); font-size:13px; }
+.voice-media {
+  border-radius:var(--radius-lg); overflow:hidden; aspect-ratio:4/3;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1);
+  display:flex; align-items:center; justify-content:center;
+}
+.voice-media img { width:100%; height:100%; object-fit:cover; display:block; }
+.voice-placeholder { display:flex; flex-direction:column; align-items:center; gap:12px; color:rgba(255,255,255,.45); text-align:center; padding:24px; }
+.voice-placeholder svg { width:46px; height:46px; color:var(--green); opacity:.75; }
+.voice-placeholder span { font-size:13px; font-weight:500; letter-spacing:.03em; }
+
+/* ─── Discrete comparativo group badges ─── */
+.tool-group-th { display:flex; align-items:center; gap:10px; }
+.tool-group-badge {
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  width:30px; height:30px; border-radius:50%;
+  background:rgba(255,255,255,.08); color:rgba(255,255,255,.5); font-size:14px;
+}
+.diff-table tbody .tool-group-badge { background:var(--gray-1); color:var(--gray-3); }
+.diff-table .cell-ok::before { content:'✅ '; }
+.diff-table .cell-warn::before { content:'⚠️ '; }
+.diff-table .cell-no::before { content:'❌ '; }
+
+/* ─── Mini CTA (fim de seção) ─── */
+.mini-cta { text-align:center; margin-top:48px; }
+.mini-cta a { font-size:15px; padding:14px 30px; }
+
+/* ─── Clientes Neppo ─── */
+.clients-section { background:var(--off-white); }
+.testimonial-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+.testimonial-card {
+  background:var(--white); border-radius:var(--radius); padding:28px;
+  box-shadow:var(--shadow-sm); display:flex; flex-direction:column; gap:18px;
+  border-top:3px solid var(--green);
+}
+.testimonial-card p { font-size:14px; color:var(--navy); line-height:1.7; }
+.testimonial-card p::before { content:'“'; color:var(--green); font-size:22px; font-weight:700; }
+.testimonial-author { font-size:13px; font-weight:600; color:var(--navy); }
+.testimonial-author span { display:block; font-weight:500; color:var(--gray-3); font-size:12px; margin-top:2px; }
+
+/* ─── Para quem é — Segmentos (cards) ─── */
+.cases-section { background:var(--off-white); }
+.segments-list { display:flex; flex-wrap:wrap; justify-content:center; gap:24px; }
+.segment-card {
+  flex:0 1 calc(33.333% - 16px);
+  background:var(--white); border-radius:var(--radius); border:1px solid var(--gray-1);
+  box-shadow:var(--shadow-sm); padding:28px 26px;
+  display:flex; flex-direction:column;
+}
+.segment-icon {
+  width:52px; height:52px; border-radius:14px; margin-bottom:18px;
+  background:rgba(101,204,101,.12); color:var(--green);
+  display:flex; align-items:center; justify-content:center;
+}
+.segment-icon svg { width:26px; height:26px; }
+.segment-name { font-size:18px; font-weight:600; color:var(--navy); margin-bottom:16px; }
+.segment-topics { display:flex; flex-direction:column; gap:12px; }
+.segment-topics li {
+  position:relative; padding-left:26px; font-size:14px; color:var(--gray-3); line-height:1.5;
+}
+.segment-topics li::before {
+  content:''; position:absolute; left:0; top:2px; width:16px; height:16px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2365CC65' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") no-repeat center;
+  background-size:contain;
+}
+
+/* ─── FAQ ─── */
+.faq-section { background:var(--white); }
+.faq-wrap { max-width:760px; margin:0 auto; }
+.faq-item { border-bottom:1px solid var(--gray-1); }
+.faq-item:first-child { border-top:1px solid var(--gray-1); }
+.faq-btn {
+  width:100%; background:none; border:none; padding:22px 0;
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:16px; font-weight:600; color:var(--navy); cursor:pointer;
+  text-align:left; gap:16px; transition:color var(--transition);
+}
+.faq-btn.open { color:var(--green); }
+.faq-icon { width:28px; height:28px; border-radius:50%; border:2px solid var(--gray-1);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  font-size:18px; color:var(--gray-3); transition:all var(--transition);
+  line-height:1;
+}
+.faq-btn.open .faq-icon { border-color:var(--green); color:var(--green); transform:rotate(45deg); }
+.faq-body { max-height:0; overflow:hidden; transition:max-height .35s ease; }
+.faq-body.open { max-height:300px; }
+.faq-body-inner { padding:0 0 20px; font-size:15px; color:var(--gray-3); line-height:1.75; }
+
+/* ─── CTA Section ─── */
+.cta-section {
+  background:var(--navy);
+  background-image:radial-gradient(ellipse 50% 60% at 50% 50%, rgba(101,204,101,.07) 0%, transparent 70%);
+  padding:100px 0; text-align:center;
+}
+.cta-section h2 { font-size:clamp(28px,3.5vw,46px); font-weight:700; color:var(--white); margin-bottom:18px; letter-spacing:-.02em; line-height:1.15; }
+.cta-section p { font-size:18px; color:rgba(255,255,255,.6); margin-bottom:40px; max-width:520px; margin-left:auto; margin-right:auto; }
+.cta-btn-wrap { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.cta-note { margin-top:16px; font-size:13px; color:rgba(255,255,255,.3); }
+
+/* ─── Footer ─── */
+footer {
+  background:#1B2029; padding:28px 24px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
+}
+.footer-logo { font-size:16px; font-weight:600; color:var(--white); }
+.footer-logo span { color:var(--green); }
+.footer-links { display:flex; gap:24px; flex-wrap:wrap; }
+.footer-links a { font-size:13px; color:rgba(255,255,255,.35); transition:color .2s; }
+footer p.copy { font-size:12px; color:rgba(255,255,255,.25); }
+
+/* ─── Responsive ─── */
+@media (max-width:960px) {
+  .hero-grid { grid-template-columns:1fr; }
+  .problem-grid { grid-template-columns:1fr 1fr; }
+  .features-grid { grid-template-columns:1fr 1fr; }
+  .diff-list { grid-template-columns:1fr; }
+  .testimonial-grid { grid-template-columns:1fr; }
+  .voice-grid { grid-template-columns:1fr; gap:32px; }
+  .segment-card { flex-basis:calc(50% - 12px); }
+  nav.main-nav { display:none; }
+}
+@media (max-width:640px) {
+  .problem-grid { grid-template-columns:1fr; }
+  .features-grid { grid-template-columns:1fr; }
+  .segment-card { flex-basis:100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── WIREFRAME NAV ── -->
+<div class="wf-bar">
+  <span><strong>PROPOSTA</strong> · Neppo · WhatsApp API · Jun 2026</span>
+  <div class="wf-pages">
+    <a href="neppo-whatsapp-api.html" class="active">WhatsApp API</a>
+    <a href="neppo-omnichannel.html">Omnichannel</a>
+    <a href="neppo-venda-digital.html">Venda Digital</a>
+    <a href="neppo-integracao-crm-erp.html">Integração CRM/ERP</a>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="container">
+    <a href="#" class="logo">
+      <div class="logo-mark">N</div>
+      <span class="logo-text">nep<span>po</span></span>
+    </a>
+    <nav class="main-nav">
+      <a href="neppo-whatsapp-api.html" class="active">WhatsApp API</a>
+      <a href="neppo-omnichannel.html">Omnichannel</a>
+      <a href="neppo-venda-digital.html">Venda Digital</a>
+      <a href="neppo-integracao-crm-erp.html">Integração CRM/ERP</a>
+      <a href="#lead-form" class="btn-header">Agendar demonstração</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════
+     HERO
+══════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+
+      <!-- Content -->
+      <div class="hero-content">
+        <span class="badge">✓ API Oficial Meta · BSP Certificado</span>
+        <h1>
+          <em>Pare de perder venda fora do horário comercial.</em><br>
+          Seu concorrente já automatiza o WhatsApp com a API Oficial.
+        </h1>
+        <p>
+          Com a API Oficial do Meta, a Neppo processa em média <strong>~1 milhão de mensagens por mês</strong>.
+          Chatbot com IA, disparo em massa e CRM/ERP integrado —
+          e <strong>zero risco de banimento</strong>.
+        </p>
+        <div class="hero-btns">
+          <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+          <a href="#lead-form" class="btn-outline">▶ Ver demonstração</a>
+        </div>
+        <div class="hero-numbers">
+          <div class="hero-num">
+            <strong>~1M</strong>
+            <span>mensagens/mês (média)</span>
+          </div>
+          <div class="hero-num">
+            <strong>Zero</strong>
+            <span>risco de banimento</span>
+          </div>
+          <div class="hero-num">
+            <strong>15 anos</strong>
+            <span>no mercado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lead form -->
+      <div class="hero-form-card" id="lead-form">
+        <h3>Fale com um especialista</h3>
+        <p class="hf-sub">Veja como automatizar seu WhatsApp com API Oficial, chatbot e zero risco de banimento. Sem compromisso.</p>
+        <form class="lead-form" onsubmit="return false;">
+          <div class="lf-field">
+            <label for="lf-nome-wa">Nome</label>
+            <input type="text" id="lf-nome-wa" name="nome" placeholder="Seu nome completo" required>
+          </div>
+          <div class="lf-field">
+            <label for="lf-telefone-wa">Telefone</label>
+            <input type="tel" id="lf-telefone-wa" name="telefone" placeholder="(00) 00000-0000" required>
+          </div>
+          <div class="lf-field">
+            <label for="lf-email-wa">E-mail corporativo</label>
+            <input type="email" id="lf-email-wa" name="email" placeholder="voce@empresa.com.br" required>
+          </div>
+          <div class="lf-field">
+            <label for="lf-tipo-wa">Tipo de empresa</label>
+            <select id="lf-tipo-wa" name="tipo_empresa" required>
+              <option value="">Selecione</option>
+              <option>Indústria</option>
+              <option>Varejo</option>
+              <option>Serviços</option>
+              <option>Saúde</option>
+              <option>Financeiro</option>
+              <option>Outro</option>
+            </select>
+          </div>
+          <div class="lf-field">
+            <label for="lf-cargo-wa">Cargo</label>
+            <input type="text" id="lf-cargo-wa" name="cargo" placeholder="Seu cargo" required>
+          </div>
+          <div class="lf-field">
+            <label for="lf-site-wa">Site da empresa</label>
+            <input type="text" id="lf-site-wa" name="site" placeholder="www.suaempresa.com.br">
+          </div>
+          <button type="submit" class="btn-primary lf-submit">Agendar demonstração →</button>
+          <p class="lf-note">Atendimento personalizado · Onboarding incluído</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     O PROBLEMA
+══════════════════════════════════════════════════ -->
+<section class="problem-section">
+  <div class="container">
+    <div class="section-head">
+      <p class="section-eyebrow">Você vive isso?</p>
+      <h2 class="section-title">Enquanto o WhatsApp virou seu<br>principal canal, ele ainda roda no manual</h2>
+      <p class="section-sub">Cada mensagem sem resposta, cada número pessoal usado para vender, é risco e oportunidade perdida.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <img class="problem-icon" src="page-api-whatsapp/icons/perde-vendas.svg" alt="" width="30" height="30">
+        <h3>Perde vendas fora do horário comercial</h3>
+        <p>Seu cliente manda mensagem às 23h. Seu atendente responde na manhã seguinte. Nesse meio-tempo, ele já comprou do concorrente.</p>
+      </div>
+      <div class="problem-card">
+        <img class="problem-icon" src="page-api-whatsapp/icons/varios-numeros.svg" alt="" width="30" height="30">
+        <h3>Vários números, zero controle</h3>
+        <p>Cada vendedor usa o próprio WhatsApp pessoal. Quando sai da empresa, leva o histórico junto — e os clientes no bolso.</p>
+      </div>
+      <div class="problem-card">
+        <img class="problem-icon" src="page-api-whatsapp/icons/risco-banimento.svg" alt="" width="30" height="30">
+        <h3>Risco de banimento toda semana</h3>
+        <p>Aplicativos não-oficiais violam os termos do Meta. Seu número pode ser banido do dia para a noite — e a base de clientes vai junto.</p>
+      </div>
+      <div class="problem-card">
+        <img class="problem-icon" src="page-api-whatsapp/icons/sem-relatorios.svg" alt="" width="30" height="30">
+        <h3>Não sabe o que está funcionando</h3>
+        <p>Sem relatórios, não dá para saber qual campanha gerou retorno, qual atendente converteu mais ou onde os leads estão parando.</p>
+      </div>
+      <div class="problem-card">
+        <img class="problem-icon" src="page-api-whatsapp/icons/repeticao.svg" alt="" width="30" height="30">
+        <h3>Responde a mesma pergunta 50 vezes por dia</h3>
+        <p>Preço, prazo, endereço, segunda via de boleto. Sua equipe gasta horas respondendo o que um bot poderia resolver em segundos.</p>
+      </div>
+      <div class="problem-card">
+        <img class="problem-icon" src="page-api-whatsapp/icons/escalar-custo.svg" alt="" width="30" height="30">
+        <h3>Escalar exige contratar mais gente</h3>
+        <p>Cresceu 30%? Precisa de mais 3 atendentes. Com automação inteligente, você escala o volume sem escalar o custo.</p>
+      </div>
+    </div>
+    <div class="mini-cta">
+      <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     FUNCIONALIDADES
+══════════════════════════════════════════════════ -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-eyebrow">Funcionalidades</p>
+      <h2 class="section-title light">Tudo que sua operação precisa<br>em um só número oficial</h2>
+      <p class="section-sub light" style="margin:0 auto">Recursos pensados para responder rápido, vender mais e nunca correr risco de banimento.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg></div>
+        <h3>Chatbot com IA que resolve, não só encaminha</h3>
+        <p>Seu bot responde perguntas, qualifica leads, agenda reuniões e fecha pedidos — 24h por dia, sem custo adicional de pessoal.</p>
+        <span class="feature-chip">Studio CX</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"/><path d="M8 6v8"/></svg></div>
+        <h3>Campanhas em massa com taxa de entrega garantida</h3>
+        <p>Disparo de mensagens ativas para toda sua base com templates aprovados pelo Meta. Segmentação por perfil de cliente.</p>
+        <span class="feature-chip">Marketing Conversacional</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19v3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><rect x="9" y="2" width="6" height="13" rx="3"/></svg></div>
+        <h3>Voz integrada ao WhatsApp</h3>
+        <p>Único no Brasil: transição chat → voz sem perder histórico. Para negociações que precisam de mais que texto.</p>
+        <span class="feature-chip">Exclusivo Neppo</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div>
+        <h3>Supervisão e relatórios em tempo real</h3>
+        <p>Acompanhe SLA, tempo médio de resposta, produtividade por atendente e taxa de conversão por campanha.</p>
+        <span class="feature-chip">Liderança vs. Concorrentes</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div>
+        <h3>Integração nativa com Sankhya, Ploomes e API aberta</h3>
+        <p>Consulta de estoque, envio automático de NF e boletos, régua de cobrança e CRM — tudo pelo WhatsApp, com integração homologada pela Neppo ou via API aberta para o seu ERP/CRM.</p>
+        <span class="feature-chip">Exclusivo Ecossistema</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/></svg></div>
+        <h3>Múltiplos números, uma plataforma</h3>
+        <p>Toda a empresa atende pelo mesmo número oficial. Histórico centralizado, nunca mais perde contexto de atendimento.</p>
+        <span class="feature-chip">Controle Total</span>
+      </div>
+    </div>
+    <div class="mini-cta">
+      <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     CTA — GANCHO FORTE
+══════════════════════════════════════════════════ -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Pronto para sair do WhatsApp manual<br>e escalar com segurança?</h2>
+    <p>Empresas que automatizaram o WhatsApp com a Neppo processam em média ~1 milhão de mensagens por mês, com chatbot, IA e zero risco de banimento. Agende uma demonstração e veja como aplicar isso na sua operação.</p>
+    <div class="cta-btn-wrap">
+      <a href="#lead-form" class="btn-primary" style="font-size:17px;padding:18px 36px">Agendar demonstração →</a>
+      <a href="#lead-form" class="btn-outline" style="font-size:17px;padding:16px 32px">Falar com especialista</a>
+    </div>
+    <p class="cta-note">Atendimento personalizado · Onboarding incluído · API Oficial Meta</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     DIFERENCIAL — API OFICIAL vs. ALTERNATIVAS
+══════════════════════════════════════════════════ -->
+<section class="diff-section">
+  <div class="container">
+    <div class="section-head">
+      <p class="section-eyebrow">Comparativo de mercado</p>
+      <h2 class="section-title">Como a Neppo se compara<br>às alternativas de WhatsApp API</h2>
+      <p class="section-sub">Uma visão geral de como a Neppo se posiciona frente a ferramentas internacionais e nacionais de automação de WhatsApp.</p>
+    </div>
+    <div class="diff-grid">
+      <div class="diff-table-wrap">
+        <table class="diff-table">
+          <thead>
+            <tr>
+              <th>Categoria</th>
+              <th class="hl">✦ Neppo</th>
+              <th><span class="tool-group-th"><span class="tool-group-badge">🌐</span> Ferramentas Internacionais</span></th>
+              <th><span class="tool-group-th"><span class="tool-group-badge">🇧🇷</span> Ferramentas Nacionais</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Preço</td>
+              <td class="hl cell-ok">Plano nacional, previsível, sem reajuste cambial</td>
+              <td class="cell-warn">Cobrança em dólar, sujeita a variação cambial</td>
+              <td class="cell-warn">Custo cresce conforme volume de mensagens</td>
+            </tr>
+            <tr>
+              <td>Inteligência de IA</td>
+              <td class="hl cell-ok">Chatbot com IA e WhatsApp Voz integrado — exclusivo no Brasil</td>
+              <td class="cell-warn">IA genérica, sem voz integrada ao chat</td>
+              <td class="cell-no">IA limitada ou inexistente</td>
+            </tr>
+            <tr>
+              <td>Implementação e suporte</td>
+              <td class="hl cell-ok">Time dedicado, onboarding incluído, SLA em português</td>
+              <td class="cell-warn">Suporte em inglês, fuso horário diferente</td>
+              <td class="cell-warn">Suporte varia conforme o plano</td>
+            </tr>
+            <tr>
+              <td>Facilidade e adaptação ao WhatsApp</td>
+              <td class="hl cell-ok">BSP certificado, zero risco de banimento, API aberta para integrações</td>
+              <td class="cell-warn">Setup complexo, foco em outros canais</td>
+              <td class="cell-no">Nem sempre homologado pelo Meta</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <div class="mini-cta">
+      <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     WHATSAPP VOZ (VoIP) — SPLIT + IMAGEM
+══════════════════════════════════════════════════ -->
+<section class="voice-section">
+  <div class="container">
+    <div class="voice-grid">
+
+      <!-- Conteúdo -->
+      <div class="voice-content">
+        <p class="section-eyebrow">Diferencial exclusivo</p>
+        <h2>WhatsApp Voz (VoIP) integrado — único no Brasil</h2>
+        <p class="voice-lead">Transição fluida entre chat e chamada de voz sem perder o histórico de conversa. Ideal para atendimentos complexos que precisam de explicação verbal.</p>
+        <ul class="voice-list">
+          <li>Neppo — líder em WhatsApp Voz integrado ao chat</li>
+          <li>Ferramentas internacionais — recurso ausente ou não integrado ao histórico</li>
+          <li>Ferramentas nacionais — recurso ausente na maioria das soluções</li>
+          <li>Neppo — API aberta para conectar com o seu ERP/CRM</li>
+        </ul>
+        <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+      </div>
+
+      <!-- Imagem (lado direito) -->
+      <div class="voice-media">
+        <!-- ► Substitua o placeholder abaixo pela imagem real:
+             <img src="caminho/para/sua-imagem.jpg" alt="WhatsApp Voz integrado na plataforma Neppo"> -->
+        <div class="voice-placeholder">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+          <span>Espaço reservado para imagem</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     PARA QUEM É — SEGMENTOS
+══════════════════════════════════════════════════ -->
+<section class="cases-section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-eyebrow">Para quem é</p>
+      <h2 class="section-title">Adaptado para o seu segmento</h2>
+      <p class="section-sub">Veja como a Neppo automatiza o WhatsApp para a realidade de cada operação.</p>
+    </div>
+    <div class="segments-list">
+
+      <div class="segment-card">
+        <div class="segment-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/></svg></div>
+        <div class="segment-body">
+          <h3 class="segment-name">Saúde</h3>
+          <ul class="segment-topics">
+            <li>Confirmação automática de consultas e exames</li>
+            <li>Envio seguro de resultados e laudos</li>
+            <li>Triagem inicial por chatbot com IA</li>
+            <li>Pesquisa de satisfação (NPS) automática</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <div class="segment-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"/><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"/><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"/></svg></div>
+        <div class="segment-body">
+          <h3 class="segment-name">Varejo</h3>
+          <ul class="segment-topics">
+            <li>Recuperação de carrinho abandonado</li>
+            <li>Rastreamento de pedido em tempo real</li>
+            <li>Catálogo interativo dentro do chat</li>
+            <li>Notificações de promoção e estoque</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <div class="segment-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 18v-7"/><path d="M11.119 2.205a2 2 0 0 1 1.762 0l7.84 3.846A.5.5 0 0 1 20.5 7h-17a.5.5 0 0 1-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg></div>
+        <div class="segment-body">
+          <h3 class="segment-name">Financeiro</h3>
+          <ul class="segment-topics">
+            <li>Régua de cobrança automática</li>
+            <li>Onboarding e autenticação via WhatsApp</li>
+            <li>Alertas de transação e pagamento</li>
+            <li>Atendimento 24h sobre faturas</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <div class="segment-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16h.01"/><path d="M16 16h.01"/><path d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/><path d="M8 16h.01"/></svg></div>
+        <div class="segment-body">
+          <h3 class="segment-name">Indústria & Distribuição</h3>
+          <ul class="segment-topics">
+            <li>Pedidos de reposição automáticos</li>
+            <li>Venda Digital integrada ao Sankhya</li>
+            <li>Canal direto com vendas externas</li>
+            <li>Confirmação de entrega digital</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="segment-card">
+        <div class="segment-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z"/></svg></div>
+        <div class="segment-body">
+          <h3 class="segment-name">Serviços</h3>
+          <ul class="segment-topics">
+            <li>Agendamento e confirmação de visitas</li>
+            <li>Orçamento com aprovação pelo chat</li>
+            <li>Acompanhamento de O.S. em tempo real</li>
+            <li>Renovação e follow-up automáticos</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+    <div class="mini-cta">
+      <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     CLIENTES NEPPO
+══════════════════════════════════════════════════ -->
+<section class="clients-section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-eyebrow">Quem confia na Neppo</p>
+      <h2 class="section-title">Empresas que confiam na Neppo</h2>
+      <p class="section-sub" style="margin:0 auto">A Neppo tem ajudado diversas empresas a automatizar processos, aumentar a eficiência e melhorar a satisfação dos seus clientes.</p>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card">
+        <p>Quando tomamos a decisão pela Neppo, tivemos todo o suporte para criação do fluxo, processos e implantação.</p>
+        <div class="testimonial-author">Rafaela Gonzalez<span>Edições CNBB</span></div>
+      </div>
+      <div class="testimonial-card">
+        <p>Hoje, conseguimos gerenciar cerca de 30 mil protocolos por ano, com uma média de 17 interações por protocolo. Isso só foi possível graças à Neppo.</p>
+        <div class="testimonial-author">Renato Magalhães<span>Rec Transportes</span></div>
+      </div>
+      <div class="testimonial-card">
+        <p>A qualidade de trabalho dos atendentes evoluiu muito com a estabilidade da plataforma e a possibilidade de autoatendimento pelos clientes.</p>
+        <div class="testimonial-author">Laudiceia Moura<span>Uniodonto</span></div>
+      </div>
+    </div>
+    <div class="mini-cta">
+      <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════
+     FAQ
+══════════════════════════════════════════════════ -->
+<section class="faq-section">
+  <div class="container">
+    <div class="section-head center">
+      <p class="section-eyebrow">Dúvidas frequentes</p>
+      <h2 class="section-title">Tudo que você precisa saber<br>sobre WhatsApp API com a Neppo</h2>
+    </div>
+    <div class="faq-wrap">
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          O que é WhatsApp Business API e qual a diferença para o WhatsApp Business App?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">O WhatsApp Business App é gratuito e serve para pequenas empresas com um único usuário. A WhatsApp Business API (ou API Oficial do Meta) é a solução para empresas que precisam de escala: permite múltiplos atendentes simultâneos, chatbot com IA, disparos em massa, relatórios e integração com sistemas como CRM e ERP. A Neppo é BSP (Business Solution Provider) certificado pelo Meta para fornecer acesso à API Oficial.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          É legal fazer disparo em massa no WhatsApp?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">Sim — desde que seja pela API Oficial e com templates aprovados pelo Meta. O disparo em massa por aplicativos não-homologados viola os termos de serviço e pode resultar em banimento do número. Com a Neppo, todos os envios seguem as diretrizes do Meta: templates pré-aprovados, opt-in da base e limites de frequência respeitados.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          Meu número do WhatsApp pode ser banido usando a Neppo?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">Não. A Neppo opera exclusivamente com a API Oficial do Meta. Por ser um BSP certificado, todo o uso está dentro dos termos de serviço do WhatsApp. Isso elimina qualquer risco de banimento por uso da plataforma. O risco existe apenas com soluções que acessam o WhatsApp de forma não-oficial.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          Quanto tempo leva para ativar o WhatsApp API?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">O processo de ativação da API Oficial envolve verificação do número e aprovação pela Meta. Com suporte da Neppo, esse processo geralmente leva de 24 a 72 horas úteis. Após a ativação, a configuração da plataforma e dos chatbots é feita com apoio do time de onboarding Neppo.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          A Neppo integra com qual CRM e ERP?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">A Neppo tem integração nativa com o Sankhya ERP e o Ploomes CRM — não é uma conexão genérica via API, mas integrações desenvolvidas, homologadas e mantidas pela própria Neppo. Por fazer parte do ecossistema Sankhya desde 2021, empresas que já usam o Sankhya ou o Ploomes têm acesso a recursos como régua de cobrança, venda digital e chat embarcado direto no sistema que já usam no dia a dia. Para outros ERPs e CRMs, a Neppo disponibiliza uma API aberta, permitindo que sua equipe técnica ou parceiros desenvolvam a integração com o sistema que sua empresa já utiliza.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          O WhatsApp API tem custo por mensagem?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">O Meta cobra por conversa (não por mensagem individual). As conversas são categorizadas em: marketing, utilidade, autenticação e serviço — cada uma com tabela de preços diferente. A Neppo detalha esses custos de forma transparente e ajuda a otimizar o uso para reduzir despesas com conversas desnecessárias. Fale com nosso time para uma simulação de custo para o seu volume.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          É possível usar o mesmo número para atendimento e campanhas de marketing?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">Sim. A API Oficial permite usar o mesmo número para diferentes finalidades: atendimento receptivo (inbound), disparos de campanhas (outbound) e notificações automáticas (transacionais). A plataforma Neppo gerencia cada fluxo de forma separada, sem misturar atendimentos humanos com automações.</div>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-btn" onclick="toggleFaq(this)">
+          O que é WhatsApp Voz e como funciona na Neppo?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-body">
+          <div class="faq-body-inner">WhatsApp Voz (ou WhatsApp VoIP) é a funcionalidade que permite chamadas de áudio integradas ao fluxo de atendimento digital. Na Neppo, é possível escalar de uma conversa em texto para uma chamada de voz sem perder o histórico de mensagens e sem sair da plataforma. É um diferencial exclusivo da Neppo no Brasil, não encontrado em ferramentas internacionais ou nacionais concorrentes.</div>
+        </div>
+      </div>
+    </div>
+    <div class="mini-cta">
+      <a href="#lead-form" class="btn-primary">Agendar demonstração →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">nep<span>po</span></div>
+  <p class="copy">© 2026 Neppo Tecnologia · Parte do Ecossistema Sankhya · Uberlândia, MG</p>
+  <div class="footer-links">
+    <a href="neppo-whatsapp-api.html">WhatsApp API</a>
+    <a href="neppo-omnichannel.html">Omnichannel</a>
+    <a href="neppo-venda-digital.html">Venda Digital</a>
+    <a href="neppo-integracao-crm-erp.html">Integração CRM/ERP</a>
+    <a href="#">Contato</a>
+  </div>
+</footer>
+
+<script>
+// ── FAQ Accordion ──────────────────────────────────────
+function toggleFaq(btn) {
+  const body   = btn.nextElementSibling;
+  const isOpen = btn.classList.contains('open');
+  document.querySelectorAll('.faq-btn').forEach(b => {
+    b.classList.remove('open');
+    b.nextElementSibling.classList.remove('open');
+  });
+  if (!isOpen) { btn.classList.add('open'); body.classList.add('open'); }
+}
+</script>
+</body>
+</html>

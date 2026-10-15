@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integrações e API | EQ Seguros</title>
+<meta name="description" content="Documentação técnico-comercial das integrações para parceiros e empresas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="crumbbar"><div class="wrap"><div class="crumb"><a href="index.html">Home</a><span class="sep">›</span><a href="tecnologia.html">Tecnologia EQ</a><span class="sep">›</span><b>Integrações / API</b></div></div></div>
+<section class="phero dark has-div"><div class="wrap"><div class="phero-grid"><div class="rv-init"><span class="kicker">Hero técnico</span><h1>Integrações e API</h1><p class="lead">Documentação técnico-comercial das integrações para parceiros e empresas.</p><div class="btn-row rv-init"><a class="btn btn-primary" href="#">Ver documentação</a><a class="link-arrow" href="contato.html"><span>Falar com time técnico</span><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="rv-init"><div class="diagbox rv-init"><svg class="diag" viewBox="0 0 560 350" role="img" aria-label="Arquitetura da integração: o sistema do parceiro chama a API da EQ por REST e JSON e recebe de volta eventos por webhook. A API expõe cotação, emissão, sinistro e webhooks. Tráfego em TLS, autenticação por token e tratamento conforme a LGPD."><rect width="560" height="350" rx="18" fill="#161D2B"/><rect x=".5" y=".5" width="559" height="349" rx="17.5" fill="none" stroke="rgba(255,255,255,.20)"/><rect x="0" y="46" width="3" height="258" rx="1.5" fill="#E8981C"/><title>Arquitetura da integração com a API da EQ</title><rect x="30" y="100" width="150" height="110" rx="14" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.13)"/><rect x="88" y="124" width="34" height="26" rx="5" fill="none" stroke="#E8981C" stroke-width="1.6"/><line x1="95" y1="157" x2="115" y2="157" stroke="#E8981C" stroke-width="1.6" stroke-linecap="round"/><text x="105" y="181" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">Sistema do</text><text x="105" y="198" text-anchor="middle" fill="#fff" font-size="13.5" font-weight="600">parceiro</text><text x="240" y="125" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="10" letter-spacing=".05em">REST · JSON</text><line x1="186" y1="136" x2="286" y2="136" stroke="#E8981C" stroke-width="1.6"/><polygon points="288,136 279,131.5 279,140.5" fill="#E8981C"/><line x1="288" y1="178" x2="188" y2="178" stroke="rgba(255,255,255,.26)" stroke-width="1.6"/><polygon points="186,178 195,173.5 195,182.5" fill="rgba(255,255,255,.26)"/><text x="240" y="197" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="10">webhooks</text><rect x="294" y="48" width="236" height="214" rx="14" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.13)"/><circle cx="308" cy="68" r="3.5" fill="#E8981C"/><text x="320" y="73" fill="#fff" font-size="14" font-weight="700">API EQ</text><rect x="308" y="86" width="208" height="36" rx="8" fill="rgba(255,255,255,.07)"/><text x="318" y="101" fill="#E8981C" font-size="10" font-weight="700" letter-spacing=".06em">POST</text><text x="350" y="101" fill="#fff" font-size="12.5" font-weight="600">/v1/cotacoes</text><text x="318" y="114" fill="rgba(255,255,255,.66)" font-size="9.5">Cotação em tempo real</text><rect x="308" y="130" width="208" height="36" rx="8" fill="rgba(255,255,255,.07)"/><text x="318" y="145" fill="#E8981C" font-size="10" font-weight="700" letter-spacing=".06em">POST</text><text x="350" y="145" fill="#fff" font-size="12.5" font-weight="600">/v1/apolices</text><text x="318" y="158" fill="rgba(255,255,255,.66)" font-size="9.5">Emissão de apólice ou bilhete</text><rect x="308" y="174" width="208" height="36" rx="8" fill="rgba(255,255,255,.07)"/><text x="318" y="189" fill="#E8981C" font-size="10" font-weight="700" letter-spacing=".06em">POST</text><text x="350" y="189" fill="#fff" font-size="12.5" font-weight="600">/v1/sinistros</text><text x="318" y="202" fill="rgba(255,255,255,.66)" font-size="9.5">Abertura e acompanhamento</text><rect x="308" y="218" width="208" height="36" rx="8" fill="rgba(255,255,255,.07)"/><text x="318" y="233" fill="#E8981C" font-size="10" font-weight="700" letter-spacing=".06em">GET</text><text x="345" y="233" fill="#fff" font-size="12.5" font-weight="600">/v1/webhooks</text><text x="318" y="246" fill="rgba(255,255,255,.66)" font-size="9.5">Eventos para o seu sistema</text><line x1="30" y1="292" x2="530" y2="292" stroke="rgba(255,255,255,.13)"/><text x="280" y="317" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="10.5" letter-spacing=".05em">TLS 1.2+ &#160;·&#160; Bearer token &#160;·&#160; LGPD</text></svg></div></div></div></div><div class="divider bottom"><svg viewBox="230 0 1460 56.38"><path class="div-paper" d="M306.991 33.55H-6V56.38H1927V33.55H1613.62C1597.38 33.55 1583.15 27.57 1578.88 18.95L1576.73 14.6C1572.46 5.98 1558.23 0 1541.99 0H378.617C362.377 0 348.148 5.98 343.882 14.6L341.727 18.95C337.46 27.57 323.231 33.55 306.991 33.55Z"/></svg></div></section>
+<section class="sec"><div class="wrap"><div class="sechead rv-init"><span class="kicker">Recursos</span><h2>O que a API oferece</h2></div><div class="grid g3"><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h4>Cotação</h4><p>Endpoint de cotação em tempo real.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><h4>Emissão</h4><p>Emissão de apólice ou bilhete.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><h4>Webhooks</h4><p>Eventos em tempo real para o seu sistema.</p></div></div></div></section>
+<section class="sec"><div class="wrap"><div class="sechead rv-init"><span class="kicker">Documentação</span><h2>Exemplo de requisição</h2></div><div class="imgbox rv-init" style="aspect-ratio:auto;padding:34px;align-items:flex-start;"><pre style="color:#DDE1E5;font-size:.86rem;line-height:1.8;overflow-x:auto;width:100%;">POST /v1/cotacoes
+Authorization: Bearer &lt;token&gt;
+Content-Type: application/json
+
+{
+  "produto": "vida",
+  "segurado": { "nascimento": "1985-04-12" },
+  "capital": 50000
+}</pre></div></div></section>
+<section class="sec dark has-div-top"><div class="divider top"><svg viewBox="230 0 1460 36.3"><path class="div-paper" d="M306.991 2.71H-6V-20.12H1927V2.71H1613.62C1597.38 2.71 1583.15 8.69 1578.88 17.31L1576.73 21.66C1572.46 30.28 1558.23 36.26 1541.99 36.26H378.617C362.377 36.26 348.148 30.28 343.882 21.66L341.727 17.31C337.46 8.69 323.231 2.71 306.991 2.71Z"/></svg></div><div class="wrap"><div class="sechead center rv-init"><h2>Vamos integrar?</h2><p class="lead">Fale com o time técnico da EQ e receba as credenciais de sandbox.</p></div><div class="btn-row rv-init" style="justify-content:center;"><a class="btn btn-primary" href="contato.html">Falar com time técnico</a></div></div></section>
+
+<div id="site-footer"></div>
+<script src="assets/site.js"></script>
+</body>
+</html>

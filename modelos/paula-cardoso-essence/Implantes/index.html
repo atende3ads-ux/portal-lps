@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<script>document.documentElement.classList.add('js');</script>
+<!-- Google Tag Manager -->
+<!-- rastreio removido pelo portal -->
+<!-- End Google Tag Manager -->
+<title>Implante Dentário em Goiânia | Dra. Paula Cardoso</title>
+<meta name="description" content="Implante dentário em Goiânia para substituir um ou mais dentes, com planejamento individual e acompanhamento completo. Agende sua avaliação.">
+
+<meta name="googlebot" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+<meta name="author" content="Dra. Paula Cardoso">
+<meta name="keywords" content="implante dentário em Goiânia, implantes dentários Goiânia, dentista implantodontia Goiânia, substituir dente perdido, reabilitação oral, Dra. Paula Cardoso">
+<meta name="theme-color" content="#190510">
+<meta name="geo.region" content="BR-GO">
+<meta name="geo.placename" content="Goiânia">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Dra. Paula Cardoso Odontologia">
+<meta property="og:title" content="Implante dentário com tratamento completo em um só lugar | Dra. Paula Cardoso">
+<meta property="og:description" content="Implante dentário em Goiânia para substituir um ou mais dentes, com planejamento individual e acompanhamento completo.">
+<meta property="og:url" content="https://paulacardosoessence.com.br/implantes/">
+<meta property="og:image" content="https://paulacardosoessence.com.br/implantes/images/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Implantes dentários com a Dra. Paula Cardoso em Goiânia">
+<meta property="og:locale" content="pt_BR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Implante dentário com tratamento completo em um só lugar | Dra. Paula Cardoso">
+<meta name="twitter:description" content="Implante dentário em Goiânia com planejamento individual e acompanhamento completo.">
+<meta name="twitter:image" content="https://paulacardosoessence.com.br/implantes/images/og-cover.png">
+<meta name="twitter:image:alt" content="Implantes dentários com a Dra. Paula Cardoso em Goiânia">
+<link rel="canonical" href="https://paulacardosoessence.com.br/implantes/">
+<link rel="alternate" hreflang="pt-BR" href="https://paulacardosoessence.com.br/implantes/">
+<link rel="alternate" type="text/plain" href="/portal-lps/modelos/paula-cardoso-essence/llms.txt" title="Informações para assistentes de IA">
+<link rel="icon" href="/portal-lps/modelos/paula-cardoso-essence/assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/portal-lps/modelos/paula-cardoso-essence/assets/sora-600.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/portal-lps/modelos/paula-cardoso-essence/assets/instrument-serif-italic-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/portal-lps/modelos/paula-cardoso-essence/implantes/images/hero-mobile.avif" as="image" type="image/avif" media="(max-width: 900px)" fetchpriority="high">
+<link rel="preload" href="/portal-lps/modelos/paula-cardoso-essence/implantes/images/hero-desktop.avif" as="image" type="image/avif" media="(min-width: 901px)" fetchpriority="high">
+<style>@font-face{font-family:Sora;font-style:normal;font-weight:400;font-display:swap;src:url(/portal-lps/modelos/paula-cardoso-essence/assets/sora-400.woff2)format("woff2")}@font-face{font-family:Sora;font-style:normal;font-weight:600;font-display:swap;src:url(/portal-lps/modelos/paula-cardoso-essence/assets/sora-600.woff2)format("woff2")}@font-face{font-family:Sora;font-style:normal;font-weight:700;font-display:swap;src:url(/portal-lps/modelos/paula-cardoso-essence/assets/sora-700.woff2)format("woff2")}@font-face{font-family:Instrument Serif;font-style:italic;font-weight:400;font-display:swap;src:url(/portal-lps/modelos/paula-cardoso-essence/assets/instrument-serif-italic-400.woff2)format("woff2")}:root{--wine:#7a1a3d;--wine-deep:#5c1029;--wine-soft:#a8456a;--wine-tint:#f3e4ea;--cream:#f4efeb;--cream-2:#eae1d9;--white:#fff;--ink:#1e1613;--ink-2:#5b514c;--ink-3:#948880;--line:#e0d6ce;--line-dark:rgba(255,255,255,.16);--banner-bg:#190510;--wa:#0b7a3b;--ff-display:"Instrument Serif", Georgia, "Times New Roman", serif;--ff-text:"Sora", -apple-system, BlinkMacSystemFont, sans-serif;--r-sm:10px;--r:18px;--r-lg:28px;--ease:cubic-bezier(.22,.61,.36,1);--shadow:0 24px 60px -32px rgba(30,22,19,.35);--shadow-sm:0 12px 30px -20px rgba(30,22,19,.4)}*{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}body{font-family:var(--ff-text);color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased;padding-bottom:72px;font-size:16px;font-weight:400;line-height:1.72;overflow-x:hidden}img{max-width:100%;height:auto;display:block}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer;color:inherit;background:0 0;border:none}::selection{background:var(--wine);color:#fff}:focus-visible{outline-offset:4px;outline:3px solid #d98ba9}.wrap{width:100%;max-width:1280px;margin:0 auto;padding:0 20px}.wrap-narrow{width:100%;max-width:880px;margin:0 auto;padding:0 20px}.eyebrow{letter-spacing:.22em;text-transform:uppercase;color:var(--wine);align-items:center;font-size:12px;font-weight:700;display:flex}.eyebrow.center{justify-content:center}h1,h2,h3{font-family:var(--ff-text);letter-spacing:-.05em;font-weight:600;line-height:1.14}h1{font-size:max(29px,min(3.9vw,45px))}h2{font-size:max(22px,min(2.8vw,34px))}h3{font-size:max(17px,min(1.6vw,19px));line-height:1.35}.em{font-family:var(--ff-display);letter-spacing:0;color:var(--wine);font-size:1.06em;font-style:italic;font-weight:400}.sec-dark .em,.sec-wine .em{color:#efc6d6}.lead{color:var(--ink-2);max-width:62ch;font-size:max(17px,min(1.35vw,19px))}p{color:var(--ink-2)}.btn{background:var(--wine);color:#fff;letter-spacing:.14em;text-transform:uppercase;transition:background .35s var(--ease),transform .35s var(--ease),box-shadow .35s var(--ease);text-align:center;border-radius:100px;justify-content:center;align-items:center;gap:12px;width:100%;min-height:52px;padding:19px 34px;font-size:13px;font-weight:700;display:inline-flex;box-shadow:0 14px 28px -18px rgba(122,26,61,.9)}.btn svg{transition:transform .35s var(--ease);flex:none}.btn-light{color:var(--wine);background:#fff;box-shadow:0 14px 28px -18px rgba(0,0,0,.5)}.btn-ghost{color:var(--wine);border:1.5px solid var(--wine);box-shadow:none;background:0 0}.btn-sm{letter-spacing:.12em;padding:13px 22px;font-size:11.5px}.cta-row{justify-content:center;margin-top:max(38px,min(5vw,56px));display:flex}.cta-row.left{justify-content:flex-start}.js .rv{opacity:0;filter:blur(5px);transition:opacity .75s var(--ease),transform .75s var(--ease),filter .75s var(--ease);transition-delay:var(--rv-delay,0s);transform:translateY(30px)}.js .rv.in{opacity:1;filter:none;transform:none}.scroll-progress{z-index:120;pointer-events:none;transform-origin:0;background:linear-gradient(90deg,var(--wine-soft),#efc6d6);will-change:transform;width:100%;height:3px;position:fixed;top:0;bottom:auto;left:0;right:auto;transform:scaleX(0)}@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.js .rv{opacity:1;filter:none;transition:none;transform:none}.scroll-progress{display:none}}.hdr{z-index:80;transition:background .4s var(--ease),padding .4s var(--ease),box-shadow .4s var(--ease);padding:18px 0;position:fixed;top:0;bottom:auto;left:0;right:0}.hdr.stuck{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:0 1px 0 var(--line);background:rgba(244,239,235,.92);padding:11px 0}.hdr .wrap{justify-content:space-between;align-items:center;gap:20px;display:flex}.hdr .btn{width:auto;display:none}.logo{flex-direction:column;line-height:1.05;display:flex}.logo .n{font-family:var(--ff-display);letter-spacing:.01em;color:var(--ink);font-size:24px;font-style:italic;font-weight:400}.logo .s{letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-top:4px;font-size:10px;font-weight:600}.hdr:not(.stuck) .logo .n{color:#fff}.hdr:not(.stuck) .logo .s{color:rgba(255,255,255,.55)}.hdr:not(.stuck) .btn{color:var(--wine);background:#fff;box-shadow:0 14px 28px -18px rgba(0,0,0,.6)}.hero-wrap{background:var(--white)}.hero{color:#fff;background-color:var(--banner-bg);background-image:-webkit-image-set(url(/portal-lps/modelos/paula-cardoso-essence/implantes/images/hero-mobile.avif) 1x type("image/avif"),url(/portal-lps/modelos/paula-cardoso-essence/implantes/images/hero-mobile.jpg) 1x type("image/jpeg"));background-image:image-set("/implantes/images/hero-mobile.avif" 1x type("image/avif"),"/implantes/images/hero-mobile.jpg" 1x type("image/jpeg"));background-position:bottom;background-repeat:no-repeat;background-size:cover;border-bottom-right-radius:40px;border-bottom-left-radius:40px;min-height:min(1150px,300vw);padding:112px 0 48px;display:block;position:relative;overflow:hidden}.hero:after{content:"";pointer-events:none;background:linear-gradient(180deg,var(--banner-bg) 40%,rgba(25,5,16,.85) 64%,rgba(25,5,16,0) 100%);height:70%;position:absolute;top:0;bottom:auto;left:0;right:0}.hero-content{z-index:2;max-width:none;position:relative}.hero .eyebrow{color:#efc6d6}.hero h1{color:#fff;margin:20px 0 18px}.hero .em{color:#efc6d6}.hero .lead{color:rgba(255,255,255,.86);max-width:none}.hero .cta-row{justify-content:flex-start;margin-top:32px}.pills{scrollbar-width:none;scroll-snap-type:x proximity;border-top:1px solid rgba(255,255,255,.18);flex-wrap:nowrap;gap:10px;margin-top:26px;margin-right:-20px;padding:24px 20px 0 0;display:flex;overflow-x:auto}.pills::-webkit-scrollbar{display:none}.pill{color:#fff;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);scroll-snap-align:start;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);border-radius:100px;flex:none;align-items:center;gap:9px;padding:10px 18px;font-size:13.5px;font-weight:600;display:inline-flex}.pill svg{color:#efc6d6;flex:none}section{position:relative}.sec{padding:max(72px,min(8.5vw,124px)) 0}.sec-cream2{background:var(--cream-2)}.sec-white{background:var(--white)}.sec-dark{background:var(--wine-deep);color:#fff}.sec-dark h2,.sec-dark h3{color:#fff}.sec-dark p{color:rgba(255,255,255,.76)}.sec-dark .eyebrow{color:#e6b9ca}.sec-wine{background:var(--wine);color:#fff}.sec-wine h2{color:#fff}.sec-wine p{color:rgba(255,255,255,.82)}.sec-head{max-width:800px;margin-bottom:max(40px,min(5vw,64px))}.sec-head.center{text-align:center;margin-left:auto;margin-right:auto}.sec-head.center .lead{margin-left:auto;margin-right:auto}.sec-head h2{margin:20px 0 18px}.grid{gap:22px;display:grid}.g-3,.g-4,.g-2{grid-template-columns:1fr}.card{border:1px solid var(--line);border-radius:var(--r-lg);background:#fff;padding:max(24px,min(2.1vw,30px))}.card h3{margin-bottom:12px;font-size:max(16px,min(1.35vw,18px))}.card p{font-size:15px}.card .ico{background:var(--wine-tint);width:54px;height:54px;color:var(--wine);border-radius:15px;align-items:center;justify-items:center;margin-bottom:22px;display:grid}.split{grid-template-columns:1fr;align-items:center;gap:36px;display:grid}.split-media{order:-1}.split-media img{aspect-ratio:4/5;object-fit:cover;border-radius:var(--r-lg);width:100%;box-shadow:var(--shadow)}.split-media picture{display:block}.split-media .clinical-stages{aspect-ratio:auto;object-fit:contain;height:auto;box-shadow:none;border-radius:0}.crit{flex-direction:column;gap:2px;margin-top:26px;list-style:none;display:flex}.crit li{border-bottom:1px solid var(--line);align-items:center;gap:16px;padding:17px 0;font-size:16.5px;font-weight:600;display:flex}.crit li:last-child{border-bottom:none}.crit .n{background:var(--wine);color:#fff;width:31px;height:31px;font-size:12px;font-weight:700;font-family:var(--ff-text);border-radius:50%;flex:none;align-items:center;justify-items:center;display:grid}.note{background:var(--wine-tint);border-radius:var(--r);color:var(--wine-deep);border-left:3px solid var(--wine);margin-top:28px;padding:22px 26px;font-size:15.5px}.cases-intro{max-width:720px;margin-bottom:max(38px,min(5vw,62px))}.case-list{flex-direction:column;gap:max(26px,min(4vw,42px));display:flex}.patient-case{box-shadow:var(--shadow-sm);background:rgba(255,255,255,.82);border:1px solid rgba(122,26,61,.12);border-radius:max(24px,min(3vw,36px));padding:max(22px,min(3vw,36px));position:relative;overflow:hidden}.patient-case:before{content:"";background:linear-gradient(180deg,var(--wine),var(--wine-soft));width:5px;position:absolute;top:0;bottom:0;left:0;right:auto}.patient-head{justify-content:space-between;align-items:center;gap:24px;margin-bottom:max(22px,min(3vw,30px));display:flex}.patient-id{align-items:center;gap:16px;display:flex}.case-number{background:var(--wine);color:#fff;width:48px;height:48px;font-family:var(--ff-display);border-radius:50%;flex:none;align-items:center;justify-items:center;font-size:22px;font-style:italic;display:grid}.patient-kicker{color:var(--wine);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;font-size:10.5px;font-weight:700;display:block}.patient-head h3{font-size:max(20px,min(2vw,26px))}.patient-note{border:1px solid var(--line);color:var(--ink-2);border-radius:100px;flex:none;align-items:center;gap:8px;padding:9px 14px;font-size:12px;font-weight:600;display:none}.patient-note:before{content:"";background:var(--wine-soft);border-radius:50%;width:7px;height:7px}.case-stages{scroll-snap-type:x mandatory;scrollbar-width:none;grid-template-columns:repeat(3,minmax(250px,82vw));gap:max(14px,min(2vw,22px));margin-right:-20px;padding:0 20px 12px 0;display:grid;overflow-x:auto}.case-stages::-webkit-scrollbar{display:none}.case-stage{scroll-snap-align:start;min-width:0}.stage-media{aspect-ratio:4/3;background:var(--cream-2);border-radius:max(16px,min(2vw,22px));position:relative;overflow:hidden}.stage-media:after{content:"";pointer-events:none;background:linear-gradient(transparent,rgba(30,22,19,.14));height:32%;position:absolute;top:auto;bottom:0;left:0;right:0}.stage-media picture{width:100%;height:100%;display:block}.stage-media img{object-fit:cover;width:100%;height:100%;transition:transform .6s var(--ease)}.stage-tag{z-index:1;color:var(--wine-deep);letter-spacing:.14em;text-transform:uppercase;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);background:rgba(255,255,255,.92);border-radius:100px;padding:7px 12px;font-size:10.5px;font-weight:800;position:absolute;top:12px;left:12px;box-shadow:0 8px 24px -16px rgba(30,22,19,.7)}.stage-caption{align-items:flex-start;gap:11px;padding:14px 4px 0;display:flex}.stage-index{color:var(--wine);letter-spacing:.1em;font-size:11px;font-weight:800;line-height:1.6}.stage-caption strong{color:var(--ink);font-size:14px;font-weight:700;line-height:1.45;display:block}.stage-caption span:last-child{color:var(--ink-3);margin-top:2px;font-size:12.5px;line-height:1.45;display:block}.cases-disclaimer{max-width:780px;color:var(--ink-2);text-align:left;align-items:flex-start;gap:11px;margin:max(26px,min(3vw,34px)) auto 0;font-size:12.5px;line-height:1.6;display:flex}.cases-disclaimer svg{color:var(--wine);flex:none;margin-top:2px}.timeline{margin-top:max(28px,min(3.5vw,44px));position:relative}.timeline:before{content:"";background:linear-gradient(rgba(230,185,202,.55),rgba(230,185,202,.12));width:2px;height:auto;position:absolute;top:12px;bottom:12px;left:31px;right:auto}.tl-steps{grid-template-columns:1fr;gap:0;list-style:none;display:grid;position:relative}.tl-step{grid-template-columns:64px 1fr;column-gap:22px;padding:0 0 34px;display:grid}.tl-step:last-child{padding-bottom:0}.tl-node{background:var(--wine-deep);z-index:1;width:64px;height:64px;font-family:var(--ff-display);color:#e6b9ca;border:2px solid rgba(230,185,202,.45);border-radius:50%;grid-row:span 2;align-self:start;align-items:center;justify-items:center;margin-bottom:0;font-size:28px;font-style:italic;font-weight:400;line-height:1;display:grid;position:relative}.tl-step h3{align-self:center;margin-bottom:8px;font-size:16.5px}.tl-step p{grid-column:2;font-size:15px}.info-flow{grid-template-columns:1fr;align-items:center;gap:10px;margin-top:max(40px,min(5vw,60px));display:grid}.info-step{border:1px solid var(--line);border-radius:var(--r-lg);text-align:center;background:#fff;padding:32px 26px}.info-step svg{margin:0 auto 18px}.info-step b{font-family:var(--ff-text);letter-spacing:-.05em;color:var(--ink);margin-bottom:8px;font-size:17px;font-weight:600;display:block}.info-step span{color:var(--ink-2);font-size:14.5px;line-height:1.55;display:block}.info-arrow{color:var(--wine);opacity:.55;margin:0 auto;transform:rotate(90deg)}.check-grid{grid-template-columns:1fr;gap:20px;margin-top:34px;display:grid}.check{border:1px solid var(--line);border-radius:var(--r);background:#fff;padding:26px 24px}.check b{color:var(--ink);margin-bottom:8px;font-size:16px;display:block}.check p{font-size:14.5px}.check .bar{background:var(--wine);border-radius:2px;width:30px;height:3px;margin-bottom:16px}.doctor{border-radius:var(--r-lg);box-shadow:var(--shadow);background:#fff;grid-template-columns:1fr;align-items:center;gap:0;margin-top:max(48px,min(6vw,76px));display:grid;overflow:hidden}.doctor picture{height:100%;display:block}.doctor img{object-fit:cover;width:100%;height:100%;min-height:340px}.doctor .txt{padding:36px 30px 44px}.doctor h3{margin:16px 0 18px;font-size:max(19px,min(1.9vw,24px))}.doctor .cro{background:var(--wine-tint);color:var(--wine-deep);letter-spacing:.06em;border-radius:100px;align-items:center;gap:9px;margin-bottom:26px;padding:8px 16px;font-size:12.5px;font-weight:700;display:inline-flex}.faq{border-top:1px solid var(--line);max-width:880px;margin:0 auto}.faq details{border-bottom:1px solid var(--line)}.faq summary{cursor:pointer;min-height:44px;font-family:var(--ff-text);letter-spacing:-.05em;color:var(--ink);transition:color .3s var(--ease);padding:24px 36px 24px 0;font-size:max(16px,min(1.45vw,18px));font-weight:600;list-style:none;position:relative}.faq summary::-webkit-details-marker{display:none}.faq summary:after{content:"";border-right:2px solid var(--wine);border-bottom:2px solid var(--wine);width:13px;height:13px;transition:transform .35s var(--ease);position:absolute;top:50%;right:6px;transform:translateY(-70%)rotate(45deg)}.faq details[open] summary:after{transform:translateY(-30%)rotate(-135deg)}.faq .ans{color:var(--ink-2);animation:fade .45s var(--ease);padding:0 0 28px;font-size:16px}@keyframes fade{0%{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}.final{text-align:center}.final h2{max-width:17ch;margin:22px auto 20px}.final .lead{margin:0 auto}.seals{flex-wrap:wrap;justify-content:center;gap:12px;margin:38px 0 6px;display:flex}.seal{color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:100px;align-items:center;gap:10px;padding:11px 20px;font-size:13.5px;font-weight:600;display:inline-flex}.ftr{background:var(--ink);color:rgba(255,255,255,.6);padding:64px 0 34px;font-size:14px}.ftr-top{border-bottom:1px solid rgba(255,255,255,.1);flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:34px;padding-bottom:34px;display:flex}.ftr .logo .n{color:#fff}.ftr .logo .s{color:rgba(255,255,255,.72)}.ftr-info b{color:#fff;font-weight:600}.ftr-info p{color:rgba(255,255,255,.6);font-size:14px;line-height:1.9}.ftr-btm{color:rgba(255,255,255,.68);flex-wrap:wrap;justify-content:space-between;gap:14px;padding-top:26px;font-size:12.5px;display:flex}.ftr-btm a{text-underline-offset:3px;color:#fff;text-decoration:underline}.wa-float{left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:90;background:var(--wa);color:#fff;min-height:54px;transition:transform .35s var(--ease),box-shadow .35s var(--ease);border-radius:14px;justify-content:center;align-items:center;gap:12px;padding:15px 20px;font-size:14.5px;font-weight:700;display:flex;position:fixed;box-shadow:0 16px 34px -14px rgba(37,211,102,.75)}.wa-float svg{flex:none}.ph{align-items:center;justify-items:center;display:grid;position:relative;background:repeating-linear-gradient(45deg,var(--cream-2) 0 12px,var(--cream) 12px 24px)!important}.ph:after{content:attr(data-ph);color:#fff;letter-spacing:.1em;text-transform:uppercase;text-align:center;background:rgba(30,22,19,.72);border-radius:100px;max-width:80%;padding:10px 16px;font-size:11px;font-weight:700;position:absolute;top:auto;bottom:auto;left:auto;right:auto}@media (min-width:521px){.g-4,.check-grid{grid-template-columns:repeat(2,1fr)}}@media (min-width:561px){body{padding-bottom:0}.hdr .btn{display:inline-flex}.wa-float{border-radius:100px;justify-content:flex-start;width:auto;padding:14px 22px 14px 16px;bottom:22px;left:auto;right:22px}}@media (min-width:761px){body{font-size:16.5px}.wrap,.wrap-narrow{padding-left:28px;padding-right:28px}.btn{width:auto}.cta-row .btn{max-width:420px}.g-3{grid-template-columns:repeat(3,1fr)}.g-2{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr 1fr;gap:max(36px,min(5vw,74px))}.split-media{order:initial}.patient-note{display:inline-flex}.case-stages{scroll-snap-type:none;grid-template-columns:repeat(3,minmax(0,1fr));margin-right:0;padding:0;overflow:visible}.pills{margin-right:-28px;padding-right:28px}.faq summary{padding:26px 46px 26px 0}.faq .ans{padding:0 60px 28px 0}}@media (min-width:901px){.hero{background-image:-webkit-image-set(url(/portal-lps/modelos/paula-cardoso-essence/implantes/images/hero-desktop.avif) 1x type("image/avif"),url(/portal-lps/modelos/paula-cardoso-essence/implantes/images/hero-desktop.jpg) 1x type("image/jpeg"));background-image:image-set("/implantes/images/hero-desktop.avif" 1x type("image/avif"),"/implantes/images/hero-desktop.jpg" 1x type("image/jpeg"));background-position:50%;border-bottom-right-radius:96px;border-bottom-left-radius:96px;align-items:center;min-height:max(620px,min(58vw,820px));padding:150px 0 max(56px,min(6vw,88px));display:flex}.hero:after{display:none}.hero-content{z-index:1;max-width:min(560px,58%)}.hero .lead{max-width:46ch}.pills{scroll-snap-type:none;flex-wrap:wrap;margin:38px 0 0;padding:32px 0 0;overflow:visible}.timeline:before{background:linear-gradient(90deg,rgba(230,185,202,.55),rgba(230,185,202,.22) 70%,rgba(230,185,202,0));width:auto;height:2px;top:31px;bottom:auto;left:0;right:0}.tl-steps{grid-template-columns:repeat(4,1fr);gap:26px}.tl-step{padding:0 20px 0 0;display:block}.tl-node{margin-bottom:26px}.tl-step h3{margin-bottom:10px}.tl-step p{grid-column:auto}}@media (min-width:1041px){.hero-content{max-width:min(510px,48%)}.g-4,.check-grid{grid-template-columns:repeat(4,1fr)}.info-flow{grid-template-columns:1fr auto 1fr auto 1fr;gap:14px}.info-arrow{margin:0;transform:none}.doctor{grid-template-columns:.85fr 1.15fr;gap:max(32px,min(4.5vw,64px))}.doctor img{min-height:420px}.doctor .txt{padding:max(32px,min(4vw,58px)) max(28px,min(3.6vw,54px)) max(32px,min(4vw,58px)) 0}}@media (min-width:1440px){.wrap{max-width:1360px}.hero{min-height:min(820px,70vh)}}@media (min-width:1920px){.wrap{max-width:1440px}.hero{min-height:min(900px,72vh)}}@media (hover:hover) and (pointer:fine){.btn:hover{background:var(--wine-deep);transform:translateY(-2px);box-shadow:0 20px 34px -18px rgba(122,26,61,.95)}.btn:hover svg{transform:translate(4px)}.btn-light:hover{color:var(--wine-deep);background:#fff}.btn-ghost:hover{background:var(--wine);color:#fff}.case-stage:hover .stage-media img{transform:scale(1.025)}.faq summary:hover{color:var(--wine)}.wa-float:hover{transform:translateY(-3px)scale(1.02);box-shadow:0 22px 40px -14px rgba(37,211,102,.85)}}</style>
+<style>
+.doctor .doctor-media{aspect-ratio:1113/1451;background-color:#e7ded9;background-position:center;background-repeat:no-repeat;background-size:cover;height:auto;min-height:340px;width:100%}
+@media (min-width:1041px){.doctor .doctor-media{min-height:420px}}
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+
+<!-- End Google Tag Manager (noscript) -->
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<!-- ============================ HEADER ============================ -->
+<header class="hdr" id="hdr">
+  <div class="wrap">
+    <a href="#topo" class="logo">
+      <span class="n">Paula Cardoso</span>
+      <span class="s">Odontologia · CRO-GO 7676</span>
+    </a>
+    <a class="btn btn-sm" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+      Falar pelo WhatsApp
+    </a>
+  </div>
+</header>
+
+<!-- ============================ HERO ============================ -->
+<main id="topo">
+<div class="hero-wrap">
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="hero-content">
+        <p class="eyebrow">Implantes dentários</p>
+        <h1>Implante dentário com <span class="em">tratamento completo</span> em um só lugar</h1>
+        <p class="lead">Para substituir um ou mais dentes perdidos em Goiânia, conte com uma equipe que acompanha todas as etapas, do planejamento à reabilitação.</p>
+        <div class="cta-row">
+          <a class="btn btn-light" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+            Falar pelo WhatsApp
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+
+        <div class="pills">
+          <span class="pill"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Implantes dentários</span>
+          <span class="pill"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Planejamento individual</span>
+          <span class="pill"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Equipe completa</span>
+          <span class="pill"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Tratamento em um só lugar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<!-- ==================== 02 · ENTENDA O SEU CASO ==================== -->
+<section class="sec sec-white" id="entenda">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <p class="eyebrow center">Entenda o seu caso</p>
+      <h2>Quando faltam dentes, o primeiro passo é entender qual <span class="em">reabilitação</span> o seu caso precisa</h2>
+      <p class="lead">O implante pode ser utilizado para substituir um ou mais dentes. A indicação começa pela avaliação.</p>
+    </div>
+
+    <div class="grid g-3">
+      <article class="card rv">
+        <span class="ico">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M16 3v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <rect x="12.6" y="7" width="6.8" height="4" rx="1.4" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12.4 13h7.2l-1 15.2c-.2 2.4-1.3 3.6-2.6 3.6s-2.4-1.2-2.6-3.6L12.4 13z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            <path d="M13.3 17h5.4M13.6 21h4.8M13.9 25h4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h3>O que é um implante dentário?</h3>
+        <p>O implante é uma estrutura instalada no osso para servir de suporte à reposição de dentes ausentes.</p>
+      </article>
+
+      <article class="card rv">
+        <span class="ico">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M16 3c-3 0-5 1.8-5 4.5 0 1.8.5 3 .5 4.8 0 3.2-1.2 5-1.2 8.6 0 2.9.9 5.4 2.1 5.4s1.4-2 1.8-4.1c.3-2.1.7-3.2 1.8-3.2s1.5 1.1 1.8 3.2c.3 2.1.5 4.1 1.8 4.1s2.1-2.5 2.1-5.4c0-3.6-1.2-5.4-1.2-8.6 0-1.8.5-3 .5-4.8C21 4.8 19 3 16 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <h3>Um dente perdido</h3>
+        <p>O implante pode ser utilizado como suporte para a reposição de um único dente.</p>
+      </article>
+
+      <article class="card rv">
+        <span class="ico">
+          <svg width="30" height="30" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <path d="M8 8c-2 0-3.3 1.2-3.3 3 0 1.2.3 2 .3 3.2 0 2.2-.8 3.4-.8 5.8 0 1.9.6 3.6 1.4 3.6s.9-1.3 1.2-2.7c.2-1.4.4-2.1 1.2-2.1s1 .7 1.2 2.1c.2 1.4.3 2.7 1.2 2.7s1.4-1.7 1.4-3.6c0-2.4-.8-3.6-.8-5.8 0-1.2.3-2 .3-3.2 0-1.8-1.3-3-3.3-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M24 8c-2 0-3.3 1.2-3.3 3 0 1.2.3 2 .3 3.2 0 2.2-.8 3.4-.8 5.8 0 1.9.6 3.6 1.4 3.6s.9-1.3 1.2-2.7c.2-1.4.4-2.1 1.2-2.1s1 .7 1.2 2.1c.2 1.4.3 2.7 1.2 2.7s1.4-1.7 1.4-3.6c0-2.4-.8-3.6-.8-5.8 0-1.2.3-2 .3-3.2 0-1.8-1.3-3-3.3-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+            <path d="M16 13v10M13 15.5h6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <h3>Dois ou mais dentes perdidos</h3>
+        <p>Dependendo do caso, os implantes podem sustentar uma reabilitação para substituir mais de um dente.</p>
+      </article>
+    </div>
+
+    <div class="cta-row rv">
+      <a class="btn" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+        Quero entender meu caso
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 03 · ANTES DE INDICAR ==================== -->
+<section class="sec" id="indicacao">
+  <div class="wrap">
+    <div class="split">
+      <div class="rv">
+        <p class="eyebrow">Antes de indicar</p>
+        <h2 style="margin:20px 0 18px">Quem pode fazer implante dentário?</h2>
+        <p class="lead">Perder um ou mais dentes é motivo para procurar uma avaliação. A indicação do implante depende das condições encontradas em cada paciente.</p>
+
+        <p style="margin-top:30px;font-weight:700;color:var(--ink);font-size:16px">Na avaliação, a equipe considera fatores como:</p>
+        <ul class="crit">
+          <li><span class="n">01</span>Saúde da gengiva e da boca</li>
+          <li><span class="n">02</span>Condições do osso</li>
+          <li><span class="n">03</span>Dentes que ainda estão presentes</li>
+          <li><span class="n">04</span>Histórico geral de saúde</li>
+          <li><span class="n">05</span>Tipo de reabilitação necessária</li>
+        </ul>
+
+        <p class="note">Em pessoas com boa saúde geral, gengiva saudável e osso capaz de sustentar o implante, o tratamento pode ser uma opção. A decisão precisa ser feita depois da avaliação individual.</p>
+
+        <div class="cta-row left">
+          <a class="btn" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+            Agendar minha avaliação
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="split-media rv">
+        <picture>
+          <source srcset="images/sec-antes-depois.avif" type="image/avif">
+          <img class="clinical-stages" src="images/sec-antes-depois.png" width="568" height="744" alt="Etapas antes, durante e depois do tratamento com implantes dentários" loading="lazy" decoding="async">
+        </picture>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 04 · CASOS ==================== -->
+<section class="sec sec-cream2" id="casos">
+  <div class="wrap">
+    <div class="cases-intro rv">
+      <p class="eyebrow">Casos clínicos</p>
+      <h2 style="margin:20px 0 18px">Cada tratamento tem uma <span class="em">história</span></h2>
+      <p class="lead">Acompanhe três momentos de pacientes tratados pela equipe: a condição inicial, uma etapa clínica e o resultado após a reabilitação.</p>
+    </div>
+
+    <div class="case-list">
+      <article class="patient-case rv" aria-labelledby="caso-ricardo">
+        <header class="patient-head">
+          <div class="patient-id">
+            <span class="case-number" aria-hidden="true">01</span>
+            <div>
+              <span class="patient-kicker">Evolução do tratamento</span>
+              <h3 id="caso-ricardo">Paciente Ricardo</h3>
+            </div>
+          </div>
+          <span class="patient-note">Três etapas do caso</span>
+        </header>
+        <div class="case-stages" role="group" aria-label="Antes, durante e depois do tratamento do paciente Ricardo">
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/ricardo/ricardo-01.avif" type="image/avif"><img src="images/casos/ricardo/ricardo-01.jpg" width="1400" height="934" alt="Condição inicial do sorriso do paciente Ricardo" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Antes</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">01</span><span><strong>Condição inicial</strong><span>Avaliação antes do tratamento.</span></span></figcaption>
+          </figure>
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/ricardo/ricardo-06.avif" type="image/avif"><img src="images/casos/ricardo/ricardo-06.jpg" width="1400" height="934" alt="Etapa clínica do tratamento do paciente Ricardo" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Durante</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">02</span><span><strong>Etapa clínica</strong><span>Registro durante a reabilitação.</span></span></figcaption>
+          </figure>
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/ricardo/ricardo-10.avif" type="image/avif"><img src="images/casos/ricardo/ricardo-10.jpg" width="1400" height="933" alt="Resultado após a reabilitação do paciente Ricardo" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Depois</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">03</span><span><strong>Resultado final</strong><span>Sorriso após a conclusão do caso.</span></span></figcaption>
+          </figure>
+        </div>
+      </article>
+
+      <article class="patient-case rv" aria-labelledby="caso-maria">
+        <header class="patient-head">
+          <div class="patient-id">
+            <span class="case-number" aria-hidden="true">02</span>
+            <div>
+              <span class="patient-kicker">Evolução do tratamento</span>
+              <h3 id="caso-maria">Paciente Maria</h3>
+            </div>
+          </div>
+          <span class="patient-note">Três etapas do caso</span>
+        </header>
+        <div class="case-stages" role="group" aria-label="Antes, durante e depois do tratamento da paciente Maria">
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/maria/maria-05.avif" type="image/avif"><img src="images/casos/maria/maria-05.jpg" width="1400" height="930" alt="Condição inicial do sorriso da paciente Maria" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Antes</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">01</span><span><strong>Condição inicial</strong><span>Avaliação antes do tratamento.</span></span></figcaption>
+          </figure>
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/maria/maria-06.avif" type="image/avif"><img src="images/casos/maria/maria-06.jpg" width="1400" height="930" alt="Etapa clínica do tratamento da paciente Maria" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Durante</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">02</span><span><strong>Etapa clínica</strong><span>Registro durante a reabilitação.</span></span></figcaption>
+          </figure>
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/maria/maria-03.avif" type="image/avif"><img src="images/casos/maria/maria-03.jpg" width="1400" height="934" alt="Resultado após a reabilitação da paciente Maria" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Depois</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">03</span><span><strong>Resultado final</strong><span>Sorriso após a conclusão do caso.</span></span></figcaption>
+          </figure>
+        </div>
+      </article>
+
+      <article class="patient-case rv" aria-labelledby="caso-val">
+        <header class="patient-head">
+          <div class="patient-id">
+            <span class="case-number" aria-hidden="true">03</span>
+            <div>
+              <span class="patient-kicker">Evolução do tratamento</span>
+              <h3 id="caso-val">Paciente Val</h3>
+            </div>
+          </div>
+          <span class="patient-note">Três etapas do caso</span>
+        </header>
+        <div class="case-stages" role="group" aria-label="Antes, durante e depois do tratamento do paciente Val">
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/val/val-01.avif" type="image/avif"><img src="images/casos/val/val-01.jpg" width="1400" height="930" alt="Condição inicial do sorriso do paciente Val" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Antes</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">01</span><span><strong>Condição inicial</strong><span>Avaliação antes do tratamento.</span></span></figcaption>
+          </figure>
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/val/val-05.avif" type="image/avif"><img src="images/casos/val/val-05.jpg" width="1400" height="930" alt="Etapa clínica do tratamento do paciente Val" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Durante</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">02</span><span><strong>Etapa clínica</strong><span>Registro durante a reabilitação.</span></span></figcaption>
+          </figure>
+          <figure class="case-stage">
+            <div class="stage-media">
+              <picture><source srcset="images/casos/val/val-08.avif" type="image/avif"><img src="images/casos/val/val-08.jpg" width="1400" height="831" alt="Resultado após a reabilitação do paciente Val" loading="lazy" decoding="async"></picture>
+              <span class="stage-tag">Depois</span>
+            </div>
+            <figcaption class="stage-caption"><span class="stage-index">03</span><span><strong>Resultado final</strong><span>Sorriso após a conclusão do caso.</span></span></figcaption>
+          </figure>
+        </div>
+      </article>
+    </div>
+
+    <p class="cases-disclaimer rv">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5M10 6.5v.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span>Imagens de casos clínicos reais. Cada paciente apresenta condições diferentes, e os resultados dependem da avaliação e do planejamento individual.</span>
+    </p>
+
+    <div class="cta-row rv">
+      <a class="btn" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+        Falar com a equipe
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 05 · PASSO A PASSO ==================== -->
+<section class="sec sec-dark" id="etapas">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow">Passo a passo</p>
+      <h2>Como o tratamento <span class="em">acontece</span></h2>
+      <p class="lead" style="color:rgba(255,255,255,.76)">O planejamento muda de acordo com o paciente, mas existe uma sequência para entender o caso e conduzir a reabilitação.</p>
+    </div>
+
+    <div class="timeline">
+      <ol class="tl-steps">
+        <li class="tl-step rv">
+          <span class="tl-node">01</span>
+          <h3>Avaliação e exames</h3>
+          <p>A equipe analisa sua condição atual e os exames necessários para planejar o tratamento.</p>
+        </li>
+        <li class="tl-step rv">
+          <span class="tl-node">02</span>
+          <h3>Planejamento</h3>
+          <p>São definidas as possibilidades de reabilitação, a posição dos implantes e a etapa protética.</p>
+        </li>
+        <li class="tl-step rv">
+          <span class="tl-node">03</span>
+          <h3>Instalação dos implantes</h3>
+          <p>A cirurgia é realizada de acordo com o planejamento definido para o caso.</p>
+        </li>
+        <li class="tl-step rv">
+          <span class="tl-node">04</span>
+          <h3>Prótese e acompanhamento</h3>
+          <p>A reabilitação protética acompanha a evolução da cicatrização e as condições de cada paciente.</p>
+        </li>
+      </ol>
+    </div>
+
+    <div class="cta-row rv">
+      <a class="btn btn-light" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+        Quero começar pela avaliação
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 06 · UMA DÚVIDA COMUM ==================== -->
+<section class="sec sec-white" id="carga-imediata">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <p class="eyebrow center">Uma dúvida comum</p>
+      <h2>É possível colocar uma prótese provisória no mesmo dia da cirurgia?</h2>
+      <p class="lead">Em alguns casos, sim. A possibilidade depende da estabilidade do implante e das condições encontradas no planejamento.</p>
+    </div>
+
+    <h3 class="rv" style="text-align:center;margin-bottom:8px">O que precisa ser avaliado</h3>
+
+    <div class="check-grid">
+      <div class="check rv"><span class="bar"></span><b>Estabilidade do implante</b><p>A fixação alcançada na cirurgia interfere na escolha do protocolo.</p></div>
+      <div class="check rv"><span class="bar"></span><b>Condição óssea</b><p>Quantidade e características do osso fazem parte da avaliação.</p></div>
+      <div class="check rv"><span class="bar"></span><b>Mordida e hábitos</b><p>As forças sobre o implante também precisam ser consideradas.</p></div>
+      <div class="check rv"><span class="bar"></span><b>Condições de saúde</b><p>O histórico do paciente entra na decisão clínica.</p></div>
+    </div>
+
+    <!-- Infográfico: implante instalado → integração com o osso → reabilitação protética -->
+    <div class="info-flow rv" role="group" aria-label="Sequência do tratamento: implante instalado, integração com o osso e reabilitação protética">
+      <div class="info-step">
+        <svg width="86" height="86" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M18 44c0-9 14-15 32-15s32 6 32 15v22c0 9-14 15-32 15s-32-6-32-15V44z" fill="#F4EFEB"/>
+          <path d="M18 44c0-9 14-15 32-15s32 6 32 15" stroke="#E0D6CE" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M50 26v10" stroke="#7A1A3D" stroke-width="3" stroke-linecap="round"/>
+          <rect x="43" y="36" width="14" height="8" rx="2.5" fill="#7A1A3D"/>
+          <path d="M44 46h12l-1.4 24c-.3 4.4-2.3 6.6-4.6 6.6s-4.3-2.2-4.6-6.6L44 46z" fill="#7A1A3D"/>
+          <path d="M44.6 52h10.8M45 58.5h10M45.4 65h9.2" stroke="#F4EFEB" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+        <b>Implante instalado</b>
+        <span>Etapa cirúrgica conforme o planejamento do caso.</span>
+      </div>
+
+      <span class="info-arrow" aria-hidden="true">
+        <svg width="34" height="18" viewBox="0 0 34 18" fill="none"><path d="M1 9h30M25 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+
+      <div class="info-step">
+        <svg width="86" height="86" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <circle cx="50" cy="52" r="30" fill="#F4EFEB"/>
+          <circle cx="50" cy="52" r="30" stroke="#E0D6CE" stroke-width="2.4"/>
+          <path d="M44 34h12l-1.5 32c-.3 5-2.4 7.5-4.5 7.5s-4.2-2.5-4.5-7.5L44 34z" fill="#7A1A3D"/>
+          <path d="M44.7 41h10.6M45.1 48h9.8M45.5 55h9M45.9 62h8.2" stroke="#F4EFEB" stroke-width="2.2" stroke-linecap="round"/>
+          <g stroke="#A8456A" stroke-width="2.2" stroke-linecap="round">
+            <path d="M34 44h5M32 52h5M34 60h5M61 44h5M63 52h5M61 60h5"/>
+          </g>
+          <circle cx="30" cy="48" r="2.6" fill="#A8456A"/><circle cx="70" cy="56" r="2.6" fill="#A8456A"/>
+          <circle cx="33" cy="64" r="2.2" fill="#A8456A"/><circle cx="67" cy="41" r="2.2" fill="#A8456A"/>
+        </svg>
+        <b>Integração com o osso</b>
+        <span>O osso se une ao implante ao longo da cicatrização.</span>
+      </div>
+
+      <span class="info-arrow" aria-hidden="true">
+        <svg width="34" height="18" viewBox="0 0 34 18" fill="none"><path d="M1 9h30M25 3l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+
+      <div class="info-step">
+        <svg width="86" height="86" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+          <path d="M18 52c0-8 14-13 32-13s32 5 32 13v14c0 8-14 13-32 13s-32-5-32-13V52z" fill="#F4EFEB"/>
+          <path d="M18 52c0-8 14-13 32-13s32 5 32 13" stroke="#E0D6CE" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M50 18c-7 0-11.5 4-11.5 10 0 4 1.2 6.8 1.2 10.8 0 7.2-2.8 11.2-2.8 19.2 0 6.4 2 12 4.8 12s3.2-4.4 4-9.2c.8-4.8 1.6-7.2 4.3-7.2s3.5 2.4 4.3 7.2c.8 4.8 1.2 9.2 4 9.2s4.8-5.6 4.8-12c0-8-2.8-12-2.8-19.2 0-4 1.2-6.8 1.2-10.8 0-6-4.5-10-11.5-10z" fill="#fff" stroke="#7A1A3D" stroke-width="2.6" stroke-linejoin="round"/>
+        </svg>
+        <b>Reabilitação protética</b>
+        <span>A prótese é instalada conforme a evolução do caso.</span>
+      </div>
+    </div>
+
+    <p class="lead rv" style="margin:clamp(38px,4vw,52px) auto 0;text-align:center">Quando a carga imediata é indicada, a prótese utilizada nessa fase pode ser provisória. A sequência até a reabilitação definitiva depende da evolução do caso.</p>
+
+    <div class="cta-row rv">
+      <a class="btn" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+        Quero saber o que é possível no meu caso
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 07 · ACOMPANHAMENTO / DRA. PAULA ==================== -->
+<section class="sec" id="equipe">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <p class="eyebrow">Acompanhamento em todas as etapas</p>
+      <h2><span class="em">Equipe completa</span> do planejamento à reabilitação</h2>
+      <p class="lead">Implantes envolvem avaliação, planejamento, cirurgia e etapa protética. Por isso, o acompanhamento não termina na colocação do implante.</p>
+    </div>
+
+    <div class="grid g-3">
+      <article class="card rv">
+        <span class="ico">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M6 4h12l4 4v16H6V4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M18 4v4h4M10 13h8M10 17h8M10 9h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <h3>Planejamento individual</h3>
+        <p>Cada indicação parte da avaliação clínica e dos exames necessários para entender as condições do paciente.</p>
+      </article>
+      <article class="card rv">
+        <span class="ico">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="10" cy="9" r="3.4" stroke="currentColor" stroke-width="1.6"/><circle cx="19.5" cy="11" r="2.8" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 22c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M18 16.4c3.2.2 5.5 2.5 5.5 5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <h3>Tratamento integrado</h3>
+        <p>As diferentes etapas são conduzidas no mesmo local, com os profissionais envolvidos em cada fase da reabilitação.</p>
+      </article>
+      <article class="card rv">
+        <span class="ico">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="10.5" stroke="currentColor" stroke-width="1.6"/><path d="M14 8v6.4l4.2 2.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Acompanhamento contínuo</h3>
+        <p>A equipe acompanha a cicatrização, a adaptação e a evolução do tratamento até a etapa protética.</p>
+      </article>
+    </div>
+
+    <div class="doctor rv">
+      <div class="doctor-media" role="img" aria-label="Dra. Paula Cardoso, cirurgiã-dentista em Goiânia, CRO-GO 7676" style="background-image:url('/portal-lps/modelos/paula-cardoso-essence/implantes/images/dra-paula-cardoso.jpg?v=20260904-2')"></div>
+      <div class="txt">
+        <p class="eyebrow">Quem acompanha o seu caso</p>
+        <h3>Conheça a Dra. Paula Cardoso</h3>
+        <span class="cro">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          CRO-GO 7676
+        </span>
+        <p>A Dra. Paula Cardoso é cirurgiã-dentista e especialista em <strong style="color:var(--ink)">Dentística Restauradora</strong>, <strong style="color:var(--ink)">CRO-GO 7676</strong>. Seu trabalho é voltado ao planejamento de reabilitações que consideram função, estética e as necessidades de cada paciente. Nos tratamentos com implantes, atua junto a uma equipe completa, acompanhando o caso desde a avaliação até a reabilitação protética.</p>
+        <div class="cta-row left" style="margin-top:32px">
+          <a class="btn" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+            Falar com a equipe pelo WhatsApp
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 08 · FAQ ==================== -->
+<section class="sec sec-white" id="duvidas">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <p class="eyebrow center">Para esclarecer</p>
+      <h2>Dúvidas que merecem uma resposta clara</h2>
+    </div>
+
+    <div class="faq rv">
+      <details>
+        <summary>Implante e prótese são a mesma coisa?</summary>
+        <div class="ans">Não. O implante funciona como suporte para a reabilitação. A prótese substitui a parte do dente que está ausente.</div>
+      </details>
+      <details>
+        <summary>Posso substituir mais de um dente com implantes?</summary>
+        <div class="ans">Sim, dependendo do caso. A avaliação define quantos implantes são necessários e como será feita a reabilitação.</div>
+      </details>
+      <details>
+        <summary>Preciso ter osso para colocar implante?</summary>
+        <div class="ans">É necessário haver condição óssea compatível com o planejamento. A quantidade e as características do osso são avaliadas antes da indicação.</div>
+      </details>
+      <details>
+        <summary>Posso colocar uma prótese no mesmo dia?</summary>
+        <div class="ans">Em alguns casos, pode ser possível utilizar um protocolo de carga imediata. A indicação depende de fatores clínicos e da estabilidade obtida.</div>
+      </details>
+      <details>
+        <summary>Quanto tempo leva o tratamento?</summary>
+        <div class="ans">O tempo depende das condições do paciente, da quantidade de implantes, das etapas necessárias e da evolução da cicatrização.</div>
+      </details>
+      <details>
+        <summary>Como saber qual tratamento é indicado para mim?</summary>
+        <div class="ans">A avaliação clínica e os exames permitem entender sua condição atual e definir quais possibilidades podem ser consideradas.</div>
+      </details>
+    </div>
+
+    <div class="cta-row rv">
+      <a class="btn" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+        Falar pelo WhatsApp
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 09 · CTA FINAL ==================== -->
+<section class="sec sec-wine final" id="agendar">
+  <div class="wrap-narrow">
+    <div class="rv">
+      <p class="eyebrow center" style="color:#E6B9CA">Para começar</p>
+      <h2>O próximo passo é entender o que <span class="em">o seu caso</span> precisa</h2>
+      <p class="lead" style="color:rgba(255,255,255,.84)">Fale pelo WhatsApp e agende sua avaliação para implantes dentários.</p>
+
+      <div class="seals">
+        <span class="seal"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Equipe completa</span>
+        <span class="seal"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Tratamento em um só local</span>
+        <span class="seal"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Planejamento individual</span>
+      </div>
+
+      <div class="cta-row">
+        <a class="btn btn-light" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener">
+          Agendar minha avaliação
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M2 8h11M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================ RODAPÉ ============================ -->
+<footer class="ftr">
+  <div class="wrap">
+    <div class="ftr-top">
+      <div class="logo">
+        <span class="n">Paula Cardoso</span>
+        <span class="s">Odontologia</span>
+      </div>
+      <div class="ftr-info">
+        <p>
+          <b>Responsável técnico:</b> Dra. Paula Cardoso<br>
+          CRO-GO 7676<br>
+          <b>CNPJ:</b> <span id="cnpj">59.241.454/0001-05</span>
+        </p>
+      </div>
+      <div class="ftr-info">
+        <p>
+          <b>WhatsApp</b><br>
+          <a href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener" style="text-decoration:underline">(62) 99889-0605</a>
+        </p>
+      </div>
+    </div>
+    <div class="ftr-btm">
+      <span>Copyright 2026 | Todos os direitos reservados</span>
+      <span>Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener">3ADS</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ==================== WHATSAPP FLUTUANTE ==================== -->
+<a class="wa-float" href="https://spar-hazel.vercel.app/l/lp-implantes-google-pc4" target="_blank" rel="noopener" aria-label="Falar pelo WhatsApp">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+    <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.76-1.66-2.06-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.06 2.88 1.21 3.08c.15.2 2.09 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.17-1.42-.07-.13-.27-.2-.57-.35z"/>
+    <path d="M12.04 2C6.6 2 2.18 6.42 2.18 11.86c0 1.74.46 3.44 1.32 4.94L2 22l5.34-1.4c1.45.79 3.08 1.21 4.7 1.21h.01c5.43 0 9.85-4.42 9.85-9.86 0-2.63-1.02-5.11-2.88-6.97A9.79 9.79 0 0 0 12.04 2zm0 18.05c-1.46 0-2.89-.39-4.14-1.13l-.3-.18-3.08.81.82-3.01-.19-.31a8.16 8.16 0 0 1-1.25-4.37c0-4.51 3.68-8.19 8.2-8.19 2.19 0 4.24.85 5.79 2.4a8.13 8.13 0 0 1 2.4 5.79c0 4.52-3.68 8.19-8.25 8.19z"/>
+  </svg>
+  <span>Falar pelo WhatsApp</span>
+</a>
+
+<!-- ============================ JSON-LD ============================ -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@graph":[
+    {
+      "@type":"Dentist",
+      "@id":"https://paulacardosoessence.com.br/#dentist",
+      "name":"Dra. Paula Cardoso — Implantes Dentários",
+      "legalName":"CARDOSO ODONTOLOGIA LTDA",
+      "taxID":"59.241.454/0001-05",
+      "url":"https://paulacardosoessence.com.br/implantes/",
+      "image":"https://paulacardosoessence.com.br/implantes/images/dra-paula-cardoso.jpg",
+      "logo":"https://paulacardosoessence.com.br/assets/logo-paula-cardoso.png",
+      "description":"Implante dentário para substituir um ou mais dentes, com equipe completa do planejamento à reabilitação.",
+      "medicalSpecialty":"Dentistry",
+      "address":{"@type":"PostalAddress","addressLocality":"Goiânia","addressRegion":"GO","addressCountry":"BR"},
+      "areaServed":{"@type":"City","name":"Goiânia"},
+      "telephone":"+5562998890605",
+      "knowsAbout":["Implantes dentários","Reabilitação oral","Prótese dentária","Carga imediata"],
+      "makesOffer":{"@type":"Offer","itemOffered":{"@type":"Service","name":"Avaliação para implante dentário","serviceType":"Implantodontia","areaServed":{"@type":"City","name":"Goiânia"}}},
+      "employee":{
+        "@type":"Person",
+        "name":"Paula Cardoso",
+        "jobTitle":"Cirurgiã-dentista",
+        "identifier":"CRO-GO 7676"
+      }
+    },
+    {
+      "@type":"MedicalWebPage",
+      "@id":"https://paulacardosoessence.com.br/implantes/#webpage",
+      "url":"https://paulacardosoessence.com.br/implantes/",
+      "name":"Implante Dentário em Goiânia | Dra. Paula Cardoso",
+      "description":"Informações sobre avaliação, planejamento e etapas do tratamento com implantes dentários em Goiânia.",
+      "inLanguage":"pt-BR",
+      "about":{"@id":"https://paulacardosoessence.com.br/#dentist"},
+      "primaryImageOfPage":{"@type":"ImageObject","url":"https://paulacardosoessence.com.br/implantes/images/og-cover.png","width":1200,"height":630},
+      "breadcrumb":{"@id":"https://paulacardosoessence.com.br/implantes/#breadcrumb"}
+    },
+    {
+      "@type":"BreadcrumbList",
+      "@id":"https://paulacardosoessence.com.br/implantes/#breadcrumb",
+      "itemListElement":[
+        {"@type":"ListItem","position":1,"name":"Início","item":"https://paulacardosoessence.com.br/"},
+        {"@type":"ListItem","position":2,"name":"Implantes dentários","item":"https://paulacardosoessence.com.br/implantes/"}
+      ]
+    },
+    {
+      "@type":"FAQPage",
+      "@id":"https://paulacardosoessence.com.br/implantes/#faq",
+      "mainEntity":[
+        {"@type":"Question","name":"Implante e prótese são a mesma coisa?","acceptedAnswer":{"@type":"Answer","text":"Não. O implante funciona como suporte para a reabilitação. A prótese substitui a parte do dente que está ausente."}},
+        {"@type":"Question","name":"Posso substituir mais de um dente com implantes?","acceptedAnswer":{"@type":"Answer","text":"Sim, dependendo do caso. A avaliação define quantos implantes são necessários e como será feita a reabilitação."}},
+        {"@type":"Question","name":"Preciso ter osso para colocar implante?","acceptedAnswer":{"@type":"Answer","text":"É necessário haver condição óssea compatível com o planejamento. A quantidade e as características do osso são avaliadas antes da indicação."}},
+        {"@type":"Question","name":"Posso colocar uma prótese no mesmo dia?","acceptedAnswer":{"@type":"Answer","text":"Em alguns casos, pode ser possível utilizar um protocolo de carga imediata. A indicação depende de fatores clínicos e da estabilidade obtida."}},
+        {"@type":"Question","name":"Quanto tempo leva o tratamento?","acceptedAnswer":{"@type":"Answer","text":"O tempo depende das condições do paciente, da quantidade de implantes, das etapas necessárias e da evolução da cicatrização."}},
+        {"@type":"Question","name":"Como saber qual tratamento é indicado para mim?","acceptedAnswer":{"@type":"Answer","text":"A avaliação clínica e os exames permitem entender sua condição atual e definir quais possibilidades podem ser consideradas."}}
+      ]
+    }
+  ]
+}
+</script>
+
+<script>
+(function(){
+  'use strict';
+
+  /* Header sticky e indicador de leitura, agrupados em um único frame */
+  var hdr = document.getElementById('hdr');
+  var progress = document.getElementById('scroll-progress');
+  var ticking = false;
+  function updateScroll(){
+    var y = window.scrollY || document.documentElement.scrollTop;
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    hdr.classList.toggle('stuck', y > 30);
+    if(progress){ progress.style.transform = 'scaleX(' + (max > 0 ? Math.min(y / max, 1) : 0) + ')'; }
+    ticking = false;
+  }
+  function onScroll(){
+    if(!ticking){ ticking = true; window.requestAnimationFrame(updateScroll); }
+  }
+  updateScroll();
+  window.addEventListener('scroll', onScroll, {passive:true});
+  window.addEventListener('resize', onScroll, {passive:true});
+
+  /* Fade e deslocamento suave conforme cada bloco entra na tela */
+  var items = document.querySelectorAll('.rv');
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduceMotion && 'IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    },{threshold:.1, rootMargin:'0px 0px -6% 0px'});
+    items.forEach(function(el,i){ el.style.setProperty('--rv-delay',(i%4)*65 + 'ms'); io.observe(el); });
+  } else {
+    items.forEach(function(el){ el.classList.add('in'); });
+  }
+
+  /* FAQ — abrir uma por vez */
+  var faqs = document.querySelectorAll('.faq details');
+  faqs.forEach(function(d){
+    d.addEventListener('toggle', function(){
+      if(d.open){ faqs.forEach(function(o){ if(o !== d) o.open = false; }); }
+    });
+  });
+
+  /* Placeholder para imagens ainda não enviadas */
+  document.querySelectorAll('img[data-ph]').forEach(function(img){
+    img.addEventListener('error', function(){
+      var box = document.createElement('div');
+      box.className = 'ph';
+      box.setAttribute('data-ph', img.getAttribute('data-ph'));
+      box.style.cssText = getComputedStyle(img).cssText;
+      box.style.width = '100%';
+      box.style.aspectRatio = img.classList.contains('doctor-img') ? '4/5' : (getComputedStyle(img).aspectRatio || '4/5');
+      box.style.minHeight = '340px';
+      box.style.borderRadius = getComputedStyle(img).borderRadius;
+      box.style.boxShadow = getComputedStyle(img).boxShadow;
+      img.replaceWith(box);
+    });
+  });
+})();
+</script>
+</body>
+</html>

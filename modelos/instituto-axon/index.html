@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <!-- Google Tag Manager -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Google Tag Manager -->
+
+  <!-- Microsoft Clarity -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Microsoft Clarity -->
+
+  <meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Playbook Treinamento Corporativo 4.0 | Joe Weider</title>
+  <meta name="description" content="Aprenda a criar, vender e entregar programas de treinamento corporativo com IA, neurociência, frameworks, scripts e métricas de ROI.">
+  <meta name="author" content="Joe Weider · Instituto Axon">
+  <meta name="keywords" content="treinamento corporativo, programas de liderança, consultoria corporativa, neurociência aplicada, inteligência artificial, T&amp;D, ROI de treinamentos, Joe Weider, Instituto Axon">
+  
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://produto.joeweider.com.br/playbook-treinamento-corporativo/">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <meta name="theme-color" content="#000C17">
+  <meta name="color-scheme" content="dark">
+
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="Instituto Axon">
+  <meta property="og:title" content="Playbook Treinamento Corporativo 4.0 | Joe Weider">
+  <meta property="og:description" content="Um sistema prático para criar, vender e entregar programas corporativos com IA, neurociência e métricas de ROI.">
+  <meta property="og:url" content="https://produto.joeweider.com.br/playbook-treinamento-corporativo/">
+  <meta property="og:image" content="https://produto.joeweider.com.br/playbook-treinamento-corporativo/assets/hero-desktop.jpg">
+  <meta property="og:image:width" content="1916">
+  <meta property="og:image:height" content="821">
+  <meta property="og:image:alt" content="Joe Weider e o Playbook Treinamento Corporativo 4.0">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Playbook Treinamento Corporativo 4.0 | Joe Weider">
+  <meta name="twitter:description" content="Metodologia prática para consultores, instrutores e mentores criarem programas corporativos de alto valor.">
+  <meta name="twitter:image" content="https://produto.joeweider.com.br/playbook-treinamento-corporativo/assets/hero-desktop.jpg">
+
+  <link rel="preload" as="image" type="image/avif" href="assets/hero-mobile.avif" media="(max-width: 960px)" fetchpriority="high">
+  <link rel="preload" as="image" type="image/jpeg" href="assets/hero-desktop.jpg" media="(min-width: 961px)" fetchpriority="high">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#webpage",
+        "url": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/",
+        "name": "Playbook Treinamento Corporativo 4.0 | Joe Weider",
+        "description": "Sistema prático para criar, vender e entregar programas de treinamento corporativo com inteligência artificial, neurociência e métricas de ROI.",
+        "inLanguage": "pt-BR",
+        "mainEntity": { "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#produto" },
+        "speakable": {
+          "@type": "SpeakableSpecification",
+          "cssSelector": ["h1", ".hero-sub", "#perguntas-frequentes"]
+        }
+      },
+      {
+        "@type": "Product",
+        "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#produto",
+        "name": "Playbook Treinamento Corporativo 4.0",
+        "description": "Playbook digital com sete módulos, frameworks, templates e scripts para estruturar programas de liderança e treinamento corporativo.",
+        "image": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/assets/preview-cover.jpg",
+        "category": "Educação corporativa e desenvolvimento de lideranças",
+        "brand": { "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#organizacao" },
+        "author": { "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#autor" },
+        "offers": {
+          "@type": "Offer",
+          "url": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#oferta",
+          "priceCurrency": "BRL",
+          "price": "39.90",
+          "availability": "https://schema.org/InStock"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#autor",
+        "name": "Joe Weider",
+        "jobTitle": "Consultor, mentor e palestrante",
+        "description": "Mestre em Administração e especialista em neurociência aplicada à gestão corporativa.",
+        "sameAs": ["https://www.instagram.com/joeweider.s/"]
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#organizacao",
+        "name": "Instituto Axon",
+        "logo": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/assets/logo.svg",
+        "founder": { "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#autor" }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://produto.joeweider.com.br/playbook-treinamento-corporativo/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "O que é o Playbook Treinamento Corporativo 4.0?",
+            "acceptedAnswer": { "@type": "Answer", "text": "É um guia operacional digital com sete módulos, frameworks, templates e scripts para criar, vender e entregar programas de treinamento corporativo." }
+          },
+          {
+            "@type": "Question",
+            "name": "Para quem o Playbook foi criado?",
+            "acceptedAnswer": { "@type": "Answer", "text": "Para consultores, instrutores e mentores que atuam ou querem atuar no desenvolvimento de líderes e equipes." }
+          },
+          {
+            "@type": "Question",
+            "name": "O conteúdo é prático ou teórico?",
+            "acceptedAnswer": { "@type": "Answer", "text": "O foco é prático: cada capítulo termina com um entregável aplicável, como template, framework ou script." }
+          },
+          {
+            "@type": "Question",
+            "name": "Qual é o investimento?",
+            "acceptedAnswer": { "@type": "Answer", "text": "O Playbook custa R$ 39,90 em pagamento único, sem mensalidade." }
+          },
+          {
+            "@type": "Question",
+            "name": "Por quanto tempo terei acesso?",
+            "acceptedAnswer": { "@type": "Answer", "text": "O acesso informado é imediato e vitalício." }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    /* ════════════════════════════════════════════
+       DESIGN SYSTEM · Instituto Axon
+       Tema escuro · navy profundo · acento ciano
+       Títulos: Helvetica Neue · Texto: Instrument Sans
+    ════════════════════════════════════════════ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper:      #00121F;
+      --paper-2:    #001A2B;
+      --surface:    #052232;
+      --surface-2:  #082B3E;
+      --ink:        #F2F8FB;
+      --ink-2:      #001523;
+      --body-c:     #A7BCC9;
+      --faint:      #7B90A0;
+      --line:       rgba(255,255,255,.09);
+      --line-2:     rgba(255,255,255,.17);
+      --cyan-pale:  rgba(33,182,212,.15);
+      --cyan-line:  rgba(33,182,212,.26);
+      --cyan-soft:  rgba(33,182,212,.07);
+      --accent:     #21B6D4;
+      --accent-deep:#4CD4EE;
+      --accent-bright:#4CD4EE;
+      --rust:       #E8836D;
+      --rust-bg:    rgba(232,131,109,.13);
+      --rust-deep:  #F0A08D;
+      --dark:       #000C17;
+      --dark-2:     #051E2E;
+      --dark-line:  rgba(255,255,255,.09);
+      --dark-body:  #A7BCC9;
+      --dark-faint: #6F8492;
+      --display: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      --r-card: 20px;
+      --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 18px 44px -28px rgba(0,0,0,.7);
+      --ease: cubic-bezier(.2,.6,.2,1);
+    }
+
+    html { scroll-behavior: smooth; text-size-adjust: 100%; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--body-c);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      overflow-wrap: break-word;
+    }
+
+    ::selection { background: var(--accent); color: var(--ink-2); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+    h1, h2, h3 { color: var(--ink); }
+    h1, h2 {
+      font-family: var(--display);
+      font-weight: 700;
+    }
+
+    img { max-width: 100%; height: auto; display: block; }
+    a { color: inherit; }
+
+    .wrap   { width: 100%; max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+    .narrow { width: 100%; max-width: 860px;  margin: 0 auto; padding: 0 20px; }
+
+    .skip-link {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink-2);
+      font-weight: 700;
+      text-decoration: none;
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: none; }
+
+    /* ── Reveal on scroll ── */
+    .rv { opacity: 1; transform: none; }
+    .reveal-ready .rv { opacity: 0; transform: translateY(18px); transition: opacity .6s var(--ease), transform .6s var(--ease); }
+    .reveal-ready .rv.in { opacity: 1; transform: none; }
+    .d1 { transition-delay: .08s; } .d2 { transition-delay: .16s; }
+    .d3 { transition-delay: .24s; } .d4 { transition-delay: .32s; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal-ready .rv { opacity: 1; transform: none; transition: none; }
+    }
+
+    /* ── Chip / label ── */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--cyan-pale);
+      color: var(--accent-deep);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .chip::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .chip--rust { background: var(--rust-bg); color: var(--rust-deep); }
+    .chip--rust::before { background: var(--rust); }
+    .chip--dark { background: rgba(33,182,212,.14); color: var(--accent-bright); }
+    .chip--dark::before { background: var(--accent-bright); }
+
+    /* ── Botões ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--accent-bright);
+      color: var(--ink-2);
+      font-family: var(--sans);
+      font-size: 15.5px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      padding: 15px 15px 15px 30px;
+      border-radius: 999px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      min-height: 48px;
+      transition: transform .2s var(--ease), background .2s, box-shadow .2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 32px -14px rgba(33,182,212,.5);
+    }
+    .btn:hover { transform: translateY(-2px); background: #7CE2F5; }
+    .btn:active { transform: translateY(0); }
+    .btn .arr {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--ink-2);
+      color: var(--accent-bright);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform .2s var(--ease);
+    }
+    .btn:hover .arr { transform: translateX(3px); }
+    .btn--light { background: #fff; color: var(--ink-2); box-shadow: 0 1px 2px rgba(0,0,0,.25), 0 12px 28px -14px rgba(0,0,0,.5); }
+    .btn--light:hover { background: #E8F6FB; }
+    .btn--light .arr { background: var(--accent-bright); color: var(--ink-2); }
+    .btn--full { width: 100%; }
+    .btn--ghost {
+      background: transparent;
+      color: var(--body-c);
+      border: 1px dashed var(--line-2);
+      box-shadow: none;
+      cursor: not-allowed;
+      font-weight: 500;
+      padding: 15px 24px;
+    }
+    .btn--ghost:hover { transform: none; background: transparent; }
+    .btn--ghost-link { cursor: pointer; }
+    .btn--ghost-link:hover { color: var(--ink); border-color: var(--cyan-line); }
+
+    /* ── Barra de anúncio ── */
+    .topbar {
+      background: var(--dark);
+      color: #fff;
+      font-size: 12.5px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+    .topbar .tb-chip {
+      background: rgba(33,182,212,.16);
+      color: var(--accent-bright);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      line-height: 1.4;
+    }
+    .topbar .tb-txt { color: rgba(255,255,255,.82); }
+    .topbar .tb-txt { display: none; }
+    .topbar a {
+      background: var(--accent-bright);
+      color: var(--ink-2);
+      font-weight: 600;
+      font-size: 12px;
+      text-decoration: none;
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 6px 15px;
+      transition: background .2s, transform .15s;
+    }
+    .topbar a:hover { background: #7CE2F5; transform: translateY(-1px); }
+
+    /* ── Hero (imagem preenchendo a seção, texto sobreposto) ── */
+    .hero {
+      position: relative;
+      background: var(--dark);
+      color: var(--dark-body);
+      padding: 44px 0 88px;
+      min-height: 765px;
+      display: flex;
+      align-items: flex-start;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .hero-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 85%;
+      display: block;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(180deg, rgba(0,12,23,.92) 0%, rgba(0,12,23,.58) 42%, rgba(0,12,23,.08) 69%, rgba(0,12,23,0) 82%);
+      pointer-events: none;
+    }
+    .hero > .wrap { position: relative; z-index: 2; width: 100%; }
+    .hero-copy { max-width: 640px; }
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .hero-logo { width: auto; height: 38px; display: block; }
+    .hero h1 {
+      font-size: clamp(34px, 4.8vw, 58px);
+      line-height: 1.04;
+      letter-spacing: -.038em;
+      color: #fff;
+      margin: 0 0 22px;
+    }
+    .hl { color: var(--accent-bright); }
+    .hero-sub {
+      font-size: 17px;
+      line-height: 1.7;
+      max-width: 560px;
+      margin: 0 0 32px;
+    }
+    .hero-sub strong { color: #fff; font-weight: 600; }
+    .authority-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .hbadge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 999px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #E8F0F5;
+    }
+    .hbadge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent-bright);
+    }
+
+    /* ── Card de oferta (seção preço) ── */
+    .offer-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      box-shadow: var(--shadow-card);
+      padding: 22px;
+      max-width: 520px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .offer-foot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 12.5px;
+      color: var(--faint);
+      margin-top: 12px;
+    }
+    .offer-foot svg { color: var(--accent); flex-shrink: 0; }
+    /* ── Faixa de autoridade ── */
+    .authority {
+      background: var(--dark-2);
+      border-top: 1px solid rgba(255,255,255,.07);
+      padding: 24px 0;
+      color: var(--dark-body);
+    }
+    .authority-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px 40px;
+      flex-wrap: wrap;
+      text-align: center;
+    }
+    .authority-stats {
+      display: flex;
+      gap: 44px;
+      align-items: center;
+    }
+    .authority .val {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 30px;
+      letter-spacing: -.03em;
+      color: var(--accent-bright);
+      line-height: 1.1;
+    }
+    .authority .lbl {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--dark-faint);
+      margin-top: 3px;
+    }
+
+    /* ── Seções ── */
+    section { padding: 68px 0; }
+    main > section { content-visibility: auto; contain-intrinsic-size: auto 760px; }
+    .band-white { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .band-dark  { background: var(--dark); }
+    .sec-head { margin-bottom: 52px; }
+    .sec-head.center { text-align: center; }
+    .sec-head .chip { margin-bottom: 18px; }
+    .sec-head h2 {
+      font-size: clamp(29px, 3.8vw, 44px);
+      line-height: 1.1;
+      letter-spacing: -.032em;
+      max-width: 720px;
+    }
+    .sec-head.center h2 { margin: 0 auto; }
+    .sec-head .lead {
+      font-size: 16.5px;
+      margin-top: 16px;
+      max-width: 600px;
+    }
+    .sec-head.center .lead { margin-left: auto; margin-right: auto; }
+
+    /* ── Dores ── */
+    .pain-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .pain-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 26px 24px;
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s;
+    }
+    .pain-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--line-2);
+      box-shadow: var(--shadow-card);
+    }
+    .pain-ico {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--line-2);
+      color: var(--rust);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .pain-card p { font-size: 14.5px; line-height: 1.6; }
+
+    /* ── Promessa ── */
+    .outcome-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      text-align: left;
+    }
+    .outcome-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 30px 26px;
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+    }
+    .outcome-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-card); }
+    .outcome-ico {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: var(--cyan-pale);
+      color: var(--accent-deep);
+      margin-bottom: 18px;
+    }
+    .outcome-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 8px; }
+    .outcome-card p { font-size: 14.5px; }
+
+    /* ── Prévia / mockups ── */
+    .mockup-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+      align-items: start;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .mockup-page {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+    }
+    .mockup-page:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 2px 4px rgba(0,0,0,.35), 0 30px 60px -32px rgba(0,0,0,.8);
+    }
+    .shot { position: relative; overflow: hidden; aspect-ratio: 827 / 1170; }
+    .shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .shot .wm {
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='168' height='168'%3E%3Ctext x='84' y='84' font-family='Helvetica,Arial,sans-serif' font-size='12' font-weight='700' letter-spacing='1.5' fill='%2321B6D4' fill-opacity='.55' text-anchor='middle' transform='rotate(-32 84 84)'%3EINSTITUTO AXON%3C/text%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 168px 168px;
+      pointer-events: none;
+    }
+    .page-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-top: 1px solid var(--line);
+    }
+    .page-num {
+      background: var(--cyan-pale);
+      color: var(--accent-deep);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      border-radius: 999px;
+      padding: 4px 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .page-desc { font-size: 12.5px; line-height: 1.45; color: var(--faint); }
+
+    /* ── Módulos ── */
+    .modules-list { display: flex; flex-direction: column; gap: 12px; }
+    .module {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 22px 26px;
+      transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .22s;
+    }
+    .module:hover {
+      transform: translateY(-2px);
+      background: var(--surface-2);
+      border-color: var(--line-2);
+      box-shadow: var(--shadow-card);
+    }
+    .module-num {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent-bright);
+      background: var(--cyan-pale);
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .module h3 { font-size: 16px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 4px; }
+    .module p { font-size: 14px; line-height: 1.6; }
+    .cta-wrap { text-align: center; margin-top: 44px; }
+
+    /* ── Objeção ── */
+    .objection-quote {
+      position: relative;
+      background: var(--cyan-soft);
+      border: 1px solid var(--cyan-line);
+      border-radius: var(--r-card);
+      padding: 26px 24px 24px 56px;
+      font-size: 16.5px;
+      line-height: 1.55;
+      color: var(--ink);
+      font-weight: 500;
+      letter-spacing: -.01em;
+      margin-bottom: 36px;
+    }
+    .objection-quote::before {
+      content: '“';
+      position: absolute;
+      top: 14px; left: 18px;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 44px;
+      line-height: 1;
+      color: var(--accent);
+    }
+    .answer-block { font-size: 16px; line-height: 1.75; margin-bottom: 18px; }
+    .answer-block strong { color: var(--ink); font-weight: 600; }
+    .answer-block em { font-style: normal; font-weight: 600; color: var(--accent-deep); }
+    .proof-pills {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 36px;
+    }
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .ck-ico {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--cyan-pale);
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ck-ico--rust { background: var(--rust-bg); color: var(--rust); }
+
+    /* ── Para quem ── */
+    .for-whom-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    .fw-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 28px 24px;
+    }
+    .fw-card .chip { margin-bottom: 20px; }
+    .fw-card h3 {
+      font-family: var(--display);
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: -.025em;
+      line-height: 1.2;
+      margin-bottom: 22px;
+    }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+    .check-list .ck-ico { margin-top: 1px; }
+
+    /* ── Autor (banda escura) ── */
+    .band-dark { color: var(--dark-body); position: relative; overflow: hidden; }
+    .band-dark::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 720px; height: 720px;
+      background: radial-gradient(ellipse 50% 50% at 50% 50%, rgba(33,182,212,.09), transparent 70%);
+      pointer-events: none;
+    }
+    .band-dark > .narrow, .band-dark > .wrap { position: relative; z-index: 1; }
+    .band-dark .chip { margin-bottom: 22px; }
+    .author-box {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .author-avatar {
+      position: relative;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 479 / 590;
+      border-radius: 18px;
+      background: var(--dark-2);
+      border: 1px solid var(--dark-line);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .author-avatar .fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 46px;
+      color: var(--accent-bright);
+      letter-spacing: -.02em;
+    }
+    .author-avatar img {
+      position: relative;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+    .author-avatar picture { display: block; width: 100%; height: 100%; }
+    .author-info { flex: 1; min-width: 280px; }
+    .author-info h3 {
+      font-family: var(--display);
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -.025em;
+      color: #fff;
+      margin-bottom: 6px;
+    }
+    .author-role {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--accent-bright);
+      margin-bottom: 18px;
+    }
+    .author-info > p { font-size: 15px; line-height: 1.75; max-width: 100%; }
+    .author-stats {
+      display: flex;
+      gap: 44px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .stat .val {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 42px;
+      letter-spacing: -.03em;
+      color: var(--accent-bright);
+      line-height: 1.1;
+    }
+    .stat .lbl {
+      font-size: 11.5px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--dark-faint);
+      margin-top: 4px;
+    }
+
+    /* ── Preço ── */
+    .offers-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      align-items: stretch;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .price-card { width: 100%; max-width: none; margin-inline: 0; padding: 18px; display: flex; flex-direction: column; }
+    .price-card .price-block { margin-top: auto; }
+    .offer-card--alt {
+      background: var(--paper-2);
+      border-color: var(--cyan-line);
+    }
+    .offer-flag {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--cyan-pale);
+      border: 1px solid var(--cyan-line);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 12.5px;
+      font-weight: 600;
+      line-height: 1.4;
+      color: var(--accent-bright);
+      margin-bottom: 18px;
+    }
+    .offer-flag svg { flex-shrink: 0; }
+    .offer-flag--gift { background: rgba(232,131,109,.16); border-color: rgba(232,131,109,.4); color: #F6B5A5; }
+    .includes .bonus {
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line-2);
+    }
+    .includes .bonus strong { color: var(--accent-bright); font-weight: 600; }
+    .ck-ico--gift { background: rgba(232,131,109,.16); color: var(--rust); }
+    .product-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 22px;
+      min-height: 0;
+    }
+    .product-ico {
+      width: 44px; height: 44px;
+      border-radius: 13px;
+      background: var(--cyan-pale);
+      color: var(--accent-deep);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .product-row h3 { font-size: 16.5px; font-weight: 600; letter-spacing: -.01em; line-height: 1.35; }
+    .includes {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .includes li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+    .includes .ck-ico { margin-top: 1px; }
+    .price-block {
+      text-align: center;
+      background: var(--cyan-soft);
+      border: 1px solid var(--cyan-line);
+      border-radius: 14px;
+      padding: 24px 20px 22px;
+      margin-bottom: 18px;
+    }
+    .price-was {
+      font-size: 14px;
+      color: var(--faint);
+      text-decoration: line-through;
+      text-decoration-color: var(--rust);
+      text-decoration-thickness: 1.5px;
+      margin-bottom: 4px;
+    }
+    .price-now {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 52px;
+      letter-spacing: -.03em;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .price-now sup { font-size: 24px; font-weight: 700; vertical-align: super; margin-right: 5px; }
+    .price-now .cents { font-size: 24px; letter-spacing: -.01em; }
+    .price-note { font-size: 13px; color: var(--faint); margin-top: 8px; }
+
+    /* ── Conversão principal · enquadramento da oferta e checkout Hotmart ── */
+    .offer-card--primary { scroll-margin-top: 20px; }
+    .btn.checkout-primary.hotmart__button-checkout {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 48px;
+      padding: 15px 15px 15px 30px;
+      border: none;
+      border-radius: 999px;
+      background: var(--accent-bright) !important;
+      color: var(--ink-2) !important;
+      font-family: var(--sans);
+      font-size: 15.5px;
+      font-weight: 600;
+      line-height: 1.65;
+      letter-spacing: -.01em;
+      text-shadow: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 32px -14px rgba(33,182,212,.5);
+      transition: transform .2s var(--ease), background .2s, box-shadow .2s;
+    }
+    .btn.checkout-primary.hotmart__button-checkout:hover,
+    .btn.checkout-primary.hotmart__button-checkout:focus {
+      background: #7CE2F5 !important;
+    }
+
+    /* ── CTA final (banda escura) ── */
+    .final-cta { text-align: center; padding: 84px 0; }
+    .final-cta h2 {
+      font-size: clamp(32px, 4.6vw, 54px);
+      line-height: 1.06;
+      letter-spacing: -.038em;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .final-cta h2 em {
+      font-style: normal;
+      color: var(--accent-bright);
+    }
+    .final-cta h2 br { display: none; }
+    .final-cta p {
+      font-size: 16.5px;
+      max-width: 520px;
+      margin: 0 auto 40px;
+    }
+    /* ── Rodapé ── */
+    footer {
+      padding: 36px 0;
+      font-size: 13px;
+      color: var(--faint);
+    }
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    footer a { color: var(--ink); text-decoration: none; font-weight: 600; }
+    footer a:hover { text-decoration: underline; }
+    .footer-legal { margin-top: 8px; font-size: 12.5px; }
+    .footer-links { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .footer-links .sep { opacity: .45; }
+    .footer-links .dev { color: var(--faint); font-weight: 400; }
+    .footer-links .dev a { color: var(--ink); font-weight: 600; }
+    .footer-links .ig {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--faint);
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .footer-links .ig:hover { color: var(--accent-bright); text-decoration: none; }
+    .footer-links .ig svg { flex-shrink: 0; }
+
+    /* ── Perguntas frequentes ── */
+    section[id] { scroll-margin-top: 20px; }
+    .faq-list { display: grid; gap: 12px; max-width: 820px; margin: 0 auto; }
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: clip;
+      transition: border-color .25s, box-shadow .25s, background .25s;
+    }
+    .faq-item.is-open {
+      background: var(--surface-2);
+      border-color: var(--cyan-line);
+      box-shadow: 0 16px 36px -30px rgba(76,212,238,.5);
+    }
+    .faq-heading { margin: 0; }
+    .faq-trigger {
+      width: 100%;
+      min-height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 17px 20px;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 650;
+      text-align: left;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .faq-trigger:hover { background: rgba(255,255,255,.025); }
+    .faq-icon {
+      width: 28px;
+      height: 28px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--cyan-pale);
+      flex-shrink: 0;
+    }
+    .faq-icon::before {
+      content: '+';
+      color: var(--accent-bright);
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1;
+      transition: transform .3s var(--ease);
+    }
+    .faq-trigger[aria-expanded="true"] .faq-icon::before { content: '−'; transform: rotate(180deg); }
+    .faq-panel { height: 0; overflow: hidden; }
+    .faq-panel[hidden] { display: none; }
+    .faq-panel-inner { border-top: 1px solid var(--line); margin: 0 20px; }
+    .faq-panel p { padding: 16px 0 20px; font-size: 15px; line-height: 1.7; }
+
+    /* ── Mobile first: ampliações progressivas ── */
+    @media (max-width: 560px) {
+      .hero { min-height: clamp(875px, calc(1182px - 78.6vw), 930px); }
+      .hero-cta {
+        position: relative;
+        top: clamp(180px, calc(180px + (100vw - 320px) * .72), 230px);
+      }
+    }
+
+    @media (min-width: 561px) {
+      .wrap, .narrow { padding-inline: 24px; }
+      .hero-logo { height: 46px; }
+      .pain-grid, .outcome-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .price-card { padding: 28px; }
+      .price-now { font-size: 68px; }
+      .price-now .cents { font-size: 30px; }
+      .objection-quote { padding: 30px 34px 28px 68px; font-size: 18.5px; }
+      .objection-quote::before { left: 26px; font-size: 54px; }
+      .fw-card { padding: 34px 32px; }
+      .final-cta h2 br { display: initial; }
+    }
+
+    @media (min-width: 721px) {
+      section { padding: 96px 0; }
+      .hero { padding: 56px 0 96px; min-height: 740px; }
+      .final-cta { padding: 112px 0; }
+      .for-whom-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .offers-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 1000px; gap: 24px; }
+      .product-row { min-height: 60px; }
+      .mockup-wrap { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; margin: 0; }
+      .proof-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .authority-row { justify-content: space-between; text-align: left; }
+      .authority-badges { justify-content: flex-start; }
+      .author-box {
+        display: grid;
+        grid-template-columns: minmax(300px, .92fr) minmax(0, 1.08fr);
+        align-items: start;
+        text-align: left;
+      }
+      .author-info > p { max-width: 560px; }
+      .author-stats { justify-content: flex-start; }
+      .topbar .tb-txt { display: inline; }
+    }
+
+    @media (min-width: 961px) {
+      .hero { min-height: 780px; align-items: center; padding: 96px 0 104px; }
+      .hero-bg img { object-position: 72% 30%; }
+      .hero::before { background: linear-gradient(90deg, rgba(0,12,23,.92) 0%, rgba(0,12,23,.6) 40%, rgba(0,12,23,.1) 66%, rgba(0,12,23,0) 80%); }
+      .pain-grid, .outcome-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    }
+
+    @media (min-width: 1440px) {
+      .wrap { max-width: 1280px; }
+      .narrow { max-width: 920px; }
+      .hero { min-height: min(82vh, 920px); }
+      .hero-copy { max-width: 700px; }
+      .hero h1 { font-size: 62px; }
+    }
+
+    @media (min-width: 2200px) {
+      body { font-size: 18px; }
+      .wrap { max-width: 1520px; }
+      .narrow { max-width: 1040px; }
+      .hero-copy { max-width: 780px; }
+      .hero h1 { font-size: 70px; }
+    }
+  </style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+
+<!-- End Google Tag Manager (noscript) -->
+<a class="skip-link" href="#conteudo">Ir para o conteúdo principal</a>
+<header>
+
+<!-- ── Barra de anúncio ─────────────────────── -->
+<div class="topbar">
+  <span class="tb-chip">Oferta de lançamento</span>
+  <span class="tb-txt">Playbook por R$ 39,90 (de R$ 99,90) · Acesso imediato e vitalício</span>
+  <a href="#oferta-playbook" data-cta-location="topbar">Garantir agora →</a>
+</div>
+
+<!-- ── Hero ─────────────────────────────────── -->
+<section class="hero" aria-labelledby="titulo-principal">
+  <picture class="hero-bg" aria-hidden="true">
+    <source media="(max-width: 960px)" type="image/avif" srcset="assets/hero-mobile.avif">
+    <source media="(max-width: 960px)" srcset="assets/hero-mobile.jpg">
+    <img src="assets/hero-desktop.jpg" alt="" width="1916" height="821" fetchpriority="high" decoding="async">
+  </picture>
+  <div class="wrap">
+    <div class="hero-copy">
+      <div class="hero-eyebrow">
+        <img class="hero-logo" src="assets/logo-white.svg" width="102" height="51" alt="Instituto Axon">
+        <span class="chip chip--dark">Joe Weider · Instituto Axon · 2026</span>
+      </div>
+      <h1 id="titulo-principal">Crie, entregue e venda <span class="hl">programas de treinamento corporativo</span> que o mercado compra</h1>
+      <p class="hero-sub">
+        Playbook completo com metodologia aplicada de I.A., Neurociência e Gestão
+        para <strong>Consultores, Instrutores e Mentores</strong> que querem um sistema, não mais um curso.
+      </p>
+
+      <div class="hero-cta">
+        <a href="#oferta-playbook" class="btn btn--light" data-cta-location="hero">Quero o Playbook agora
+          <span class="arr">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Faixa de autoridade ──────────────────── -->
+</header>
+<main id="conteudo">
+<section class="authority" aria-label="Credenciais">
+  <div class="wrap authority-row">
+    <div class="authority-stats rv">
+      <div><div class="val">24+</div><div class="lbl">Anos de Experiência</div></div>
+      <div><div class="val">200+</div><div class="lbl">Empresas Atendidas</div></div>
+    </div>
+    <div class="authority-badges rv d1">
+      <span class="hbadge">Neurociência Aplicada</span>
+      <span class="hbadge">Inteligência Artificial</span>
+      <span class="hbadge">100% Prático</span>
+      <span class="hbadge">Foco Corporativo</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── Dores ────────────────────────────────── -->
+<section class="band-white" id="problema">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip chip--rust">O problema</span>
+      <h2>Se você é Consultor, Instrutor ou Mentor, já sentiu algum desses problemas:</h2>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card rv">
+        <div class="pain-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.8-6.5"/><path d="M3 4v5h5"/></svg>
+        </div>
+        <p>Cada projeto começa do zero. Sem método, sem estrutura. E o cliente percebe.</p>
+      </div>
+      <div class="pain-card rv d1">
+        <div class="pain-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 12h.01M18 12h.01"/></svg>
+        </div>
+        <p>Cobra menos do que deveria porque não sabe justificar o valor do seu trabalho.</p>
+      </div>
+      <div class="pain-card rv d2">
+        <div class="pain-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></svg>
+        </div>
+        <p>Sabe muito de conteúdo, mas não sabe transformar isso em um programa vendável.</p>
+      </div>
+      <div class="pain-card rv d1">
+        <div class="pain-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        </div>
+        <p>Perde tempo redesenhando propostas e materiais que deveriam já estar prontos.</p>
+      </div>
+      <div class="pain-card rv d2">
+        <div class="pain-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 17-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/></svg>
+        </div>
+        <p>Não consegue mostrar o retorno do seu trabalho em números. O cliente valoriza, mas não renova.</p>
+      </div>
+      <div class="pain-card rv d3">
+        <div class="pain-ico">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </div>
+        <p>Sente dificuldade em se diferenciar de outros consultores com formação parecida e preço similar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Promessa ─────────────────────────────── -->
+<section id="solucao">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip">A solução</span>
+      <h2>Um Playbook que entrega o <span class="hl">sistema completo</span>, do design à venda do programa.</h2>
+      <p class="lead">
+        Não é mais um e-book cheio de teoria. É um guia operacional com frameworks,
+        scripts e templates para você estruturar e vender programas de liderança de alta performance.
+      </p>
+    </div>
+
+    <div class="outcome-grid">
+      <div class="outcome-card rv">
+        <span class="outcome-ico" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </span>
+        <h3>Crie com clareza</h3>
+        <p>Framework passo a passo para desenhar programas ancorados em Neurociência e I.A.</p>
+      </div>
+      <div class="outcome-card rv d1">
+        <span class="outcome-ico" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".5" fill="currentColor"/></svg>
+        </span>
+        <h3>Venda com confiança</h3>
+        <p>Scripts de posicionamento e proposta para converter decisores corporativos.</p>
+      </div>
+      <div class="outcome-card rv d2">
+        <span class="outcome-ico" aria-hidden="true">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></svg>
+        </span>
+        <h3>Entregue com método</h3>
+        <p>Estrutura de execução que garante resultado mensurável e cliente fidelizado.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Prévia do Playbook ───────────────────── -->
+<section class="band-white" id="previa">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="chip">Veja por dentro</span>
+      <h2>Cem páginas com o método que o Joe usa, do diagnóstico ao fechamento</h2>
+      <p class="lead">Neurociência e I.A. como ferramentas de trabalho. Frameworks prontos para usar com o cliente. Dados verificados em cada afirmação.</p>
+    </div>
+
+    <div class="mockup-wrap">
+      <div class="mockup-page rv">
+        <div class="shot"><img src="assets/preview-cover.jpg" width="662" height="936" alt="Capa do Playbook Treinamento Corporativo 4.0" loading="lazy" decoding="async"><span class="wm" aria-hidden="true"></span></div>
+        <div class="page-meta">
+          <span class="page-num">Capa</span>
+          <span class="page-desc">Playbook · Treinamento Corporativo 4.0</span>
+        </div>
+      </div>
+      <div class="mockup-page rv d1">
+        <div class="shot"><img src="assets/preview-canvas.jpg" width="827" height="1170" alt="Página 22 — Canvas de Diagnóstico" loading="lazy" decoding="async"><span class="wm" aria-hidden="true"></span></div>
+        <div class="page-meta">
+          <span class="page-num">p. 22</span>
+          <span class="page-desc">Canvas de Diagnóstico, entregável pronto para usar</span>
+        </div>
+      </div>
+      <div class="mockup-page rv d2">
+        <div class="shot"><img src="assets/preview-evidence.jpg" width="827" height="1170" alt="Página 52 — Base Científica" loading="lazy" decoding="async"><span class="wm" aria-hidden="true"></span></div>
+        <div class="page-meta">
+          <span class="page-num">p. 52</span>
+          <span class="page-desc">Base Científica: Escada de Evidência aplicada ao T&amp;D</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── O que tem dentro ─────────────────────── -->
+<section id="modulos">
+  <div class="narrow">
+    <div class="sec-head center rv">
+      <span class="chip">Conteúdo</span>
+      <h2>Tudo que você precisa em um só lugar</h2>
+      <p class="lead">O Playbook cobre cada etapa: da concepção do programa até o fechamento do contrato.</p>
+    </div>
+
+    <div class="modules-list">
+      <div class="module rv">
+        <div class="module-num">01</div>
+        <div>
+          <h3>Fundamentos do Treinamento Corporativo 4.0</h3>
+          <p>O que mudou no mercado, como I.A. e Neurociência estão redefinindo o desenvolvimento de líderes e onde estão as maiores oportunidades.</p>
+        </div>
+      </div>
+      <div class="module rv">
+        <div class="module-num">02</div>
+        <div>
+          <h3>Diagnóstico e Mapeamento de Necessidades</h3>
+          <p>Como identificar as reais demandas do cliente corporativo e transformar isso em um programa que ele quer comprar.</p>
+        </div>
+      </div>
+      <div class="module rv">
+        <div class="module-num">03</div>
+        <div>
+          <h3>Design de Programas com Neurociência</h3>
+          <p>Frameworks baseados em evidências para criar trilhas de liderança que geram mudança real de comportamento.</p>
+        </div>
+      </div>
+      <div class="module rv">
+        <div class="module-num">04</div>
+        <div>
+          <h3>Integração de Inteligência Artificial</h3>
+          <p>Ferramentas e prompts práticos para usar I.A. no design, personalização e entrega dos programas, sem perder a profundidade.</p>
+        </div>
+      </div>
+      <div class="module rv">
+        <div class="module-num">05</div>
+        <div>
+          <h3>Posicionamento e Proposta de Valor</h3>
+          <p>Como comunicar o valor do seu programa para RH e diretores, justificando preços mais altos com evidência científica.</p>
+        </div>
+      </div>
+      <div class="module rv">
+        <div class="module-num">06</div>
+        <div>
+          <h3>Estrutura Comercial e Fechamento</h3>
+          <p>Templates de proposta, mapa de objeções e script de fechamento adaptados ao mercado de T&amp;D corporativo.</p>
+        </div>
+      </div>
+      <div class="module rv">
+        <div class="module-num">07</div>
+        <div>
+          <h3>Métricas, ROI e Fidelização</h3>
+          <p>Como mensurar os resultados do programa e usar esses dados para renovar contratos e expandir o escopo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap rv">
+      <a href="#oferta-playbook" class="btn" data-cta-location="modules">Quero acesso aos 7 módulos
+        <span class="arr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Objeção ──────────────────────────────── -->
+<section class="band-white" id="objecao">
+  <div class="narrow">
+    <div class="sec-head center rv">
+      <span class="chip">Sem enrolação</span>
+      <h2>“Será que o conteúdo é muito teórico?”</h2>
+    </div>
+
+    <div class="objection-quote rv">
+      Já comprei materiais sobre Programas de Liderança que eram puro conceito, sem nada para aplicar na segunda-feira.
+    </div>
+
+    <p class="answer-block rv">
+      <strong>É exatamente o oposto disso.</strong> O Playbook foi construído por quem atendeu mais de 200 empresas em campo, não em sala de aula.
+      Cada capítulo termina com um <strong>entregável concreto</strong>: um template, um framework ou um script que você usa no próximo projeto.
+    </p>
+    <p class="answer-block rv">
+      Neurociência e I.A. são tratadas como <em>ferramentas de trabalho</em>, não como tema de TCC.
+      Você aprende por que o cérebro humano aprende de determinada forma, e isso vira a estrutura do seu programa,
+      o argumento da sua proposta e o diferencial que justifica o seu preço.
+    </p>
+
+    <div class="proof-pills">
+      <div class="pill rv"><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Templates prontos para usar</div>
+      <div class="pill rv"><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Frameworks de aplicação imediata</div>
+      <div class="pill rv"><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Scripts de proposta e fechamento</div>
+      <div class="pill rv"><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Métricas de ROI para o cliente</div>
+      <div class="pill rv"><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Integração prática de I.A. no T&amp;D</div>
+      <div class="pill rv"><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>Canvas de diagnóstico para mapear o cliente</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Para quem ────────────────────────────── -->
+<section id="para-quem">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip">Para quem é</span>
+      <h2>Esse Playbook é para você?</h2>
+      <p class="lead">Sem discurso genérico: veja com clareza para quem esse método funciona e para quem ele não vai servir.</p>
+    </div>
+    <div class="for-whom-grid">
+      <div class="fw-card rv">
+        <span class="chip">Para quem é</span>
+        <h3>Se você se identifica com pelo menos 2 itens:</h3>
+        <ul class="check-list">
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Consultor, Instrutor ou Mentor que atua ou quer atuar no desenvolvimento de líderes</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Quer criar programas mais estruturados e justificar preços mais altos</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Tem dificuldade em transformar conhecimento técnico em uma oferta clara</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Quer usar I.A. e Neurociência de forma aplicada, não acadêmica</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Busca um método replicável, sem reinventar a roda a cada projeto</span></li>
+        </ul>
+      </div>
+      <div class="fw-card rv d1">
+        <span class="chip chip--rust">Não é para você</span>
+        <h3>Melhor não comprar se:</h3>
+        <ul class="check-list">
+          <li><span class="ck-ico ck-ico--rust"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span><span>Se você busca teoria sem compromisso de aplicação</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span><span>Se não tem interesse em desenvolver líderes ou equipes</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span><span>Se prefere continuar improvisando sem método definido</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Autor ────────────────────────────────── -->
+<section class="band-dark" id="autor">
+  <div class="narrow">
+    <div class="author-box">
+      <div class="author-avatar rv">
+        <span class="fallback">JW</span>
+        <picture>
+          <source type="image/avif" srcset="assets/foto-joe.avif">
+          <img src="assets/foto-joe.jpg" width="479" height="590" alt="Joe Weider, fundador do Instituto Axon" loading="lazy" decoding="async">
+        </picture>
+      </div>
+      <div class="author-info rv d1">
+        <span class="chip chip--dark">Quem criou este Playbook</span>
+        <h3>Joe Weider</h3>
+        <p class="author-role">Fundador · Instituto Axon · Consultor · Mentor · Palestrante</p>
+        <p>
+          Mestre em Administração e especialista em Neurociência aplicada à gestão corporativa.
+          Mais de 24 anos desenvolvendo líderes e estruturando consultorias no Brasil e no exterior.
+          O Playbook condensa os frameworks que ele usa nos próprios projetos.
+        </p>
+        <div class="author-stats">
+          <div class="stat"><div class="val">24+</div><div class="lbl">Anos de Experiência</div></div>
+          <div class="stat"><div class="val">200+</div><div class="lbl">Empresas Atendidas</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Oferta / Preço ───────────────────────── -->
+<section id="oferta">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip">Investimento</span>
+      <h2>Acesso completo ao Playbook</h2>
+      <p class="lead">Um método que pode mudar o patamar do seu negócio por menos do que você gasta em um café gourmet.</p>
+    </div>
+
+    <div class="offers-grid">
+
+      <div class="offer-card price-card offer-card--primary rv" id="oferta-playbook">
+        <div class="product-row">
+          <span class="product-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </span>
+          <h3>Playbook: Treinamento Corporativo 4.0</h3>
+        </div>
+        <ul class="includes">
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>7 módulos com frameworks e templates prontos</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Guia de integração de I.A. no T&amp;D corporativo</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Scripts de proposta e fechamento para o mercado B2B</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Modelos de mensuração de ROI de treinamentos</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Acesso imediato e vitalício</span></li>
+          <li class="bonus">
+            <span class="ck-ico ck-ico--gift"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8S9.5 3.5 7 5.5 9 8 12 8zM12 8s2.5-4.5 5-2.5S15 8 12 8z"/></svg></span>
+            <span><strong>+ Diagnóstico ao vivo exclusivo com o Joe</strong></span>
+          </li>
+        </ul>
+        <p class="offer-flag">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          Gratuito apenas para os 30 primeiros compradores
+        </p>
+        <div class="price-block">
+          <p class="price-was">De R$ 99,90</p>
+          <p class="price-now"><sup>R$</sup>39<span class="cents">,90</span></p>
+          <p class="price-note">Pagamento único · Sem mensalidade</p>
+        </div>
+        <!-- Conversão principal · Checkout Hotmart -->
+        <a
+          id="checkout-playbook"
+          class="btn btn--full checkout-primary hotmart-fb hotmart__button-checkout"
+          href="https://pay.hotmart.com/R107300924E?checkoutMode=2"
+          onclick="return false;"
+          data-cta-location="offer-primary"
+          data-checkout-provider="hotmart"
+        >
+          Quero o Playbook agora
+          <span class="arr" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+        <p class="offer-foot">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Compra 100% segura · Acesso imediato
+        </p>
+      </div>
+
+      <div class="offer-card price-card offer-card--alt rv d1">
+        <div class="product-row">
+          <span class="product-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 10l4.55-2.27A1 1 0 0 1 21 8.62v6.76a1 1 0 0 1-1.45.89L15 14"/><rect x="3" y="6" width="12" height="12" rx="2"/></svg>
+          </span>
+          <h3>Diagnóstico ao vivo exclusivo com Joe + Playbook: Treinamento Corporativo 4.0</h3>
+        </div>
+        <ul class="includes">
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>60 minutos de sessão individual com o Joe, ao vivo</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Relatório de nível pessoal em cada competência</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Plano de desenvolvimento individual</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Faixa de preço sugerida para sua consultoria</span></li>
+          <li><span class="ck-ico"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Gravação da sessão para revisitar quando quiser</span></li>
+        </ul>
+        <p class="offer-flag offer-flag--gift">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/></svg>
+          Grátis para os 30 primeiros ao comprarem o Playbook
+        </p>
+        <div class="price-block">
+          <p class="price-was">De R$ 299,90</p>
+          <p class="price-now"><sup>R$</sup>179<span class="cents">,90</span></p>
+          <p class="price-note">Sessão individual · Vagas limitadas</p>
+        </div>
+        <a href="#oferta-playbook" class="btn btn--full btn--ghost btn--ghost-link" data-cta-location="diagnostic-card">Incluso na compra do Playbook</a>
+        <p class="offer-foot">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+          Garanta o Playbook e a sessão entra de brinde
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA final ────────────────────────────── -->
+<section class="band-white" id="perguntas-frequentes" aria-labelledby="titulo-faq">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip">Perguntas frequentes</span>
+      <h2 id="titulo-faq">Dúvidas sobre o Playbook</h2>
+      <p class="lead">Respostas objetivas para você decidir com clareza.</p>
+    </div>
+    <div class="faq-list">
+      <article class="faq-item rv" data-faq-id="o-que-e">
+        <h3 class="faq-heading">
+          <button class="faq-trigger" id="faq-trigger-1" type="button" aria-expanded="false" aria-controls="faq-panel-1">
+            <span>O que é o Playbook Treinamento Corporativo 4.0?</span><span class="faq-icon" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq-panel" id="faq-panel-1" role="region" aria-labelledby="faq-trigger-1" hidden>
+          <div class="faq-panel-inner"><p>É um guia operacional digital com sete módulos, frameworks, templates e scripts para criar, vender e entregar programas de treinamento corporativo.</p></div>
+        </div>
+      </article>
+      <article class="faq-item rv" data-faq-id="para-quem">
+        <h3 class="faq-heading">
+          <button class="faq-trigger" id="faq-trigger-2" type="button" aria-expanded="false" aria-controls="faq-panel-2">
+            <span>Para quem o Playbook foi criado?</span><span class="faq-icon" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq-panel" id="faq-panel-2" role="region" aria-labelledby="faq-trigger-2" hidden>
+          <div class="faq-panel-inner"><p>Para consultores, instrutores e mentores que atuam ou querem atuar no desenvolvimento de líderes e equipes e desejam uma metodologia replicável.</p></div>
+        </div>
+      </article>
+      <article class="faq-item rv" data-faq-id="pratico-ou-teorico">
+        <h3 class="faq-heading">
+          <button class="faq-trigger" id="faq-trigger-3" type="button" aria-expanded="false" aria-controls="faq-panel-3">
+            <span>O conteúdo é prático ou teórico?</span><span class="faq-icon" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq-panel" id="faq-panel-3" role="region" aria-labelledby="faq-trigger-3" hidden>
+          <div class="faq-panel-inner"><p>O foco é prático. Cada capítulo termina com um entregável aplicável, como template, framework ou script para usar em projetos.</p></div>
+        </div>
+      </article>
+      <article class="faq-item rv" data-faq-id="investimento">
+        <h3 class="faq-heading">
+          <button class="faq-trigger" id="faq-trigger-4" type="button" aria-expanded="false" aria-controls="faq-panel-4">
+            <span>Qual é o investimento?</span><span class="faq-icon" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq-panel" id="faq-panel-4" role="region" aria-labelledby="faq-trigger-4" hidden>
+          <div class="faq-panel-inner"><p>O Playbook custa R$ 39,90 em pagamento único, sem mensalidade.</p></div>
+        </div>
+      </article>
+      <article class="faq-item rv" data-faq-id="tempo-de-acesso">
+        <h3 class="faq-heading">
+          <button class="faq-trigger" id="faq-trigger-5" type="button" aria-expanded="false" aria-controls="faq-panel-5">
+            <span>Por quanto tempo terei acesso?</span><span class="faq-icon" aria-hidden="true"></span>
+          </button>
+        </h3>
+        <div class="faq-panel" id="faq-panel-5" role="region" aria-labelledby="faq-trigger-5" hidden>
+          <div class="faq-panel-inner"><p>O acesso informado é imediato e vitalício.</p></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band-dark final-cta" id="cta-final">
+  <div class="wrap">
+    <h2 class="rv">Pare de improvisar. <br><em>Comece a entregar com método.</em></h2>
+    <p class="rv d1">
+      Consultores e mentores que têm um sistema vendem mais, cobram mais e retêm clientes.
+      Esse Playbook é esse sistema. Por R$ 39,90.
+    </p>
+    <div class="rv d2">
+      <a href="#oferta-playbook" class="btn btn--light" data-cta-location="final">Garantir meu acesso
+        <span class="arr">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Rodapé ───────────────────────────────── -->
+</main>
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <span>© 2026 Instituto Axon · Todos os direitos reservados</span>
+      <span class="footer-links">
+        <a class="ig" href="https://instagram.com/joeweider.s" target="_blank" rel="noopener noreferrer">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+          @joeweider.s
+        </a>
+        <span class="sep">·</span>
+        <a href="#">Termos de Compra</a>
+        <span class="sep">·</span>
+        <span class="dev">Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener noreferrer external" aria-label="3ADS — abre em nova aba">3ADS</a></span>
+      </span>
+    </div>
+    <p class="footer-legal">Produto digital. Ao adquirir, você concorda com os Termos de Compra.</p>
+  </div>
+</footer>
+
+<script>
+  /* CTAs + checkout Hotmart. Nenhum dado pessoal é enviado ao dataLayer. */
+  (function () {
+    var checkout = document.getElementById('checkout-playbook');
+    if (!checkout) return;
+    var offerTarget = document.getElementById('oferta-playbook');
+    var ga4MeasurementId = 'G-Z5501V90ND';
+    var product = {
+      item_id: 'R107300924E',
+      item_name: 'Playbook Treinamento Corporativo 4.0',
+      price: 39.90,
+      quantity: 1
+    };
+
+    function pushDataLayer(eventName, parameters) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(Object.assign({ event: eventName }, parameters || {}));
+    }
+
+    /* Envia ao Google tag já carregado pelo GTM, sem depender de um acionador personalizado. */
+    function sendGa4Event(eventName, parameters) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+      window.gtag('event', eventName, Object.assign({ send_to: ga4MeasurementId }, parameters || {}));
+    }
+
+    /* Preserva UTMs, gclid, fbclid e demais parâmetros recebidos pela landing page. */
+    var pageParams = new URLSearchParams(window.location.search);
+    var checkoutUrl = new URL(checkout.href, window.location.href);
+    pageParams.forEach(function (value, key) {
+      if (!checkoutUrl.searchParams.has(key)) checkoutUrl.searchParams.append(key, value);
+    });
+    checkout.href = checkoutUrl.toString();
+
+    document.querySelectorAll('a[href="#oferta-playbook"]').forEach(function (cta) {
+      cta.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        if (offerTarget) {
+          var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          offerTarget.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+
+          if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', '#oferta-playbook');
+          }
+
+          /* Mantém o card enquadrado enquanto imagens lazy acima dele terminam de carregar. */
+          [250, 550, 950, 1500, 2300, 3200].forEach(function (delay) {
+            window.setTimeout(function () {
+              var delta = offerTarget.getBoundingClientRect().top - 20;
+              if (Math.abs(delta) < 2) return;
+              var previousBehavior = document.documentElement.style.scrollBehavior;
+              document.documentElement.style.scrollBehavior = 'auto';
+              window.scrollBy(0, delta);
+              document.documentElement.style.scrollBehavior = previousBehavior;
+            }, delay);
+          });
+        }
+
+        pushDataLayer('cta_offer_click', {
+          cta_location: cta.dataset.ctaLocation || 'unknown',
+          cta_target: 'checkout_playbook',
+          page_slug: 'playbook-treinamento-corporativo'
+        });
+      });
+    });
+
+    /*
+     * Usa a fase de captura para registrar o clique antes do widget da Hotmart.
+     * Assim o evento não depende da ordem dos listeners instalados pelo script externo.
+     */
+    document.addEventListener('click', function (event) {
+      var target = event.target.closest && event.target.closest('#checkout-playbook');
+      if (!target) return;
+
+      var clickParameters = {
+        cta_location: 'offer_primary',
+        checkout_provider: 'hotmart',
+        page_slug: 'playbook-treinamento-corporativo'
+      };
+
+      pushDataLayer('checkout_cta_click', clickParameters);
+      sendGa4Event('checkout_cta_click', clickParameters);
+    }, true);
+
+    /* Confirma que o pop-up realmente abriu ao detectar o iframe do checkout. */
+    var checkoutOpenTracked = false;
+    var checkoutObserver;
+
+    function findHotmartCheckoutFrame() {
+      return Array.prototype.find.call(document.querySelectorAll('iframe'), function (frame) {
+        try {
+          return new URL(frame.src, window.location.href).hostname === 'pay.hotmart.com';
+        } catch (error) {
+          return false;
+        }
+      });
+    }
+
+    function trackCheckoutOpen() {
+      if (checkoutOpenTracked || !findHotmartCheckoutFrame()) return;
+      checkoutOpenTracked = true;
+
+      var ecommerce = {
+        currency: 'BRL',
+        value: 39.90,
+        items: [product]
+      };
+
+      pushDataLayer('hotmart_checkout_open', {
+        cta_location: 'offer_primary',
+        checkout_provider: 'hotmart',
+        page_slug: 'playbook-treinamento-corporativo',
+        ecommerce: ecommerce
+      });
+
+      sendGa4Event('begin_checkout', {
+        currency: ecommerce.currency,
+        value: ecommerce.value,
+        items: ecommerce.items,
+        checkout_provider: 'hotmart',
+        page_slug: 'playbook-treinamento-corporativo'
+      });
+
+      if (checkoutObserver) checkoutObserver.disconnect();
+    }
+
+    checkoutObserver = new MutationObserver(trackCheckoutOpen);
+    checkoutObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src']
+    });
+
+    [0, 250, 750, 1500, 3000].forEach(function (delay) {
+      window.setTimeout(trackCheckoutOpen, delay);
+    });
+  })();
+
+  /* Sanfona exclusiva: abre uma resposta e fecha a anterior. */
+  (function () {
+    var faqList = document.querySelector('.faq-list');
+    if (!faqList) return;
+
+    var triggers = Array.prototype.slice.call(faqList.querySelectorAll('.faq-trigger'));
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function panelFor(trigger) {
+      return document.getElementById(trigger.getAttribute('aria-controls'));
+    }
+
+    function trackFaq(trigger, state) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: 'faq_toggle',
+        faq_id: trigger.closest('.faq-item').dataset.faqId,
+        faq_state: state
+      });
+    }
+
+    function closeItem(trigger) {
+      var panel = panelFor(trigger);
+      if (trigger.getAttribute('aria-expanded') !== 'true' || !panel) return;
+
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.closest('.faq-item').classList.remove('is-open');
+      if (panel._faqAnimation) panel._faqAnimation.cancel();
+
+      if (reduceMotion) {
+        panel.hidden = true;
+        panel.style.height = '0px';
+        panel.style.opacity = '0';
+        return;
+      }
+
+      var startHeight = panel.getBoundingClientRect().height || panel.scrollHeight;
+      panel._faqAnimation = panel.animate([
+        { height: startHeight + 'px', opacity: 1 },
+        { height: '0px', opacity: 0 }
+      ], { duration: 260, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+
+      panel._faqAnimation.onfinish = function () {
+        panel.hidden = true;
+        panel._faqAnimation.cancel();
+        panel.style.height = '0px';
+        panel.style.opacity = '0';
+      };
+    }
+
+    function openItem(trigger) {
+      triggers.forEach(function (other) {
+        if (other !== trigger) closeItem(other);
+      });
+
+      var panel = panelFor(trigger);
+      if (!panel) return;
+      trigger.setAttribute('aria-expanded', 'true');
+      trigger.closest('.faq-item').classList.add('is-open');
+      panel.hidden = false;
+      if (panel._faqAnimation) panel._faqAnimation.cancel();
+
+      if (reduceMotion) {
+        panel.style.height = 'auto';
+        panel.style.opacity = '1';
+        return;
+      }
+
+      panel.style.height = '0px';
+      panel.style.opacity = '0';
+      var endHeight = panel.scrollHeight;
+      panel._faqAnimation = panel.animate([
+        { height: '0px', opacity: 0 },
+        { height: endHeight + 'px', opacity: 1 }
+      ], { duration: 320, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'forwards' });
+
+      panel._faqAnimation.onfinish = function () {
+        panel._faqAnimation.cancel();
+        panel.style.height = 'auto';
+        panel.style.opacity = '1';
+      };
+    }
+
+    triggers.forEach(function (trigger, index) {
+      trigger.addEventListener('click', function () {
+        var willOpen = trigger.getAttribute('aria-expanded') !== 'true';
+        if (willOpen) openItem(trigger); else closeItem(trigger);
+        trackFaq(trigger, willOpen ? 'open' : 'closed');
+      });
+
+      trigger.addEventListener('keydown', function (event) {
+        var targetIndex = null;
+        if (event.key === 'ArrowDown') targetIndex = (index + 1) % triggers.length;
+        if (event.key === 'ArrowUp') targetIndex = (index - 1 + triggers.length) % triggers.length;
+        if (event.key === 'Home') targetIndex = 0;
+        if (event.key === 'End') targetIndex = triggers.length - 1;
+        if (targetIndex !== null) {
+          event.preventDefault();
+          triggers[targetIndex].focus();
+        }
+      });
+    });
+  })();
+
+  (function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.documentElement.classList.add('reveal-ready');
+    var els = document.querySelectorAll('.rv');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: .08, rootMargin: '0px 0px -32px 0px' });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+
+<script>
+  /* Widget modal oficial da Hotmart. */
+  (function importHotmart() {
+    if (!document.querySelector('script[src="https://static.hotmart.com/checkout/widget.min.js"]')) {
+      var imported = document.createElement('script');
+      imported.src = 'https://static.hotmart.com/checkout/widget.min.js';
+      document.head.appendChild(imported);
+    }
+
+    if (!document.querySelector('link[href="https://static.hotmart.com/css/hotmart-fb.min.css"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = 'https://static.hotmart.com/css/hotmart-fb.min.css';
+      document.head.appendChild(link);
+    }
+  })();
+</script>
+
+</body>
+</html>

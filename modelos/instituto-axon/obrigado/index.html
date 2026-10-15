@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <!-- Google Tag Manager -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Google Tag Manager -->
+
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Cadastro recebido | Instituto Axon</title>
+  <meta name="description" content="Confirmação de cadastro para o Playbook Treinamento Corporativo 4.0, de Joe Weider e Instituto Axon.">
+  
+  <meta name="googlebot" content="noindex, nofollow, noarchive">
+  <meta name="theme-color" content="#000c17">
+  <meta name="color-scheme" content="dark">
+  <link rel="canonical" href="https://produto.joeweider.com.br/playbook-treinamento-corporativo/obrigado/">
+  <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+
+  <style>
+    :root {
+      --bg: #000c17;
+      --surface: #082332;
+      --surface-2: #0b2b3d;
+      --line: rgba(107, 211, 235, .2);
+      --accent: #6bd3eb;
+      --accent-strong: #21b6d4;
+      --text: #f5f9fc;
+      --muted: #a8bdca;
+      --ink: #001725;
+      --radius: 24px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { min-width: 320px; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100svh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% 10%, rgba(33, 182, 212, .15), transparent 34rem),
+        linear-gradient(180deg, #00101e 0%, var(--bg) 62%);
+      font-family: Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    .page {
+      width: min(100%, 1180px);
+      min-height: 100svh;
+      margin-inline: auto;
+      padding: max(22px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 28px;
+    }
+
+    .brand {
+      display: inline-flex;
+      width: fit-content;
+      align-items: center;
+    }
+    .brand img { display: block; width: auto; height: 42px; }
+
+    main {
+      width: 100%;
+      display: grid;
+      place-items: center;
+      padding-block: 8px;
+    }
+
+    .card {
+      position: relative;
+      isolation: isolate;
+      width: min(100%, 760px);
+      padding: 32px 22px;
+      overflow: hidden;
+      text-align: center;
+      background: linear-gradient(145deg, rgba(11, 43, 61, .96), rgba(5, 29, 43, .98));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .38);
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      width: 280px;
+      height: 280px;
+      top: -190px;
+      left: 50%;
+      translate: -50% 0;
+      border-radius: 50%;
+      background: rgba(107, 211, 235, .2);
+      filter: blur(55px);
+    }
+
+    .check {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 24px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 18px 42px rgba(33, 182, 212, .28);
+    }
+    .check svg { width: 34px; height: 34px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 8px 14px;
+      color: var(--accent);
+      background: rgba(107, 211, 235, .1);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: currentColor;
+      border-radius: 50%;
+    }
+
+    h1 {
+      max-width: 620px;
+      margin: 0 auto 16px;
+      font-size: clamp(36px, 10vw, 64px);
+      line-height: 1.02;
+      letter-spacing: -.045em;
+    }
+    .intro {
+      max-width: 590px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: clamp(16px, 4.5vw, 19px);
+      line-height: 1.7;
+    }
+    .intro strong { color: var(--text); }
+
+    .next-steps {
+      max-width: 590px;
+      margin: 28px auto 0;
+      display: grid;
+      gap: 10px;
+      text-align: left;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      color: #dce9ef;
+      background: rgba(255, 255, 255, .035);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .step-number {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      background: rgba(107, 211, 235, .1);
+      border-radius: 50%;
+      font-weight: 700;
+    }
+
+    .button {
+      width: 100%;
+      max-width: 360px;
+      min-height: 54px;
+      margin-top: 28px;
+      padding: 15px 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--ink);
+      background: var(--accent);
+      border-radius: 999px;
+      font-weight: 750;
+      text-decoration: none;
+      transition: transform .2s ease, background .2s ease;
+    }
+    .button:hover { background: #87e4f6; transform: translateY(-2px); }
+    .button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+
+    footer {
+      color: #7992a2;
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    footer a { color: #a9c4d1; text-underline-offset: 3px; }
+
+    @media (min-width: 640px) {
+      .page { padding-inline: 32px; }
+      .brand img { height: 50px; }
+      .card { padding: 48px 54px; }
+      .next-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .step { align-items: start; }
+    }
+
+    @media (min-width: 1200px) {
+      .page { padding-block: 34px; }
+      .card { padding-block: 56px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  
+  <!-- End Google Tag Manager (noscript) -->
+
+  <div class="page">
+    <header>
+      <a class="brand" href="../" aria-label="Voltar para a página do Instituto Axon">
+        <img src="../assets/logo-white.svg" width="102" height="51" alt="Instituto Axon">
+      </a>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="titulo-obrigado">
+        <div class="check" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m5 12 4 4L19 6"/>
+          </svg>
+        </div>
+
+        <span class="eyebrow">Cadastro confirmado</span>
+        <h1 id="titulo-obrigado">Recebemos seus dados!</h1>
+        <p class="intro">
+          Obrigado pelo interesse no <strong>Playbook Treinamento Corporativo 4.0</strong>.
+          Seu cadastro foi enviado com sucesso.
+        </p>
+
+        <div class="next-steps" aria-label="Próximos passos">
+          <div class="step">
+            <span class="step-number">1</span>
+            <span>Confira seu e-mail e WhatsApp para não perder nenhuma comunicação.</span>
+          </div>
+          <div class="step">
+            <span class="step-number">2</span>
+            <span>Aguarde as próximas instruções da equipe do Instituto Axon.</span>
+          </div>
+        </div>
+
+        <a class="button" href="../" data-track="thank-you-back">
+          Voltar para a página do Playbook <span aria-hidden="true">→</span>
+        </a>
+      </section>
+    </main>
+
+    <footer>
+      © 2026 Instituto Axon · Desenvolvido por
+      <a href="https://3ads.com.br/" target="_blank" rel="noopener noreferrer">3ADS</a>
+    </footer>
+  </div>
+
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'generate_lead',
+      form_id: 'LnuAPPA',
+      funnel: 'playbook_treinamento_corporativo',
+      page_type: 'thank_you'
+    });
+
+    document.querySelector('[data-track="thank-you-back"]').addEventListener('click', function () {
+      window.dataLayer.push({
+        event: 'thank_you_cta_click',
+        cta_destination: 'landing_page'
+      });
+    });
+  </script>
+</body>
+</html>

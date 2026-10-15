@@ -1,0 +1,14 @@
+{
+  "name": "portal-lps",
+  "private": true,
+  "type": "module",
+  "description": "Biblioteca interna de modelos de landing pages da 3ADS",
+  "scripts": {
+    "importar": "node scripts/importar.mjs",
+    "capturar": "node scripts/capturar.mjs",
+    "servir": "node scripts/servir.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.64.1"
+  }
+}

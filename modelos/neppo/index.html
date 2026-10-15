@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#ffffff">
+  <title>Neppo | Atendimento que transforma conversas em resultados</title>
+  <meta name="description" content="Centralize seus canais, automatize atendimentos e acompanhe sua operação em uma única plataforma com a Neppo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=Unbounded:wght@400;500&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --green: #65cc65;
+      --green-vivid: #02cd5d;
+      --green-dark: #168247;
+      --green-soft: #eef8ee;
+      --green-mint: #dcf6e2;
+      --green-chip: #e9f7eb;
+      --purple: #8a20b5;
+      --purple-deep: #7901ac;
+      --navy: #252c3b;
+      --ink: #1e232f;
+      --muted: #69756f;
+      --line: #dfe9df;
+      --paper: #fffefa;
+      --white: #fff;
+      --radius-sm: 10px;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --shadow-sm: 0 8px 24px rgba(37, 44, 59, .07);
+      --shadow-lg: 0 24px 60px rgba(37, 44, 59, .13);
+      --transition: .25s ease;
+      --font-display: "Unbounded", "Outfit", sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Outfit", system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    body.menu-open { overflow: hidden; }
+    img, svg { display: block; max-width: 100%; }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    h1, h2, h3, p { margin-top: 0; }
+    .container { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
+    .section { padding: 104px 0; }
+    .eyebrow {
+      margin-bottom: 14px;
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .section-title {
+      max-width: 760px;
+      margin-bottom: 18px;
+      font-family: var(--font-display);
+      font-size: clamp(26px, 2.6vw, 40px);
+      font-weight: 400;
+      letter-spacing: -.05em;
+      line-height: 1.2;
+      color: var(--ink);
+    }
+    .section-copy { max-width: 670px; margin-bottom: 0; color: var(--muted); font-size: 17px; }
+    .section-head { margin-bottom: 50px; }
+    .section-head.center { text-align: center; }
+    .section-head.center .section-title,
+    .section-head.center .section-copy { margin-inline: auto; }
+    .btn {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      padding: 12px 22px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:focus-visible,
+    .text-link:focus-visible,
+    .tab:focus-visible,
+    .faq-button:focus-visible,
+    .menu-toggle:focus-visible,
+    .main-nav a:focus-visible {
+      outline: 3px solid rgba(22, 130, 71, .34);
+      outline-offset: 3px;
+    }
+    .btn-primary { background: var(--green-dark); color: var(--white); box-shadow: 0 8px 22px rgba(22, 130, 71, .2); }
+    .btn-primary:hover { background: #116c3b; box-shadow: 0 12px 28px rgba(22, 130, 71, .28); }
+    .btn-navy { background: var(--navy); color: var(--white); }
+    .btn-navy:hover { background: #161b27; }
+    .btn-vivid { background: var(--green-vivid); color: var(--white); }
+    .btn-vivid:hover { background: #02b552; }
+    .btn-outline-white { border-color: rgba(255,255,255,.85); background: transparent; color: #fff; }
+    .btn-outline-white:hover { background: rgba(255,255,255,.12); }
+    .text-link { display: inline-flex; align-items: center; gap: 8px; color: #173126; font-size: 14px; font-weight: 600; }
+
+    /* Divisórias decorativas entre seções (SVG) */
+    .divider {
+      position: absolute;
+      left: 0;
+      z-index: 2;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+    .divider.top { top: -1px; }
+    .divider.bottom { bottom: -1px; }
+
+    /* Header */
+    /* Header sempre flutuante, em pílula com efeito vidro */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      padding: 12px 16px;
+      /* o conteúdo abaixo sobe por trás do menu flutuante */
+      margin-bottom: -84px;
+    }
+    .header-inner {
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 26px;
+      padding: 0 10px 0 22px;
+      border: 1px solid rgba(255,255,255,.7);
+      border-radius: 999px;
+      background: rgba(255,255,255,.72);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      backdrop-filter: blur(18px) saturate(1.4);
+      box-shadow: 0 14px 44px rgba(37,44,59,.16);
+    }
+    .brand img { width: 132px; height: auto; }
+    .main-nav { display: flex; align-items: center; gap: 28px; margin-left: auto; }
+    .main-nav a { position: relative; color: var(--navy); font-size: 14px; font-weight: 500; }
+    .main-nav a .caret { margin-left: 4px; font-size: 10px; color: var(--navy); }
+    .main-nav a:not(.btn)::after { content: ""; position: absolute; right: 0; bottom: -7px; left: 0; height: 2px; transform: scaleX(0); background: var(--green-vivid); transition: transform var(--transition); }
+    .main-nav a:hover::after { transform: scaleX(1); }
+    .main-nav .mobile-action { display: none; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .header-actions .btn { min-height: 38px; padding: 9px 20px; font-size: 13px; }
+    .menu-toggle { display: none; width: 42px; height: 42px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%; background: var(--white); cursor: pointer; }
+    .menu-toggle span, .menu-toggle span::before, .menu-toggle span::after { display: block; width: 18px; height: 2px; border-radius: 2px; background: var(--ink); transition: var(--transition); }
+    .menu-toggle span { position: relative; }
+    .menu-toggle span::before, .menu-toggle span::after { content: ""; position: absolute; left: 0; }
+    .menu-toggle span::before { top: -6px; }
+    .menu-toggle span::after { top: 6px; }
+
+    /* Hero */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 172px 0 96px;
+      background: linear-gradient(180deg, #f1ffef 0%, #fff 100%);
+    }
+    .hero-grid { position: relative; z-index: 1; display: grid; grid-template-columns: 1.03fr .97fr; align-items: center; gap: 60px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px; color: var(--green-dark); font-size: 12px; font-weight: 600; }
+    .hero-badge::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--green-dark); }
+    .hero h1 {
+      max-width: 590px;
+      margin-bottom: 22px;
+      font-family: var(--font-display);
+      font-size: clamp(30px, 2.6vw, 48px);
+      font-weight: 400;
+      line-height: 1.18;
+      letter-spacing: -.05em;
+      color: var(--ink);
+    }
+    .hero h1 em { color: var(--green); font-style: normal; }
+    .hero-copy { max-width: 535px; margin-bottom: 30px; color: var(--muted); font-size: 17px; }
+    .hero-actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 26px; }
+    .hero-note { display: flex; align-items: center; gap: 8px; margin: 0; color: #839087; font-size: 12px; }
+    .hero-note img { width: 16px; height: 16px; }
+
+    .hero-visual { position: relative; margin-left: 40px; width: fit-content; justify-self: center; }
+    .hero-app {
+      width: min(380px, 100%);
+      border: 1px solid rgba(37,44,59,.28);
+      border-radius: 18px;
+      box-shadow: 0 24px 60px rgba(37,44,59,.16);
+    }
+    .float-card {
+      position: absolute;
+      z-index: 2;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 4px 26px rgba(0,0,0,.18);
+      padding: 14px 18px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+    .float-card strong { display: block; color: #111; font-weight: 700; }
+    .float-toast { top: 52px; left: -140px; }
+    .float-support { right: -56px; bottom: -64px; padding-right: 34px; }
+    .float-support .support-avatar {
+      position: absolute;
+      top: -40px;
+      right: -18px;
+      width: 66px;
+      height: 66px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      object-fit: cover;
+      box-shadow: 0 4px 29px rgba(0,0,0,.25);
+    }
+    .float-logo {
+      position: absolute;
+      top: 22px;
+      left: -172px;
+      z-index: 3;
+      display: grid;
+      place-items: center;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 4px 9px rgba(0,0,0,.25);
+    }
+    .float-logo img { width: 38px; height: 38px; }
+
+    /* Faixa de clientes */
+    .client-strip { position: relative; padding: calc(4.4vw + 56px) 0 70px; background: var(--green-soft); }
+    .client-title {
+      max-width: 420px;
+      margin: 0 auto 52px;
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 400;
+      letter-spacing: -.04em;
+      line-height: 1.3;
+      text-align: center;
+      color: var(--ink);
+    }
+    .client-marquee { overflow: hidden; }
+    .client-track { display: flex; align-items: center; gap: 90px; width: max-content; animation: marquee 40s linear infinite; }
+    .client-track img { height: 56px; width: auto; max-width: 160px; object-fit: contain; }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+
+    /* Jornada */
+    .journey { position: relative; background: var(--green-soft); padding-top: 90px; }
+    .journey-intro { max-width: 680px; margin-bottom: 64px; }
+    .steps { display: flex; flex-direction: column; gap: 36px; }
+    .step {
+      position: sticky;
+      display: grid;
+      grid-template-columns: .88fr 1.12fr;
+      align-items: center;
+      gap: 56px;
+      border: 1px solid rgba(37,44,59,.06);
+      border-radius: var(--radius-lg);
+      padding: 56px;
+      background: #fff;
+      box-shadow: 0 -14px 40px rgba(37,44,59,.09);
+    }
+    .step:nth-child(1) { top: 88px; }
+    .step:nth-child(2) { top: 102px; }
+    .step:nth-child(3) { top: 116px; }
+    .step:nth-child(4) { top: 130px; }
+    .step:nth-child(5) { top: 144px; }
+    .step:nth-child(6) { top: 158px; }
+    .step.reverse { grid-template-columns: 1.12fr .88fr; }
+    .step.reverse .step-content { order: 2; }
+    .step.reverse .dashboard { order: 1; }
+    .step-kicker { margin-bottom: 12px; color: var(--green); font-size: 12px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+    .step h3 {
+      margin-bottom: 14px;
+      font-family: var(--font-display);
+      font-size: clamp(20px, 1.7vw, 26px);
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: -.03em;
+      color: var(--ink);
+    }
+    .step p { margin: 0; color: var(--muted); font-size: 14px; }
+    .dashboard {
+      overflow: hidden;
+      border: 1px solid #dce6dd;
+      border-radius: 13px;
+      background: #fff;
+      box-shadow: 0 15px 35px rgba(37,44,59,.1);
+    }
+    .dash-top { height: 34px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #e6ece7; padding: 0 12px; background: var(--navy); }
+    .dash-top i { width: 5px; height: 5px; border-radius: 50%; background: #697181; }
+    .dash-body { min-height: 240px; display: grid; grid-template-columns: 38px 1fr; }
+    .dash-side { padding-top: 13px; background: #2f3748; }
+    .dash-side i { display: block; width: 16px; height: 5px; margin: 0 auto 13px; border-radius: 3px; background: #60697a; }
+    .dash-side i:first-child { background: var(--green); }
+    .dash-main { padding: 18px; background: #f7f9fa; }
+    .dash-heading { width: 34%; height: 8px; margin-bottom: 18px; border-radius: 5px; background: #637080; }
+    .dash-toolbar { height: 25px; margin-bottom: 11px; border: 1px solid #dfe4e7; border-radius: 5px; background: #fff; }
+    .dash-table { overflow: hidden; border: 1px solid #e0e5e7; border-radius: 5px; background: #fff; }
+    .dash-row { display: grid; grid-template-columns: 1.25fr .8fr .8fr .45fr; gap: 8px; align-items: center; min-height: 27px; border-bottom: 1px solid #edf0f2; padding: 0 9px; }
+    .dash-row:last-child { border: 0; }
+    .dash-row span { height: 4px; border-radius: 3px; background: #d6dde0; }
+    .dash-row span:first-child { background: #aeb9bf; }
+    .dash-row .status { height: 11px; background: #dff4e4; }
+    .dashboard.flow .dash-main { display: grid; place-items: center; background: #fff; }
+    .flow-box { width: 88%; padding: 18px; border: 1px solid #e1e8e2; border-radius: 8px; background: #f8fbf8; }
+    .flow-node { width: 80%; height: 23px; margin: 0 auto 21px; border-radius: 5px; background: #e4f4e7; }
+    .flow-node:nth-child(2) { width: 52%; background: #d9dfe7; }
+    .flow-node:last-child { width: 65%; margin-bottom: 0; background: var(--green); opacity: .8; }
+    .dashboard.modal .dash-main { display: grid; place-items: center; background: #f3f5f6; }
+    .modal-card { width: 74%; border: 1px solid #dfe6e0; border-radius: 8px; padding: 22px; background: #fff; box-shadow: 0 12px 25px rgba(37,44,59,.12); }
+    .modal-card .input { height: 24px; margin-bottom: 10px; border: 1px solid #e1e5e2; border-radius: 5px; }
+    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .modal-actions i { height: 20px; border-radius: 4px; background: #edf0ed; }
+    .modal-actions i:last-child { background: var(--green); }
+    .dashboard.chat .dash-body { grid-template-columns: 38px .38fr 1fr; }
+    .dash-chats { border-right: 1px solid #e2e7e3; padding: 12px 8px; background: #fff; }
+    .dash-chat { display: flex; gap: 5px; margin-bottom: 11px; }
+    .dash-chat i { width: 14px; height: 14px; flex: 0 0 auto; border-radius: 50%; background: #d3dbe5; }
+    .dash-chat span { width: 70%; height: 5px; margin-top: 4px; border-radius: 4px; background: #dfe4e1; }
+    .chat-canvas { display: flex; flex-direction: column; gap: 8px; padding: 32px 16px 14px; background: #f7faf8; }
+    .chat-bubble { width: 55%; height: 23px; border-radius: 7px; background: #e5e9e6; }
+    .chat-bubble.me { width: 62%; align-self: flex-end; background: #dff4e3; }
+
+    /* Recursos (fundo escuro) */
+    .resources {
+      position: relative;
+      padding: calc(4.4vw + 76px) 0 calc(4.4vw + 86px);
+      background: var(--navy);
+    }
+    .resources .eyebrow { color: var(--green); }
+    .resources .section-title { color: #fff; }
+    .resources .section-copy { color: rgba(255,255,255,.82); }
+    .tabs { display: flex; justify-content: center; gap: 10px; margin: -22px 0 46px; }
+    .tab { border: 0; border-radius: 999px; padding: 9px 20px; background: transparent; cursor: pointer; color: #8a93a5; font-size: 13px; font-weight: 600; }
+    .tab.active { background: var(--green-dark); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: grid; }
+    .resource-grid { grid-template-columns: .82fr 1.18fr; gap: 26px; align-items: start; }
+    .resource-list { display: flex; flex-direction: column; gap: 14px; }
+    .resource-option { display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: center; border-radius: 12px; padding: 16px; background: #fff; cursor: pointer; transition: var(--transition); }
+    .resource-option:hover, .resource-option.active { box-shadow: 0 10px 26px rgba(0,0,0,.25); transform: translateY(-1px); }
+    .resource-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; background: var(--green-chip); color: var(--green-dark); font-size: 14px; }
+    .resource-option strong { display: block; font-size: 14px; color: var(--navy); }
+    .resource-option small { display: block; color: var(--muted); font-size: 11px; }
+    .resource-detail { border-radius: var(--radius); padding: 40px; background: #fff; }
+    .resource-detail .eyebrow { margin-bottom: 10px; color: var(--green-dark); }
+    .resource-detail h3 { margin-bottom: 14px; font-size: 26px; font-weight: 700; line-height: 1.2; color: var(--navy); letter-spacing: -.02em; }
+    .check-list { display: flex; flex-direction: column; gap: 14px; margin: 22px 0 0; padding: 0; list-style: none; }
+    .check-list li { position: relative; padding-left: 26px; color: var(--muted); font-size: 14px; }
+    .check-list li strong { color: var(--navy); }
+    .check-list li::before { content: "✓"; position: absolute; top: 0; left: 0; color: var(--green-dark); font-weight: 700; }
+
+    /* Um sistema só (omnichannel) */
+    .omni { background: var(--green-soft); }
+    .omni-grid { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 60px; }
+    .omni-grid .btn { margin-top: 28px; }
+    .channel-orbit {
+      position: relative;
+      width: min(540px, 100%);
+      aspect-ratio: 1;
+      margin-inline: auto;
+      border-radius: 50%;
+      background: radial-gradient(circle,
+        #fff 0 20.5%,
+        #8fd58f 20.5% 31%,
+        #a4dfa4 31% 41.5%,
+        #c2e9c2 41.5% 52%,
+        transparent 52%);
+    }
+    .orbit-logo { position: absolute; top: 50%; left: 50%; width: 26%; transform: translate(-50%, -50%); }
+    .channel-pill {
+      position: absolute;
+      z-index: 1;
+      border: 1px solid #4bbf4b;
+      border-radius: 999px;
+      padding: 8px 16px;
+      background: #82ff82;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+    }
+
+    /* Benefícios */
+    .benefits-section { position: relative; padding: calc(4.4vw + 76px) 0 calc(4.4vw + 86px); }
+    .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+    .benefit { min-height: 170px; padding: 26px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .benefit:nth-child(3n) { border-right: 0; }
+    .benefit:nth-child(n+4) { border-bottom: 0; }
+    .benefit-num { display: inline-grid; place-items: center; min-width: 34px; height: 30px; margin-bottom: 25px; border-radius: 9px; background: var(--green-chip); color: var(--green-dark); font-size: 12px; font-weight: 600; }
+    .benefit h3 { margin-bottom: 7px; font-size: 16px; font-weight: 700; line-height: 1.25; color: var(--navy); }
+    .benefit p { margin: 0; color: var(--muted); font-size: 12px; }
+
+    /* Stats */
+    .stats { position: relative; padding: 74px 0; background: var(--navy); color: #fff; }
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; }
+    .stat { position: relative; padding-left: 130px; }
+    .stat + .stat::before { content: ""; position: absolute; top: 6px; bottom: 6px; left: 0; width: 2px; background: var(--green); }
+    .stat strong {
+      display: block;
+      font-family: var(--font-display);
+      font-size: clamp(56px, 5.4vw, 92px);
+      font-weight: 500;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: var(--green);
+    }
+    .stat span {
+      display: inline;
+      margin-left: 120px;
+      background: #fff;
+      color: var(--navy);
+      padding: 3px 9px;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 2;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+    .stat .stat-label { display: block; max-width: 320px; margin-top: -18px; }
+    .stat .stat-label span { margin-left: 0; }
+
+    /* Depoimentos */
+    .testimonials { position: relative; padding: calc(4.4vw + 76px) 0 calc(4.4vw + 86px); background: var(--green-soft); }
+    .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .quote-card {
+      display: flex;
+      min-height: 230px;
+      flex-direction: column;
+      justify-content: space-between;
+      border-top: 3px solid var(--green);
+      border-radius: 12px;
+      padding: 30px;
+      background: #fff;
+      box-shadow: 0 14px 34px rgba(37,44,59,.08);
+    }
+    .quote-card blockquote { margin: 0 0 28px; font-size: 15px; font-weight: 500; line-height: 1.7; color: #3f4653; }
+    .quote-card blockquote::before { content: "“"; margin-right: 2px; color: var(--green); font-size: 26px; font-weight: 700; line-height: 0; vertical-align: -6px; }
+    .person strong { display: block; font-size: 14px; color: var(--navy); }
+    .person span { display: block; color: var(--muted); font-size: 12px; }
+
+    /* FAQ e CTA */
+    .faq-wrap { max-width: 820px; margin-inline: auto; }
+    .faq-item { border-bottom: 1px solid var(--line); }
+    .faq-item:first-child { border-top: 1px solid var(--line); }
+    .faq-button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 20px; border: 0; padding: 22px 0; background: transparent; cursor: pointer; text-align: left; font-size: 15px; font-weight: 700; color: var(--navy); }
+    .faq-plus { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--green-chip); color: var(--green-dark); font-size: 18px; transition: transform var(--transition); }
+    .faq-button[aria-expanded="true"] .faq-plus { transform: rotate(45deg); }
+    .faq-answer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s ease; }
+    .faq-answer > div { overflow: hidden; }
+    .faq-answer p { margin: 0; padding: 0 48px 22px 0; color: var(--muted); font-size: 14px; }
+    .faq-item.open .faq-answer { grid-template-rows: 1fr; }
+    .micro-cta { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 1160px; margin: 70px auto 0; border-radius: var(--radius); padding: 24px 28px; background: var(--green-mint); }
+    .micro-cta h3 { margin: 0 0 4px; font-size: 18px; color: var(--navy); }
+    .micro-cta p { margin: 0; color: var(--muted); font-size: 12px; }
+
+    .final-cta { padding: 20px 0 96px; }
+    .final-box {
+      position: relative;
+      display: grid;
+      grid-template-columns: .9fr 1.1fr;
+      align-items: center;
+      gap: 30px;
+      overflow: hidden;
+      border-radius: 40px;
+      padding: 64px 70px;
+      background: linear-gradient(135deg, #44d987 0%, #01cd5d 100%);
+      color: #fff;
+    }
+    .final-box h2 {
+      max-width: 480px;
+      margin-bottom: 14px;
+      font-family: var(--font-display);
+      font-size: clamp(26px, 2.5vw, 42px);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -.04em;
+      color: #fff;
+    }
+    .final-box p { max-width: 380px; margin: 0 0 28px; color: rgba(255,255,255,.92); font-size: 16px; }
+    .final-robot { width: min(420px, 100%); margin-inline: auto; }
+    .final-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+    .final-actions .btn { min-width: 230px; }
+    .final-actions .btn-primary { box-shadow: none; }
+
+    /* Footer */
+    .site-footer { padding: 70px 0 0; background: #f2f4f6; color: var(--navy); }
+    .footer-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr .95fr .75fr; gap: 40px; padding-bottom: 64px; }
+    .footer-brand img.footer-logo { width: 184px; height: auto; margin-bottom: 42px; }
+    .contact-row { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; font-size: 14px; color: var(--navy); }
+    .contact-row img { width: 18px; height: 18px; }
+    .footer-col h3 { margin: 6px 0 28px; color: var(--green-vivid); font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .footer-col a { display: block; margin-bottom: 12px; color: #575d68; font-size: 13px; }
+    .footer-col a:hover { color: var(--green-dark); }
+    .footer-bar { background: var(--purple-deep); color: #fff; }
+    .footer-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 50px; padding: 10px 0; font-size: 12px; }
+    .social { display: flex; gap: 22px; }
+    .social img { width: 19px; height: 19px; }
+
+    @media (max-width: 980px) {
+      .main-nav { display: none; }
+      .header-actions .btn-navy { display: none; }
+      .menu-toggle { display: flex; }
+      .main-nav.open { position: fixed; inset: 86px 12px auto; display: flex; flex-direction: column; align-items: stretch; gap: 0; border: 1px solid var(--line); border-radius: 20px; padding: 18px 24px 28px; background: #fff; box-shadow: var(--shadow-lg); }
+      .main-nav.open a { padding: 14px 0; font-size: 16px; }
+      .main-nav.open .mobile-action { display: inline-flex; margin-top: 10px; color: #fff; }
+      .hero-grid { grid-template-columns: 1fr; gap: 70px; }
+      .hero-content { text-align: center; }
+      .hero h1, .hero-copy { margin-inline: auto; }
+      .hero-actions, .hero-note { justify-content: center; }
+      .hero-visual { margin-left: 0; }
+      .float-toast { left: -20px; }
+      .float-logo { left: -34px; top: -20px; }
+      .float-support { right: -12px; bottom: -54px; }
+      .step, .step.reverse { grid-template-columns: 1fr; gap: 30px; padding: 34px; }
+      .step.reverse .step-content { order: 1; }
+      .step.reverse .dashboard { order: 2; }
+      .resource-grid, .omni-grid { grid-template-columns: 1fr; }
+      .omni-grid { gap: 48px; }
+      .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+      .benefit:nth-child(3n) { border-right: 1px solid var(--line); }
+      .benefit:nth-child(2n) { border-right: 0; }
+      .benefit:nth-child(n+4) { border-bottom: 1px solid var(--line); }
+      .benefit:nth-child(n+5) { border-bottom: 0; }
+      .stat { padding-left: 0; }
+      .stat + .stat::before { display: none; }
+      .stat span { margin-left: 0; }
+      .stat .stat-label { margin-top: 8px; }
+      .testimonial-grid { grid-template-columns: 1fr; }
+      .quote-card { min-height: 0; }
+      .final-box { grid-template-columns: 1fr; padding: 44px 36px; }
+      .footer-grid { grid-template-columns: 1.4fr 1fr 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .container { width: min(100% - 32px, 1160px); }
+      .section { padding: 76px 0; }
+      .header-actions .btn-vivid { display: none; }
+      .hero { padding: 140px 0 90px; }
+      .hero-actions { flex-direction: column; }
+      .hero-actions .btn, .final-actions .btn { width: 100%; }
+      .float-toast { top: 24px; left: -8px; font-size: 12px; padding: 10px 14px; }
+      .float-logo { display: none; }
+      .float-support { font-size: 12px; padding: 10px 14px; right: -4px; bottom: -46px; }
+      .float-support .support-avatar { width: 52px; height: 52px; top: -30px; right: -10px; }
+      .client-track { gap: 48px; }
+      .client-track img { height: 42px; }
+      .step { padding: 24px; }
+      .dash-body { min-height: 180px; }
+      .resource-detail { padding: 27px; }
+      .channel-pill { font-size: 11px; padding: 6px 11px; }
+      .benefits-grid { grid-template-columns: 1fr; }
+      .benefit, .benefit:nth-child(2n), .benefit:nth-child(3n), .benefit:nth-child(n+4), .benefit:nth-child(n+5) { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .benefit:last-child { border-bottom: 0; }
+      .stats-grid { grid-template-columns: 1fr; gap: 42px; }
+      .micro-cta { align-items: flex-start; flex-direction: column; }
+      .micro-cta .btn { width: 100%; }
+      .final-box { padding: 34px 25px; border-radius: 28px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .footer-brand { grid-column: 1 / -1; }
+      .footer-bar-inner { align-items: flex-start; flex-direction: column; }
+      .step, .step:nth-child(n) { position: static; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+      .client-track { animation: none; flex-wrap: wrap; width: auto; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="Neppo - início"><img src="assets/logo-header.png" alt="Neppo" width="132" height="34"></a>
+      <nav class="main-nav" id="main-nav" aria-label="Navegação principal">
+        <a href="#solucoes">Soluções <span class="caret" aria-hidden="true">▾</span></a>
+        <a href="page-planos-e-precos.html">Planos e Preços</a>
+        <a href="#conteudos">Integrações <span class="caret" aria-hidden="true">▾</span></a>
+        <a href="#" data-link-pendente="parcerias">Parcerias</a>
+        <a href="page-casos-de-sucesso.html">Conteúdos <span class="caret" aria-hidden="true">▾</span></a>
+        <a href="#contato">Contato</a>
+        <a class="btn btn-vivid mobile-action" href="#demonstracao">Contrate Agora!</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn-navy" href="#demonstracao">Ver Demonstração</a>
+        <a class="btn btn-vivid" href="#demonstracao">Contrate Agora!</a>
+        <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-controls="main-nav" aria-expanded="false"><span></span></button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <span class="hero-badge">Atendimento que evolui com você</span>
+          <h1>Pare de <em>perder vendas</em> por demora no atendimento</h1>
+          <p class="hero-copy">A Neppo unifica WhatsApp, Instagram e outros canais em um só lugar, para sua equipe vender mais rápido e não deixar nenhuma oportunidade escapar.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#demonstracao">Ver demonstração <span aria-hidden="true">→</span></a>
+            <a class="text-link" href="#demonstracao"><span aria-hidden="true">▶</span> Falar com um especialista</a>
+          </div>
+          <p class="hero-note">
+            <img src="assets/icon-check.svg" alt="" aria-hidden="true">
+            Atendimento digital de ponta a ponta • Ecossistema Sankhya
+          </p>
+        </div>
+
+        <div class="hero-visual">
+          <img class="hero-app" src="assets/hero-app.png" alt="Central de atendimento Neppo com conversas de WhatsApp, Telegram, e-mail e Facebook">
+          <span class="float-logo" aria-hidden="true"><img src="assets/logo-icon.png" alt=""></span>
+          <div class="float-card float-toast" aria-hidden="true"><strong>Parabéns.</strong>Mensagem enviada!</div>
+          <div class="float-card float-support" aria-hidden="true">
+            <img class="support-avatar" src="assets/avatar-pedro.png" alt="">
+            <strong>Pedro Soares - Neppo</strong>Suporte 24/07
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="client-strip" aria-label="Empresas clientes">
+      <img class="divider top" src="assets/divisoria-sec-1.svg" alt="" aria-hidden="true">
+      <div class="container">
+        <h2 class="client-title">Empresas que atendem melhor com a Neppo</h2>
+        <div class="client-marquee">
+          <div class="client-track">
+            <img src="assets/client-ourofino.png" alt="Ourofino Saúde Animal">
+            <img src="assets/client-sabin.png" alt="Sabin Diagnóstico e Saúde">
+            <img src="assets/client-ploomes.png" alt="Ploomes">
+            <img src="assets/client-facchini.png" alt="Facchini">
+            <img src="assets/client-festcolor.png" alt="Festcolor">
+            <img src="assets/client-guarana.png" alt="Guaraná Mineiro">
+            <img src="assets/client-sankhya.png" alt="Sankhya">
+            <img src="assets/client-uniodonto.png" alt="Uniodonto">
+            <img src="assets/client-hotbeach.png" alt="Hot Beach Parques e Resorts">
+            <img src="assets/client-ourofino.png" alt="" aria-hidden="true">
+            <img src="assets/client-sabin.png" alt="" aria-hidden="true">
+            <img src="assets/client-ploomes.png" alt="" aria-hidden="true">
+            <img src="assets/client-facchini.png" alt="" aria-hidden="true">
+            <img src="assets/client-festcolor.png" alt="" aria-hidden="true">
+            <img src="assets/client-guarana.png" alt="" aria-hidden="true">
+            <img src="assets/client-sankhya.png" alt="" aria-hidden="true">
+            <img src="assets/client-uniodonto.png" alt="" aria-hidden="true">
+            <img src="assets/client-hotbeach.png" alt="" aria-hidden="true">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section journey" id="solucoes">
+      <div class="container">
+        <div class="journey-intro"><p class="eyebrow">Jornada completa</p><h2 class="section-title">Do primeiro “oi” no WhatsApp até o pós-venda, numa só plataforma</h2><p class="section-copy">Atendimento e vendas não são feitos separados na Neppo — são etapas da mesma jornada, com histórico do cliente sempre à mão.</p></div>
+        <div class="steps">
+          <article class="step"><div class="step-content"><p class="step-kicker">Primeiro contato</p><h3>O chatbot com IA faz a primeira triagem</h3><p>Qualifica o contato, entende a dúvida e direciona a demanda para o fluxo certo — sem depender de um agente disponível.</p></div><div class="dashboard"><div class="dash-top"><i></i><i></i><i></i></div><div class="dash-body"><aside class="dash-side"><i></i><i></i><i></i><i></i></aside><div class="dash-main"><div class="dash-heading"></div><div class="dash-toolbar"></div><div class="dash-table"><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div></div></div></div></div></article>
+          <article class="step reverse"><div class="step-content"><p class="step-kicker">Atendimento</p><h3>O agente assume com o histórico completo na tela</h3><p>Quando é preciso falar com alguém, a transferência é imediata e todo o contexto acompanha a conversa.</p></div><div class="dashboard flow"><div class="dash-top"><i></i><i></i><i></i></div><div class="dash-body"><aside class="dash-side"><i></i><i></i><i></i><i></i></aside><div class="dash-main"><div class="flow-box"><div class="flow-node"></div><div class="flow-node"></div><div class="flow-node"></div></div></div></div></div></article>
+          <article class="step"><div class="step-content"><p class="step-kicker">Venda</p><h3>A campanha começa com uma lista bem segmentada</h3><p>Defina a base, a mensagem e o melhor momento. Cada campanha nasce com o público certo e objetivo claro.</p></div><div class="dashboard modal"><div class="dash-top"><i></i><i></i><i></i></div><div class="dash-body"><aside class="dash-side"><i></i><i></i><i></i><i></i></aside><div class="dash-main"><div class="modal-card"><div class="input"></div><div class="input"></div><div class="modal-actions"><i></i><i></i></div></div></div></div></div></article>
+          <article class="step reverse"><div class="step-content"><p class="step-kicker">Atendimento + vendas</p><h3>O CRM e o WhatsApp oficial na mesma tela</h3><p>Consulte dados, atualize oportunidades e avance negociações sem trocar de ferramenta ou perder histórico.</p></div><div class="dashboard chat"><div class="dash-top"><i></i><i></i><i></i></div><div class="dash-body"><aside class="dash-side"><i></i><i></i><i></i><i></i></aside><div class="dash-chats"><div class="dash-chat"><i></i><span></span></div><div class="dash-chat"><i></i><span></span></div><div class="dash-chat"><i></i><span></span></div><div class="dash-chat"><i></i><span></span></div></div><div class="chat-canvas"><div class="chat-bubble"></div><div class="chat-bubble me"></div><div class="chat-bubble"></div><div class="chat-bubble me"></div></div></div></div></article>
+          <article class="step"><div class="step-content"><p class="step-kicker">Pós-venda</p><h3>O follow-up roda sozinho, na frequência certa</h3><p>Lembretes, pesquisas, atualizações e novas oportunidades continuam acontecendo depois da venda.</p></div><div class="dashboard modal"><div class="dash-top"><i></i><i></i><i></i></div><div class="dash-body"><aside class="dash-side"><i></i><i></i><i></i><i></i></aside><div class="dash-main"><div class="modal-card"><div class="input"></div><div class="input"></div><div class="modal-actions"><i></i><i></i></div></div></div></div></div></article>
+          <article class="step reverse"><div class="step-content"><p class="step-kicker">Gestão</p><h3>Supervisão da operação em tempo real</h3><p>Monitore produtividade, filas, SLA, campanhas e resultados para agir antes que um gargalo vire problema.</p></div><div class="dashboard"><div class="dash-top"><i></i><i></i><i></i></div><div class="dash-body"><aside class="dash-side"><i></i><i></i><i></i><i></i></aside><div class="dash-main"><div class="dash-heading"></div><div class="dash-toolbar"></div><div class="dash-table"><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div><div class="dash-row"><span></span><span></span><span></span><span class="status"></span></div></div></div></div></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section resources" id="recursos">
+      <img class="divider top" src="assets/divisoria-2.svg" alt="" aria-hidden="true">
+      <img class="divider bottom" src="assets/divisoria-3.svg" alt="" aria-hidden="true">
+      <div class="container">
+        <div class="section-head center"><p class="eyebrow">Recursos Neppo</p><h2 class="section-title">Feito para quem atende e para quem vende</h2><p class="section-copy">Veja, na prática, o que muda na rotina de cada operação.</p></div>
+        <div class="tabs" role="tablist" aria-label="Áreas da plataforma"><button class="tab active" role="tab" aria-selected="true" data-tab="atendimento">Atendimento</button><button class="tab" role="tab" aria-selected="false" data-tab="vendas">Vendas</button></div>
+        <div class="tab-panel resource-grid active" id="atendimento" role="tabpanel">
+          <div class="resource-list"><div class="resource-option active"><span class="resource-icon">◎</span><span><strong>Espaço do Agente</strong><small>Tudo que o atendente precisa em um painel.</small></span></div><div class="resource-option"><span class="resource-icon">◫</span><span><strong>Todos os Canais</strong><small>WhatsApp, Instagram e mais, juntos.</small></span></div><div class="resource-option"><span class="resource-icon">↗</span><span><strong>Monitoramento 2.0</strong><small>Visibilidade real sobre a operação.</small></span></div><div class="resource-option"><span class="resource-icon">⌘</span><span><strong>FlexBot de texto</strong><small>Automação inteligente para resolver.</small></span></div><div class="resource-option"><span class="resource-icon">◉</span><span><strong>Pesquisa de Satisfação</strong><small>Saiba o que o cliente pensa.</small></span></div></div>
+          <article class="resource-detail"><p class="eyebrow">Espaço do agente</p><h3>Uma tela só, do início ao fim do atendimento</h3><ul class="check-list"><li><strong>Fila centralizada:</strong> conversas de todos os canais chegam à mesma caixa.</li><li><strong>Contexto completo:</strong> cadastro, tags, conversas e histórico sem sair da tela.</li><li><strong>Acompanhamento do supervisor:</strong> indicadores, filas e desempenho em tempo real.</li></ul></article>
+        </div>
+        <div class="tab-panel resource-grid" id="vendas" role="tabpanel">
+          <div class="resource-list"><div class="resource-option active"><span class="resource-icon">↗</span><span><strong>Campanhas segmentadas</strong><small>Fale com a base certa.</small></span></div><div class="resource-option"><span class="resource-icon">◈</span><span><strong>Venda Digital</strong><small>Do interesse ao pedido no mesmo fluxo.</small></span></div><div class="resource-option"><span class="resource-icon">◎</span><span><strong>Gestão de oportunidades</strong><small>Acompanhe cada avanço.</small></span></div><div class="resource-option"><span class="resource-icon">⌁</span><span><strong>Integração com CRM</strong><small>Dados sincronizados em tempo real.</small></span></div></div>
+          <article class="resource-detail"><p class="eyebrow">Venda conversacional</p><h3>Transforme conversas em oportunidades rastreáveis</h3><ul class="check-list"><li><strong>Segmentação inteligente:</strong> campanhas baseadas em perfil e comportamento.</li><li><strong>Negociação no canal:</strong> atendimento, proposta e fechamento sem ruptura.</li><li><strong>Dados conectados:</strong> cada interação atualiza seu processo comercial.</li></ul></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section omni" id="conteudos">
+      <div class="container omni-grid">
+        <div><p class="eyebrow">Menos troca, mais resultado</p><h2 class="section-title">Um sistema só, para tudo</h2><p class="section-copy">Chega de alternar entre sistemas para atender um cliente. Da primeira mensagem ao pós-venda, sua equipe trabalha com contexto.</p><a class="btn btn-primary" href="#demonstracao">Quero conhecer a solução completa</a></div>
+        <div class="channel-orbit" aria-label="Canais integrados na Neppo">
+          <img class="orbit-logo" src="assets/logo-mark.svg" alt="Neppo">
+          <span class="channel-pill" style="top: 17%; left: 33%;">Telegram</span>
+          <span class="channel-pill" style="top: 15%; left: 67%;">Messenger</span>
+          <span class="channel-pill" style="top: 40%; left: 13%;">Instagram</span>
+          <span class="channel-pill" style="top: 38%; left: 87%;">Chatbot</span>
+          <span class="channel-pill" style="top: 64%; left: 17%;">Voz</span>
+          <span class="channel-pill" style="top: 64%; left: 85%;">E-mail</span>
+          <span class="channel-pill" style="top: 82%; left: 51%;">WhatsApp API Oficial</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section benefits-section" id="beneficios">
+      <img class="divider top" src="assets/divisoria-4.svg" alt="" aria-hidden="true">
+      <img class="divider bottom" src="assets/divisoria-5.svg" alt="" aria-hidden="true">
+      <div class="container"><div class="section-head"><p class="eyebrow">Resultados práticos</p><h2 class="section-title">O que muda no seu dia a dia com a Neppo</h2></div><div class="benefits-grid"><article class="benefit"><span class="benefit-num">01</span><h3>Mais leads viram oportunidades</h3><p>O contato chega, é atendido e segue para o próximo passo.</p></article><article class="benefit"><span class="benefit-num">02</span><h3>Respostas mais rápidas</h3><p>Automação e distribuição reduzem a espera em todos os canais.</p></article><article class="benefit"><span class="benefit-num">03</span><h3>Dados organizados e integrados</h3><p>Histórico, cadastro e conversas vivem no mesmo fluxo.</p></article><article class="benefit"><span class="benefit-num">04</span><h3>Comunicação personalizada</h3><p>Cada cliente recebe contexto e não precisa repetir tudo.</p></article><article class="benefit"><span class="benefit-num">05</span><h3>Gestão com visão completa</h3><p>Acompanhe fila, produtividade, SLA e resultados em tempo real.</p></article><article class="benefit"><span class="benefit-num">06</span><h3>Fácil para o time, leve para o cliente</h3><p>Uma experiência simples, contínua e que escala.</p></article></div></div>
+    </section>
+
+    <section class="stats" aria-label="Indicadores Neppo"><div class="container stats-grid"><div class="stat"><strong>360°</strong><span class="stat-label"><span>Visão completa de cada interação, sem perder etapas.</span></span></div><div class="stat"><strong>4x</strong><span class="stat-label"><span>Sua equipe rende mais, focada no que realmente importa.</span></span></div></div></section>
+
+    <section class="section testimonials" id="clientes"><img class="divider top" src="assets/divisoria-6.svg" alt="" aria-hidden="true"><img class="divider bottom" src="assets/divisoria-7.svg" alt="" aria-hidden="true"><div class="container"><div class="section-head"><p class="eyebrow">Prova real</p><h2 class="section-title">Quem usa, recomenda</h2><p class="section-copy">Empresas de setores diferentes, a mesma mudança: mais eficiência com a Neppo.</p></div><div class="testimonial-grid"><article class="quote-card"><blockquote>Quando tomamos a decisão pela Neppo, tivemos todo o suporte para criação do fluxo, processos e implantação.</blockquote><div class="person"><strong>Rafaela Gonzalez</strong><span>Edições CNBB</span></div></article><article class="quote-card"><blockquote>Hoje, conseguimos gerenciar cerca de 30 mil protocolos por ano, com uma média de 17 interações por protocolo. Isso só foi possível graças à Neppo.</blockquote><div class="person"><strong>Renato Magalhães</strong><span>Rec Transportes</span></div></article><article class="quote-card"><blockquote>A qualidade de trabalho dos atendentes evoluiu muito com a estabilidade da plataforma e a possibilidade de autoatendimento pelos clientes.</blockquote><div class="person"><strong>Laudiceia Moura</strong><span>Uniodonto</span></div></article></div></div></section>
+
+    <section class="section" id="faq"><div class="container"><div class="section-head center"><p class="eyebrow">Dúvidas</p><h2 class="section-title">Perguntas frequentes</h2></div><div class="faq-wrap"><article class="faq-item open"><button class="faq-button" type="button" aria-expanded="true">O que a Neppo faz, na prática?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>A Neppo centraliza o atendimento e as vendas em canais como WhatsApp, Instagram, Telegram, Messenger e e-mail, com automações, chatbots, gestão e integrações.</p></div></div></article><article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">A Neppo é parceira oficial do WhatsApp?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Sim. A plataforma trabalha com a API Oficial do WhatsApp, seguindo os processos e políticas do ecossistema Meta.</p></div></div></article><article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">É fácil de treinar o time e começar a atender?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Sim. A experiência foi desenhada para reduzir a curva de aprendizado, e o time Neppo acompanha a configuração e a entrada em operação.</p></div></div></article><article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">Dá para automatizar respostas com chatbot?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>Sim. Você pode criar fluxos para triagem, respostas frequentes, coleta de dados, direcionamento e continuidade do atendimento humano.</p></div></div></article><article class="faq-item"><button class="faq-button" type="button" aria-expanded="false">O que a Neppo sabe sobre o cliente?<span class="faq-plus">+</span></button><div class="faq-answer"><div><p>A plataforma organiza cadastro, histórico, canais, tags, conversas, campanhas e dados das integrações autorizadas pela sua empresa.</p></div></div></article></div><div class="micro-cta"><div><h3>Quer ver essa jornada com mais detalhes, na prática?</h3><p>Conheça a plataforma em uma conversa rápida com o nosso time.</p></div><a class="btn btn-primary" href="#demonstracao">Eu quero conhecer a Neppo</a></div></div></section>
+
+    <section class="final-cta" id="demonstracao"><div class="container final-box"><img class="final-robot" src="assets/robot.png" alt="" aria-hidden="true"><div><h2>Bora tirar sua operação do papel?</h2><p>Agende uma demonstração gratuita e veja a Neppo funcionando na prática, com o seu cenário.</p><div class="final-actions"><a class="btn btn-outline-white" href="#" data-link-pendente="demonstracao">Ver demonstração</a><a class="btn btn-primary" href="#" data-link-pendente="whatsapp">Falar com especialista Neppo</a></div></div></div></section>
+  </main>
+
+  <footer class="site-footer" id="contato">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <img class="footer-logo" src="assets/logo-footer.png" alt="Neppo by Sankhya" width="184" height="47">
+          <div class="contact-row"><img src="assets/icon-whatsapp.svg" alt="" aria-hidden="true"><span>(34) 3256-3200</span></div>
+          <div class="contact-row"><img src="assets/icon-mail.svg" alt="" aria-hidden="true"><span>comercial@neppo.com.br</span></div>
+          <div class="contact-row"><img src="assets/icon-pin.svg" alt="" aria-hidden="true"><span>Av. Floriano Peixoto n°1615</span></div>
+        </div>
+        <div class="footer-col">
+          <h3>Soluções</h3>
+          <a href="#conteudos">WhatsApp API Oficial</a>
+          <a href="#conteudos">Telegram</a>
+          <a href="#conteudos">Facebook Messenger</a>
+          <a href="#conteudos">Instagram</a>
+          <a href="#conteudos">E-mail</a>
+          <a href="#conteudos">Neppo SMS</a>
+          <a href="#conteudos">Chatbot</a>
+          <a href="#conteudos">Omnichannel</a>
+          <a href="#conteudos">Web Chat</a>
+          <a href="#conteudos">Chat Interno</a>
+          <a href="#conteudos">Neppo Voz</a>
+          <a href="#conteudos">Neppo Ticket</a>
+          <a href="#conteudos">Neppo Grow</a>
+          <a href="#conteudos">WhatsApp Voz</a>
+        </div>
+        <div class="footer-col">
+          <h3>A Neppo</h3>
+          <a href="#inicio">Quem somos</a>
+          <a href="page-planos-e-precos.html">Planos e Preços</a>
+          <a href="#" data-link-pendente="parcerias">Parcerias</a>
+          <a href="#demonstracao">Demonstração</a>
+          <a href="#" data-link-pendente="termos">Termos de Uso</a>
+          <a href="#" data-link-pendente="privacidade">Política de Privacidade</a>
+          <a href="#" data-link-pendente="status">Status Page Serviços Neppo</a>
+        </div>
+        <div class="footer-col">
+          <h3>Conteúdos</h3>
+          <a href="#" data-link-pendente="blog">Blog</a>
+          <a href="#" data-link-pendente="materiais">Materiais Ricos</a>
+          <a href="page-casos-de-sucesso.html">Cases de Sucesso</a>
+        </div>
+        <div class="footer-col">
+          <h3>Contato</h3>
+          <a href="#faq">Central de Ajuda</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="container footer-bar-inner">
+        <span>Copyright © 2026 Neppo | Todos os direitos reservados.</span>
+        <div class="social">
+          <a href="#" aria-label="Instagram"><img src="assets/icon-instagram.svg" alt=""></a>
+          <a href="#" aria-label="LinkedIn"><img src="assets/icon-linkedin.svg" alt=""></a>
+          <a href="#" aria-label="YouTube"><img src="assets/icon-youtube.svg" alt=""></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuButton = document.querySelector('.menu-toggle');
+    const menu = document.querySelector('.main-nav');
+    menuButton.addEventListener('click', () => {
+      const open = menu.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', String(open));
+      menuButton.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+      document.body.classList.toggle('menu-open', open);
+    });
+    menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      menu.classList.remove('open');
+      menuButton.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('menu-open');
+    }));
+
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(item => { item.classList.remove('active'); item.setAttribute('aria-selected', 'false'); });
+        document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+        tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    document.querySelectorAll('.faq-button').forEach(button => {
+      button.addEventListener('click', () => {
+        const item = button.closest('.faq-item');
+        const wasOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item').forEach(faq => {
+          faq.classList.remove('open');
+          faq.querySelector('.faq-button').setAttribute('aria-expanded', 'false');
+        });
+        if (!wasOpen) {
+          item.classList.add('open');
+          button.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

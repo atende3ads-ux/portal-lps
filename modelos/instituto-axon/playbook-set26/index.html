@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <!-- Google Tag Manager -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Google Tag Manager -->
+
+  <!-- Microsoft Clarity -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Microsoft Clarity -->
+
+  <meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playbook – Treinamento Corporativo 4.0 | Instituto Axon</title>
+  <meta name="description" content="Você sabe muito. Agora precisa ganhar à altura do que sabe. Saia da lógica de projetos soltos e estruture uma atuação para se posicionar como referência, vender programas corporativos e criar espaço para clientes que continuam e renovam.">
+  <link rel="icon" type="image/svg+xml" href="../assets/logo.svg">
+  <meta name="author" content="Joe Weider · Instituto Axon">
+  <meta name="theme-color" content="#000C17">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:type" content="product">
+  <meta property="og:site_name" content="Instituto Axon">
+  <meta property="og:title" content="Playbook Treinamento Corporativo 4.0 | Joe Weider">
+  <meta property="og:description" content="Você sabe muito. Agora precisa ganhar à altura do que sabe.">
+  <meta property="og:image" content="/portal-lps/modelos/instituto-axon/assets/hero-desktop.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" as="image" type="image/avif" href="../assets/hero-mobile.avif" media="(max-width: 960px)" fetchpriority="high">
+  <link rel="preload" as="image" type="image/jpeg" href="../assets/hero-desktop.jpg" media="(min-width: 961px)" fetchpriority="high">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    /* ════════════════════════════════════════════
+       DESIGN SYSTEM · Instituto Axon · LP set/26
+       Tema escuro cinematográfico · navy · acento ciano
+       Títulos: Helvetica Neue · Destaques: Instrument Serif itálico
+       Texto: Instrument Sans
+    ════════════════════════════════════════════ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --paper:      #050E19;
+      --paper-2:    #081624;
+      --surface:    #0A1C2C;
+      --surface-2:  #0E2436;
+      --ink:        #F2F8FB;
+      --ink-2:      #001523;
+      --body-c:     #A7BCC9;
+      --faint:      #7B90A0;
+      --line:       rgba(255,255,255,.08);
+      --line-2:     rgba(255,255,255,.16);
+      --cyan-pale:  rgba(33,182,212,.15);
+      --cyan-line:  rgba(33,182,212,.28);
+      --cyan-soft:  rgba(33,182,212,.07);
+      --accent:     #21B6D4;
+      --accent-bright:#4CD4EE;
+      --accent-soft:#9EE8F5;
+      --rust:       #E8836D;
+      --rust-bg:    rgba(232,131,109,.13);
+      --rust-line:  rgba(232,131,109,.32);
+      --rust-deep:  #F0A08D;
+      --dark:       #000C17;
+      --dark-2:     #051E2E;
+      --display: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      --serif:   'Instrument Serif', Georgia, 'Times New Roman', serif;
+      --sans:    'Instrument Sans', system-ui, sans-serif;
+      --r-card: 22px;
+      --shadow-card: 0 1px 2px rgba(0,0,0,.35), 0 24px 60px -30px rgba(0,0,0,.85);
+      --ease: cubic-bezier(.2,.6,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--body-c);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection { background: var(--accent); color: var(--ink-2); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+    h1, h2, h3 { color: var(--ink); }
+    h1, h2 { font-family: var(--display); font-weight: 700; }
+
+    /* Destaque em serifa itálica dentro dos títulos */
+    .em {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 1.08em;
+      letter-spacing: -.01em;
+      color: var(--accent-bright);
+    }
+
+    img { max-width: 100%; display: block; }
+    a { color: inherit; }
+    picture { display: block; }
+
+    .wrap   { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+    .narrow { max-width: 880px;  margin: 0 auto; padding: 0 24px; }
+
+    /* ── Ícones (sprite) ── */
+    .ico {
+      width: 20px; height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .ico--s { width: 14px; height: 14px; stroke-width: 2; }
+    .ico--xs { width: 12px; height: 12px; stroke-width: 2.6; }
+    .ico--l { width: 24px; height: 24px; stroke-width: 1.6; }
+
+    /* Ladrilho de ícone: vidro escuro com brilho ciano */
+    .tile {
+      position: relative;
+      width: 48px; height: 48px;
+      border-radius: 15px;
+      background: linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.13);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 10px 24px -14px rgba(0,0,0,.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-bright);
+      flex-shrink: 0;
+    }
+    .tile::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      background: radial-gradient(circle at 28% 18%, rgba(76,212,238,.28), transparent 62%);
+      pointer-events: none;
+    }
+    .tile--rust { color: var(--rust); }
+    .tile--rust::after { background: radial-gradient(circle at 28% 18%, rgba(232,131,109,.3), transparent 62%); }
+    .tile--sm { width: 40px; height: 40px; border-radius: 12px; }
+
+    /* ── Fundo: grade fina e brilho ── */
+    .has-grid { position: relative; }
+    .has-grid::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 56px 56px;
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 20%, transparent 80%);
+      pointer-events: none;
+    }
+    .has-glow { overflow: hidden; }
+    .has-glow::after {
+      content: '';
+      position: absolute;
+      width: 720px; height: 720px;
+      top: -260px; right: -220px;
+      background: radial-gradient(circle, rgba(33,182,212,.13), transparent 62%);
+      pointer-events: none;
+    }
+    .has-glow.glow-left::after { right: auto; left: -260px; top: auto; bottom: -260px; }
+    section > .wrap, section > .narrow { position: relative; z-index: 1; }
+
+    /* ── Reveal on scroll ── */
+    .rv { opacity: 0; transform: translateY(18px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+    .rv.in { opacity: 1; transform: none; }
+    .d1 { transition-delay: .08s; } .d2 { transition-delay: .16s; }
+    .d3 { transition-delay: .24s; } .d4 { transition-delay: .32s; }
+    @media (prefers-reduced-motion: reduce) {
+      .rv { opacity: 1; transform: none; transition: none; }
+    }
+
+    /* ── Chip / rótulo de seção ── */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--cyan-pale);
+      border: 1px solid var(--cyan-line);
+      color: var(--accent-bright);
+      border-radius: 999px;
+      padding: 7px 14px 7px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+    .chip .ico { width: 14px; height: 14px; stroke-width: 2; }
+    .chip--rust { background: var(--rust-bg); border-color: var(--rust-line); color: var(--rust-deep); }
+    .chip--ghost { background: rgba(255,255,255,.05); border-color: var(--line-2); color: #DCE8EF; }
+
+    /* ── Botões ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: var(--accent-bright);
+      color: var(--ink-2);
+      font-family: var(--sans);
+      font-size: 15.5px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      line-height: 1.3;
+      text-align: left;
+      padding: 15px 15px 15px 30px;
+      border-radius: 999px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: transform .2s var(--ease), background .2s, box-shadow .2s;
+      box-shadow: 0 1px 2px rgba(0,0,0,.35), 0 18px 40px -16px rgba(33,182,212,.6);
+    }
+    .btn:hover { transform: translateY(-2px); background: #7CE2F5; }
+    .btn:active { transform: translateY(0); }
+    .btn .arr {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--ink-2);
+      color: var(--accent-bright);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform .2s var(--ease);
+    }
+    .btn:hover .arr { transform: translateX(3px); }
+    .btn--light { background: #fff; color: var(--ink-2); box-shadow: 0 1px 2px rgba(0,0,0,.25), 0 16px 40px -14px rgba(255,255,255,.35); }
+    .btn--light:hover { background: #E8F6FB; }
+    .btn--light .arr { background: var(--accent-bright); color: var(--ink-2); }
+    .btn--full { width: 100%; text-align: center; }
+    .btn--outline {
+      background: transparent;
+      color: var(--ink);
+      border: 1px solid var(--line-2);
+      box-shadow: none;
+      padding: 12px 12px 12px 24px;
+    }
+    .btn--outline:hover { background: rgba(255,255,255,.05); border-color: var(--accent); }
+    .btn--outline .arr { background: rgba(37,211,102,.14); color: #3EE07F; }
+
+    /* ── Barra de oferta ── */
+    .topbar {
+      position: relative;
+      z-index: 5;
+      background: var(--dark);
+      color: #fff;
+      font-size: 12.5px;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar .tb-txt { color: rgba(255,255,255,.78); display: inline-flex; align-items: center; gap: 8px; }
+    .topbar .tb-txt .ico { color: var(--accent-bright); }
+    .topbar .tb-txt strong { color: #fff; font-weight: 600; }
+    .topbar a {
+      background: var(--accent-bright);
+      color: var(--ink-2);
+      font-weight: 600;
+      font-size: 12px;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 6px 15px;
+      transition: background .2s, transform .15s;
+    }
+    .topbar a:hover { background: #7CE2F5; transform: translateY(-1px); }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      z-index: 3;
+      background: var(--dark);
+      color: var(--body-c);
+      padding: 96px 0 128px;
+      min-height: 800px;
+      display: flex;
+      align-items: center;
+      overflow: visible;
+    }
+    .hero-clip { position: absolute; inset: 0; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; z-index: 0; }
+    .hero-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 72% 30%;
+      display: block;
+    }
+    /* Névoa + escurecimento à esquerda */
+    .hero-clip::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(90deg, rgba(0,12,23,.96) 0%, rgba(0,12,23,.78) 38%, rgba(0,12,23,.18) 64%, rgba(0,12,23,0) 80%),
+        linear-gradient(180deg, rgba(0,12,23,.2) 0%, rgba(0,12,23,0) 30%, rgba(0,12,23,.75) 100%);
+      pointer-events: none;
+    }
+    /* Grade fina na área do texto */
+    .hero-clip::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      -webkit-mask-image: radial-gradient(ellipse 45% 70% at 22% 45%, #000 10%, transparent 75%);
+      mask-image: radial-gradient(ellipse 45% 70% at 22% 45%, #000 10%, transparent 75%);
+      pointer-events: none;
+    }
+    .hero-orb {
+      position: absolute;
+      z-index: 1;
+      width: 640px; height: 640px;
+      left: -180px; top: 40%;
+      transform: translateY(-50%);
+      background: radial-gradient(circle, rgba(33,182,212,.16), transparent 60%);
+      pointer-events: none;
+    }
+    .hero > .wrap { position: relative; z-index: 2; width: 100%; }
+    .hero-copy { max-width: 620px; }
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+    .hero-logo { height: 46px; width: auto; display: block; }
+    .hero h1 {
+      font-size: clamp(36px, 5vw, 62px);
+      line-height: 1.02;
+      letter-spacing: -.04em;
+      color: #fff;
+      margin: 0 0 22px;
+    }
+    .hero h1 .em { display: block; margin-top: 4px; }
+    .hero-sub {
+      font-size: 17px;
+      line-height: 1.7;
+      max-width: 540px;
+      margin: 0 0 32px;
+      color: #C9D8E2;
+    }
+    .hero-access {
+      display: flex;
+      width: fit-content;
+      align-items: center;
+      gap: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: #E8F0F5;
+      margin-top: 22px;
+    }
+    .hero-access .ico { color: var(--accent-bright); width: 16px; height: 16px; }
+
+    /* Barra flutuante na base do hero */
+    .hero-tools {
+      position: absolute;
+      left: 50%;
+      bottom: -32px;
+      z-index: 6;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      background: rgba(6,18,30,.82);
+      border: 1px solid var(--line-2);
+      border-radius: 18px;
+      box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -20px rgba(0,0,0,.9);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      white-space: nowrap;
+    }
+    .hero-tools.rv { transform: translate(-50%, 18px); }
+    .hero-tools.rv.in { transform: translate(-50%, 0); }
+    .tool {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 16px 10px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #E8F0F5;
+      transition: background .2s;
+    }
+    .tool:hover { background: rgba(255,255,255,.06); }
+    .tool .ico { color: var(--accent-bright); width: 18px; height: 18px; }
+    .tool + .tool { position: relative; }
+    .tool + .tool::before {
+      content: '';
+      position: absolute;
+      left: -2px; top: 10px; bottom: 10px;
+      width: 1px;
+      background: var(--line-2);
+    }
+
+    /* ── Seções ── */
+    section { padding: 104px 0; position: relative; }
+    .band-white { background: var(--paper-2); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .band-dark  { background: var(--dark); }
+    .sec-head { margin-bottom: 56px; }
+    .sec-head.center { text-align: center; }
+    .sec-head .chip { margin-bottom: 20px; }
+    .sec-head h2 {
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.08;
+      letter-spacing: -.035em;
+      max-width: 780px;
+    }
+    .sec-head.center h2 { margin: 0 auto; }
+    .sec-head .lead {
+      font-size: 16.5px;
+      margin-top: 18px;
+      max-width: 640px;
+    }
+    .sec-head.center .lead { margin-left: auto; margin-right: auto; }
+    .cta-wrap { text-align: center; margin-top: 52px; }
+
+    /* Tipografia gigante (números e palavras) */
+    .giant {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 400;
+      line-height: .9;
+      letter-spacing: -.03em;
+      background: linear-gradient(180deg, #EEF8FC 0%, #9AE1F0 48%, rgba(76,212,238,.22) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+
+    /* ── Experiência ── */
+    .experiencia { padding-top: 136px; }
+    .exp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.3fr;
+      gap: 18px;
+    }
+    .exp-card {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--surface), var(--paper-2));
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 34px 30px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      min-height: 250px;
+      box-shadow: var(--shadow-card);
+    }
+    .exp-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      -webkit-mask-image: radial-gradient(ellipse 80% 80% at 80% 0%, #000, transparent 70%);
+      mask-image: radial-gradient(ellipse 80% 80% at 80% 0%, #000, transparent 70%);
+      pointer-events: none;
+    }
+    .exp-card > * { position: relative; }
+    .exp-card .giant { font-size: clamp(84px, 9vw, 124px); margin-bottom: 10px; }
+    .exp-card .unit {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 24px;
+      letter-spacing: -.02em;
+      color: var(--ink);
+    }
+    .exp-card .lbl {
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--faint);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .exp-card--trio .trio {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .exp-card--trio .val {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(24px, 2.4vw, 30px);
+      letter-spacing: -.025em;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+    .exp-card--trio .val .plus { color: var(--accent-bright); font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 1.15em; padding: 0 .1em; }
+    .exp-note {
+      text-align: center;
+      font-size: 16.5px;
+      line-height: 1.75;
+      max-width: 700px;
+      margin: 44px auto 0;
+    }
+
+    /* ── Dores ── */
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .pain-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 28px 26px 26px;
+      transition: transform .25s var(--ease), box-shadow .25s var(--ease), border-color .25s;
+      overflow: hidden;
+    }
+    .pain-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 100% 0%, rgba(232,131,109,.12), transparent 55%);
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+    }
+    .pain-card:hover { transform: translateY(-4px); border-color: var(--rust-line); box-shadow: var(--shadow-card); }
+    .pain-card:hover::after { opacity: 1; }
+    .pain-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .pain-idx {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 22px;
+      color: rgba(255,255,255,.22);
+    }
+    .pain-card h3 { font-size: 17px; font-weight: 600; letter-spacing: -.015em; line-height: 1.35; margin-bottom: 9px; }
+    .pain-card p { font-size: 14.5px; line-height: 1.62; }
+
+    /* ── A virada · blocos alternados ── */
+    .steps { position: relative; display: flex; flex-direction: column; gap: 22px; }
+    .step-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+    .step-row.flip .step-big { order: 2; }
+    .step-row.flip .step-card { order: 1; }
+    .step-big {
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+      border-radius: var(--r-card);
+      background: linear-gradient(135deg, #0B2032 0%, #061423 100%);
+      border: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-card);
+    }
+    .step-big::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 44px 44px;
+      -webkit-mask-image: radial-gradient(ellipse 70% 90% at 50% 50%, #000 10%, transparent 75%);
+      mask-image: radial-gradient(ellipse 70% 90% at 50% 50%, #000 10%, transparent 75%);
+    }
+    .step-big::after {
+      content: '';
+      position: absolute;
+      width: 420px; height: 420px;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(33,182,212,.2), transparent 60%);
+      pointer-events: none;
+    }
+    .step-big .giant {
+      position: relative;
+      z-index: 1;
+      font-size: clamp(84px, 9.5vw, 138px);
+      letter-spacing: -.02em;
+      transform: translateY(4px);
+    }
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 34px 34px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: border-color .25s, transform .25s var(--ease);
+    }
+    .step-card:hover { border-color: var(--cyan-line); transform: translateY(-3px); }
+    .step-card .tile { margin-bottom: 22px; }
+    .step-card h3 { font-size: 21px; font-weight: 600; letter-spacing: -.02em; line-height: 1.3; margin-bottom: 12px; }
+    .step-card p { font-size: 15px; line-height: 1.68; }
+
+    /* ── Antes · Virada · Depois ── */
+    .ba-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    .ba-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 34px 30px;
+      overflow: hidden;
+    }
+    .ba-card .chip { margin-bottom: 26px; }
+    .ba-card--before::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 200px;
+      background: radial-gradient(ellipse 70% 60% at 20% 0%, rgba(232,131,109,.14), transparent 70%);
+      pointer-events: none;
+    }
+    .ba-card--after { border-color: var(--cyan-line); }
+    .ba-card--after::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 220px;
+      background: radial-gradient(ellipse 70% 60% at 80% 0%, rgba(33,182,212,.18), transparent 70%);
+      pointer-events: none;
+    }
+    .ba-card > * { position: relative; }
+    .ba-list { list-style: none; display: flex; flex-direction: column; gap: 18px; }
+    .ba-list li { display: flex; gap: 12px; align-items: flex-start; }
+    .ba-list .ck-ico { margin-top: 2px; }
+    .ba-list strong { display: block; color: var(--ink); font-size: 15px; font-weight: 600; line-height: 1.4; margin-bottom: 3px; }
+    .ba-list span.t { font-size: 14px; line-height: 1.6; }
+    .ba-card--before .ba-list strong { color: #D0DCE4; }
+    .ba-pivot {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 36px 24px 0;
+    }
+    .ba-pivot-txt { max-width: 720px; }
+    .ba-pivot .chip { margin-bottom: 18px; }
+    .ba-pivot h3 {
+      font-family: var(--display);
+      font-size: clamp(24px, 2.6vw, 30px);
+      font-weight: 700;
+      letter-spacing: -.028em;
+      line-height: 1.18;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .ba-pivot p { font-size: 15.5px; line-height: 1.65; }
+    .cta-wrap--tight { margin-top: 28px; }
+
+    .ck-ico {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--cyan-pale);
+      color: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ck-ico--rust { background: var(--rust-bg); color: var(--rust); }
+
+    /* ── Para quem ── */
+    .for-whom-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+    .fw-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 36px 34px;
+      overflow: hidden;
+    }
+    .fw-card--yes { border-color: var(--cyan-line); }
+    .fw-card--yes::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 240px;
+      background: radial-gradient(ellipse 70% 60% at 0% 0%, rgba(33,182,212,.16), transparent 70%);
+      pointer-events: none;
+    }
+    .fw-card--no::before {
+      content: '';
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 240px;
+      background: radial-gradient(ellipse 70% 60% at 100% 0%, rgba(232,131,109,.12), transparent 70%);
+      pointer-events: none;
+    }
+    .fw-card > * { position: relative; }
+    .fw-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+    .check-list .ck-ico { margin-top: 1px; }
+
+    /* ── Autor ── */
+    .band-dark { color: var(--body-c); }
+    .author-box {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 56px;
+      align-items: center;
+    }
+    .author-avatar {
+      position: relative;
+      aspect-ratio: 4 / 5;
+      border-radius: 26px;
+      background: linear-gradient(180deg, #0B2032, #050E19);
+      border: 1px solid var(--line-2);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .author-avatar .fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 64px;
+      color: var(--accent-bright);
+    }
+    .author-avatar picture { position: absolute; inset: 0; }
+    .author-avatar img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+    .author-avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,12,23,0) 55%, rgba(0,12,23,.85) 100%);
+      pointer-events: none;
+    }
+    .author-badge {
+      position: absolute;
+      z-index: 2;
+      left: 20px; bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px 10px 10px;
+      border-radius: 14px;
+      background: rgba(6,18,30,.8);
+      border: 1px solid var(--line-2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #E8F0F5;
+    }
+    .author-badge img { height: 26px; width: auto; }
+    .author-info .chip { margin-bottom: 24px; }
+    .author-info h2 {
+      font-size: clamp(40px, 4.6vw, 56px);
+      letter-spacing: -.035em;
+      line-height: 1;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+    .author-role {
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--accent-bright);
+      margin-bottom: 24px;
+    }
+    .author-info > p { font-size: 15.5px; line-height: 1.75; max-width: 560px; }
+    .author-info > p + p { margin-top: 14px; }
+    .author-stats {
+      display: flex;
+      gap: 18px;
+      margin-top: 34px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px 14px 16px;
+      border-radius: 16px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+    }
+    .stat .val {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 42px;
+      line-height: 1;
+      color: var(--accent-bright);
+    }
+    .stat .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--faint);
+      line-height: 1.4;
+    }
+
+    /* ── Oferta ── */
+    .sub-label {
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .sub-label .ico { width: 14px; height: 14px; color: var(--accent-bright); }
+    .sub-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-2), transparent); }
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .feat-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px 24px;
+      transition: transform .25s var(--ease), border-color .25s, box-shadow .25s;
+      overflow: hidden;
+    }
+    .feat-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(33,182,212,.14), transparent 55%);
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+    }
+    .feat-card:hover { transform: translateY(-4px); border-color: var(--cyan-line); box-shadow: var(--shadow-card); }
+    .feat-card:hover::after { opacity: 1; }
+    .feat-card .tile { margin-bottom: 18px; }
+    .feat-card h3 { font-size: 16.5px; font-weight: 600; letter-spacing: -.015em; line-height: 1.35; margin-bottom: 7px; }
+    .feat-card p { font-size: 14px; line-height: 1.6; }
+
+    .os-block {
+      position: relative;
+      background: linear-gradient(135deg, #0B2032 0%, #040D18 100%);
+      border: 1px solid var(--line);
+      border-radius: var(--r-card);
+      padding: 44px 48px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 48px;
+      align-items: center;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .os-block::before {
+      content: '';
+      position: absolute;
+      left: -120px; bottom: -180px;
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(33,182,212,.2), transparent 62%);
+      pointer-events: none;
+    }
+    .os-block::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px);
+      background-size: 44px 44px;
+      -webkit-mask-image: radial-gradient(ellipse 60% 100% at 100% 50%, #000, transparent 70%);
+      mask-image: radial-gradient(ellipse 60% 100% at 100% 50%, #000, transparent 70%);
+      pointer-events: none;
+    }
+    .os-cover {
+      position: relative;
+      z-index: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 40px 60px -24px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.1);
+      transform: rotate(-4deg);
+      transition: transform .4s var(--ease);
+    }
+    .os-block:hover .os-cover { transform: rotate(-2deg) translateY(-4px); }
+    .os-cover img { width: 100%; height: auto; }
+    .os-txt { position: relative; z-index: 1; }
+    .os-txt .chip { margin-bottom: 18px; }
+    .os-txt h3 {
+      font-family: var(--display);
+      font-size: clamp(22px, 2.4vw, 28px);
+      font-weight: 700;
+      letter-spacing: -.028em;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 14px;
+      max-width: 600px;
+    }
+    .os-txt p { font-size: 15.5px; line-height: 1.7; max-width: 620px; }
+
+    /* Faixa do acesso: letreiro atrás e card claro na frente */
+    .access-band {
+      position: relative;
+      margin-top: 72px;
+      padding: 72px 0;
+      overflow: hidden;
+    }
+    .marquee {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      gap: 14px;
+      padding: 10px 0;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+      mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+      pointer-events: none;
+      opacity: .75;
+    }
+    .marquee-row { overflow: hidden; white-space: nowrap; }
+    .marquee-track {
+      display: inline-flex;
+      gap: 12px;
+      padding-right: 12px;
+      animation: marquee 46s linear infinite;
+    }
+    .marquee-row:nth-child(2) .marquee-track { animation-duration: 58s; animation-direction: reverse; }
+    .marquee-row:nth-child(3) .marquee-track { animation-duration: 52s; }
+    .marquee-row:nth-child(4) .marquee-track { animation-duration: 64s; animation-direction: reverse; }
+    .mq {
+      display: inline-flex;
+      align-items: center;
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.025);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.34);
+    }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+    @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+
+    .price-card {
+      --c-ink: #001523;
+      --c-body: #3D5567;
+      --c-faint: #6F8494;
+      position: relative;
+      z-index: 1;
+      max-width: 600px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #FFFFFF 0%, #EEF6FA 100%);
+      color: var(--c-body);
+      border-radius: 26px;
+      padding: 36px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.4), 0 50px 90px -30px rgba(0,0,0,.95), 0 0 0 1px rgba(255,255,255,.35) inset;
+    }
+    .price-card .chip { background: rgba(33,182,212,.14); border-color: rgba(33,182,212,.35); color: #0B8DA8; margin-bottom: 20px; }
+    .price-card h3 { color: var(--c-ink); font-size: 22px; font-weight: 700; letter-spacing: -.025em; line-height: 1.2; margin-bottom: 22px; font-family: var(--display); }
+    .price-card h3 .em { color: #0B8DA8; }
+    .price-block {
+      text-align: center;
+      background: #E4F4F9;
+      border: 1px solid rgba(33,182,212,.35);
+      border-radius: 18px;
+      padding: 26px 20px 22px;
+      margin-bottom: 22px;
+    }
+    .price-now {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 72px;
+      letter-spacing: -.035em;
+      line-height: 1;
+      color: var(--c-ink);
+    }
+    .price-now sup { font-size: 24px; font-weight: 700; vertical-align: super; margin-right: 5px; }
+    .price-now .cents { font-size: 30px; letter-spacing: -.01em; }
+    .includes {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .includes li {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      color: var(--c-ink);
+      padding: 12px 8px;
+      border-radius: 12px;
+      background: rgba(0,21,35,.04);
+      border: 1px solid rgba(0,21,35,.07);
+    }
+    .includes .ico { color: #0B8DA8; width: 16px; height: 16px; stroke-width: 2; }
+    #oferta-playbook { scroll-margin-top: 20px; }
+
+    /* Checkout Hotmart: o CSS do widget estiliza .hotmart-fb, então o botão é reforçado aqui */
+    .btn.checkout-primary.hotmart__button-checkout {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 54px;
+      padding: 16px 16px 16px 30px;
+      border: none;
+      border-radius: 999px;
+      background: var(--ink-2) !important;
+      color: #fff !important;
+      font-family: var(--sans);
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.3;
+      letter-spacing: -.01em;
+      text-shadow: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,.3), 0 18px 36px -14px rgba(0,21,35,.7);
+      transition: transform .2s var(--ease), background .2s, box-shadow .2s;
+    }
+    .btn.checkout-primary.hotmart__button-checkout .arr { background: var(--accent-bright); color: var(--ink-2); }
+    .btn.checkout-primary.hotmart__button-checkout:hover,
+    .btn.checkout-primary.hotmart__button-checkout:focus {
+      background: #052232 !important;
+      transform: translateY(-2px);
+    }
+    .offer-foot {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 12.5px;
+      color: var(--c-faint);
+      margin-top: 14px;
+    }
+    .offer-foot .ico { color: #0B8DA8; width: 14px; height: 14px; }
+
+    .help-strip {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px 28px;
+      flex-wrap: wrap;
+      background: var(--paper-2);
+      border: 1px dashed var(--line-2);
+      border-radius: 18px;
+      padding: 22px 28px;
+    }
+    .help-strip h3 {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    .help-strip h3 .tile { width: 36px; height: 36px; border-radius: 11px; }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 10px; }
+    .faq-item {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      transition: border-color .2s, background .2s;
+    }
+    .faq-item[open] { border-color: var(--cyan-line); background: var(--surface-2); }
+    .faq-item summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 22px 20px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      color: var(--ink);
+    }
+    .faq-item summary::-webkit-details-marker { display: none; }
+    .faq-item summary .q { flex: 1; }
+    .faq-item summary .pm {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--cyan-pale);
+      border: 1px solid var(--cyan-line);
+      color: var(--accent-bright);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform .25s var(--ease), background .2s;
+    }
+    .faq-item[open] summary .pm { transform: rotate(45deg); background: var(--accent-bright); color: var(--ink-2); }
+    .faq-item .ans { padding: 0 24px 22px 24px; font-size: 15px; line-height: 1.7; max-width: 720px; }
+
+    /* ── Rodapé ── */
+    footer {
+      position: relative;
+      padding: 44px 0 40px;
+      font-size: 13px;
+      color: var(--faint);
+      border-top: 1px solid var(--line);
+    }
+    footer::before {
+      content: '';
+      position: absolute;
+      top: -1px; left: 50%;
+      width: 360px; height: 1px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent, var(--accent-bright), transparent);
+    }
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px 24px;
+      flex-wrap: wrap;
+    }
+    .footer-brand { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .footer-brand img { height: 30px; width: auto; }
+    footer a { color: var(--ink); text-decoration: none; font-weight: 600; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .footer-links .sep { opacity: .45; }
+    .footer-links .dev { color: var(--faint); font-weight: 400; }
+    .footer-links .ig {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--faint);
+      font-weight: 500;
+      transition: color .2s;
+    }
+    .footer-links .ig:hover { color: var(--accent-bright); text-decoration: none; }
+
+    /* ── Responsivo ── */
+    @media (max-width: 1100px) {
+      .author-box { grid-template-columns: 340px 1fr; gap: 40px; }
+    }
+    @media (max-width: 960px) {
+      .hero {
+        min-height: 780px;
+        align-items: flex-start;
+        padding: 56px 0 72px;
+      }
+      .hero-bg img { object-position: center 85%; }
+      .hero-clip::before {
+        background:
+          linear-gradient(180deg, rgba(0,12,23,.96) 0%, rgba(0,12,23,.84) 36%, rgba(0,12,23,.2) 50%, rgba(0,12,23,0) 60%, rgba(0,12,23,.15) 74%, rgba(0,12,23,.78) 100%);
+      }
+      .hero-clip::after { -webkit-mask-image: radial-gradient(ellipse 80% 45% at 30% 20%, #000 10%, transparent 75%); mask-image: radial-gradient(ellipse 80% 45% at 30% 20%, #000 10%, transparent 75%); }
+      .hero { display: block; }
+      .hero-tools, .hero-tools.rv, .hero-tools.rv.in {
+        position: relative;
+        left: auto; bottom: auto;
+        transform: none;
+        flex-wrap: wrap;
+        white-space: normal;
+        margin: 28px 24px 0;
+        border-radius: 16px;
+      }
+      .hero-tools.rv { transform: translateY(18px); }
+      .hero-tools.rv.in { transform: none; }
+      .tool { padding: 9px 12px 9px 10px; font-size: 12.5px; }
+      .tool + .tool::before { display: none; }
+      .experiencia { padding-top: 96px; }
+      .pain-grid, .feat-grid { grid-template-columns: 1fr 1fr; }
+      .step-row { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; width: 100%; }
+      .step-row.flip .step-big { order: 1; }
+      .step-row.flip .step-card { order: 2; }
+      .step-big { min-height: 200px; }
+      .ba-grid { grid-template-columns: 1fr; max-width: 640px; margin: 0 auto; }
+      .ba-pivot { padding: 28px 8px 0; }
+      .exp-grid { grid-template-columns: 1fr 1fr; }
+      .exp-card--trio { grid-column: 1 / -1; }
+      .author-box { grid-template-columns: 1fr; gap: 36px; }
+      .author-avatar { max-width: 420px; }
+      .os-block { grid-template-columns: 160px 1fr; gap: 32px; padding: 36px; }
+    }
+    @media (max-width: 720px) {
+      section { padding: 72px 0; }
+      .hero {
+        padding: 44px 0 56px;
+        min-height: clamp(1080px, 290vw, 1180px);
+        display: flex;
+        flex-direction: column;
+      }
+      .hero > .wrap { flex: 1; display: flex; }
+      .hero-copy { display: flex; flex-direction: column; flex: 1; max-width: none; }
+      .hero-cta { margin-top: auto; padding-top: 24px; }
+      .for-whom-grid { grid-template-columns: 1fr; }
+      .topbar .tb-txt { display: none; }
+      .help-strip { flex-direction: column; text-align: center; }
+      .footer-row { flex-direction: column; align-items: flex-start; }
+      .footer-links { gap: 8px 16px; }
+      .footer-links .sep { display: none; }
+      .includes { grid-template-columns: 1fr; }
+      .includes li { justify-content: flex-start; padding-left: 14px; }
+      .os-block { grid-template-columns: 1fr; padding: 32px 26px; text-align: center; }
+      .os-cover { width: 180px; margin: 0 auto 8px; }
+      .os-txt h3, .os-txt p { margin-left: auto; margin-right: auto; }
+      .access-band { margin-top: 48px; padding: 48px 0; }
+    }
+    @media (max-width: 560px) {
+      .hero-logo { height: 38px; }
+      .pain-grid, .feat-grid, .exp-grid { grid-template-columns: 1fr; }
+      .exp-card { min-height: 0; padding: 28px 24px 24px; }
+      .exp-card .giant { font-size: 76px; }
+      .price-card { padding: 26px 20px; border-radius: 22px; }
+      .price-now { font-size: 58px; }
+      .price-now .cents { font-size: 26px; }
+      .fw-card, .ba-card { padding: 28px 22px; }
+      .step-card { padding: 28px 24px; }
+      .step-big .giant { font-size: 72px; }
+      .faq-item summary { padding: 18px 16px 18px 18px; font-size: 15px; }
+      .faq-item .ans { padding: 0 18px 20px; }
+      .btn { padding-left: 22px; font-size: 15px; }
+      .author-stats { gap: 10px; }
+      .stat { padding: 12px 16px 12px 14px; }
+      .stat .val { font-size: 34px; }
+    }
+
+    /* ════════ Mobile otimizado (≤ 720px) ════════
+       CTA na primeira tela, blocos mais curtos, áreas de toque maiores e CTA fixo */
+    .sticky-cta { display: none; }
+    @media (max-width: 720px) {
+      section { padding: 52px 0; }
+      .wrap, .narrow { padding-left: 20px; padding-right: 20px; }
+      .sec-head { margin-bottom: 28px; }
+      .sec-head .chip { margin-bottom: 14px; }
+      .sec-head h2 { font-size: clamp(27px, 7.4vw, 36px); line-height: 1.1; }
+      .sec-head .lead { font-size: 15.5px; line-height: 1.55; margin-top: 14px; }
+      .cta-wrap { margin-top: 28px; }
+      .cta-wrap .btn, .hero-cta .btn { width: 100%; justify-content: space-between; min-height: 56px; }
+
+      /* Topo: só a faixa com o botão vira redundante com o CTA fixo */
+      .topbar { display: none; }
+
+      /* Hero: logo → título → subtítulo → CTA → foto → microprovas */
+      .hero { display: flex; flex-direction: column; align-items: stretch; min-height: 0; padding: 28px 0 0; }
+      .hero > .wrap { flex: none; display: block; order: 1; }
+      .hero-copy { display: block; flex: none; }
+      .hero-eyebrow { margin-bottom: 18px; gap: 12px; }
+      .hero-logo { height: 34px; }
+      .hero h1 { font-size: clamp(31px, 8.8vw, 42px); line-height: 1.04; margin-bottom: 14px; }
+      .hero-sub { font-size: 16px; line-height: 1.5; margin-bottom: 20px; }
+      .hero-cta { margin-top: 0; padding-top: 0; }
+      .hero-access { margin-top: 14px; }
+      .hero-clip { position: relative; inset: auto; order: 2; width: 100%; height: min(82vw, 420px); margin-top: 4px; }
+      .hero-bg img { object-position: center 78%; }
+      .hero-clip::before { background: linear-gradient(180deg, var(--dark) 0%, rgba(0,12,23,.35) 26%, rgba(0,12,23,0) 50%, rgba(0,12,23,.2) 78%, var(--dark) 100%); }
+      .hero-clip::after, .hero-orb { display: none; }
+      .hero > .hero-tools, .hero > .hero-tools.rv, .hero > .hero-tools.rv.in {
+        order: 3; position: relative; left: auto; bottom: auto; transform: none;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+        margin: -34px 20px 0; padding: 8px; white-space: normal; border-radius: 14px;
+      }
+      .tool { padding: 10px; font-size: 13px; justify-content: flex-start; }
+      .tool + .tool::before { display: none; }
+      .experiencia { padding-top: 52px; }
+
+      /* Números lado a lado */
+      .exp-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .exp-card { min-height: 0; padding: 18px 16px 16px; border-radius: 16px; }
+      .exp-card .giant { font-size: 56px; margin-bottom: 4px; }
+      .exp-card .unit { font-size: 17px; }
+      .exp-card .lbl { font-size: 10.5px; margin-top: 4px; }
+      .exp-card--trio { grid-column: 1 / -1; }
+      .exp-card--trio .trio { margin-bottom: 12px; }
+      .exp-card--trio .val { font-size: 19px; }
+      .exp-note { font-size: 15px; line-height: 1.6; margin-top: 22px; }
+
+      /* Cards de dor e de entrega: ícone à esquerda, texto curto */
+      .pain-grid, .feat-grid { grid-template-columns: 1fr; gap: 10px; }
+      .pain-card, .feat-card { display: grid; grid-template-columns: 44px 1fr; gap: 0 14px; align-items: start; padding: 18px 16px; border-radius: 14px; }
+      .pain-card .pain-top { display: block; margin: 0; grid-row: span 2; }
+      .pain-idx { display: none; }
+      .pain-card .tile, .feat-card .tile { width: 44px; height: 44px; border-radius: 12px; margin: 0; }
+      .feat-card .tile { grid-row: span 2; }
+      .pain-card h3, .feat-card h3 { font-size: 16.5px; line-height: 1.3; margin: 1px 0 5px; }
+      .pain-card p, .feat-card p { font-size: 14.5px; line-height: 1.5; grid-column: 2; }
+      .pain-card:hover, .feat-card:hover, .step-card:hover { transform: none; }
+
+      /* Os três movimentos: a palavra vira rótulo do card */
+      .steps { gap: 12px; }
+      .step-row, .step-row.flip { gap: 0; }
+      .step-big { min-height: 0; padding: 14px 18px 12px; align-items: flex-start; justify-content: flex-start; border-radius: 14px 14px 0 0; border-bottom: 0; box-shadow: none; }
+      .step-big::after { display: none; }
+      .step-big .giant { font-size: 40px; line-height: 1; }
+      .step-card { padding: 18px 18px 20px; border-radius: 0 0 14px 14px; }
+      .step-card .tile { display: none; }
+      .step-card h3 { font-size: 17.5px; line-height: 1.3; margin-bottom: 8px; }
+      .step-card p { font-size: 14.5px; line-height: 1.55; }
+
+      /* Blocos de lista */
+      .fw-card, .ba-card { padding: 22px 18px; border-radius: 16px; }
+      .author-avatar { max-width: none; aspect-ratio: 4 / 3.4; }
+      .author-avatar img { object-position: center 18%; }
+      .price-card { padding: 24px 18px; }
+      .price-card .btn { width: 100%; min-height: 58px; font-size: 16px; }
+      .faq-item summary { min-height: 60px; }
+
+      /* CTA fixo após a hero; some quando a oferta está na tela */
+      footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+      .sticky-cta {
+        display: block; position: fixed; z-index: 30; left: 0; right: 0; bottom: 0;
+        padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+        background: rgba(0,12,23,.96); border-top: 1px solid rgba(255,255,255,.12);
+        transform: translateY(110%); transition: transform .3s cubic-bezier(.2,.6,.2,1);
+      }
+      .sticky-cta.on { transform: none; }
+      .sticky-cta .btn { width: 100%; min-height: 52px; font-size: 15px; justify-content: space-between; padding-left: 20px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .sticky-cta { transition: none; } }
+  </style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+
+<!-- End Google Tag Manager (noscript) -->
+
+<!-- ── Ícones (sprite) ──────────────────────── -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+  <symbol id="i-infinity" viewBox="0 0 24 24"><path d="M18.2 8.5a3.5 3.5 0 1 1 0 7c-3.5 0-8.9-7-12.4-7a3.5 3.5 0 1 0 0 7c3.5 0 8.9-7 12.4-7z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></symbol>
+  <symbol id="i-restart" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.8-6.5"/><path d="M3 4v5h5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8.5 10h.01M12 10h.01M15.5 10h.01"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.3"/></symbol>
+  <symbol id="i-trend-down" viewBox="0 0 24 24"><path d="m22 17-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/></symbol>
+  <symbol id="i-trend-up" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+  <symbol id="i-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.2 12.3 7 22l5-3 5 3-1.2-9.7"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-6M13 17V7M18 17v-3"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-brain" viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04z"/></symbol>
+  <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="m12 3 1.9 5.8 5.8 1.9-5.8 1.9L12 18.4l-1.9-5.8-5.8-1.9 5.8-1.9z"/><path d="M19 15v4M17 17h4M5 3v3M3.5 4.5h3"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M2 13h20"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4a1 1 0 0 1 1-1h11l-1.5 4L16 11H5"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="m16 3 4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2-3 4M12 17h.01"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m21 2-9.6 9.6M15.5 7.5l3 3M18.5 4.5l3 3"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="13" rx="2"/><path d="M12 8v13M3 12h18"/><path d="M12 8S9.5 3.5 7 5.5 9 8 12 8zM12 8s2.5-4.5 5-2.5S15 8 12 8z"/></symbol>
+  <symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></symbol>
+  <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5.7.3 1.3.5 1.7.6.7.2 1.4.2 1.9.1.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.3zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></symbol>
+  <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></symbol>
+</svg>
+
+<!-- ── Seção 1 · Barra de oferta ────────────── -->
+<div class="topbar">
+  <span class="tb-txt"><svg class="ico ico--s"><use href="#i-book"/></svg><strong>Playbook Treinamento Corporativo 4.0</strong> · Acesso imediato e vitalício por R$ 39,90</span>
+  <a href="#oferta-playbook" data-cta-location="topbar">Quero dar o próximo passo na minha carreira →</a>
+</div>
+
+<!-- ── Seção 2 · Hero ───────────────────────── -->
+<section class="hero">
+  <div class="hero-clip" aria-hidden="true">
+    <picture class="hero-bg">
+      <source media="(max-width: 960px)" type="image/avif" srcset="../assets/hero-mobile.avif">
+      <source media="(max-width: 960px)" srcset="../assets/hero-mobile.jpg">
+      <img src="../assets/hero-desktop.jpg" alt="" width="1916" height="821" fetchpriority="high" decoding="async">
+    </picture>
+    <span class="hero-orb"></span>
+  </div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <div class="hero-eyebrow rv">
+        <img class="hero-logo" src="../assets/logo-white.svg" width="102" height="51" alt="Instituto Axon">
+        <span class="chip chip--ghost"><svg class="ico"><use href="#i-book"/></svg>Playbook Treinamento Corporativo 4.0</span>
+      </div>
+      <h1 class="rv d1">Você sabe muito. Agora precisa <span class="em">ganhar à altura do que sabe.</span></h1>
+      <p class="hero-sub rv d2">
+        Saia da lógica de projetos soltos e estruture uma atuação para se posicionar como referência,
+        vender programas corporativos e criar espaço para clientes que continuam e renovam.
+      </p>
+
+      <div class="hero-cta">
+        <div class="rv d3">
+          <a href="#oferta-playbook" data-cta-location="hero" class="btn btn--light">Quero dar o próximo passo na minha carreira
+            <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+          </a>
+        </div>
+        <p class="hero-access rv d4">
+          <svg class="ico"><use href="#i-zap"/></svg>
+          Acesso imediato e vitalício
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-tools rv d4">
+    <span class="tool"><svg class="ico"><use href="#i-brain"/></svg>Neurociência</span>
+    <span class="tool"><svg class="ico"><use href="#i-sparkles"/></svg>I.A.</span>
+    <span class="tool"><svg class="ico"><use href="#i-chart"/></svg>Gestão</span>
+    <span class="tool"><svg class="ico"><use href="#i-briefcase"/></svg>Foco Corporativo</span>
+  </div>
+</section>
+
+<!-- ── Seção 3 · Experiência ────────────────── -->
+<section class="experiencia has-grid has-glow" id="experiencia">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip"><svg class="ico"><use href="#i-compass"/></svg>Experiência aplicada ao mercado corporativo</span>
+      <h2>Um sistema construído por quem conhece esse mercado <span class="em">por dentro</span></h2>
+    </div>
+    <div class="exp-grid">
+      <div class="exp-card rv">
+        <div class="giant">24+</div>
+        <div><span class="unit">anos</span></div>
+        <div class="lbl">de experiência</div>
+      </div>
+      <div class="exp-card rv d1">
+        <div class="giant">200+</div>
+        <div><span class="unit">empresas</span></div>
+        <div class="lbl">atendidas</div>
+      </div>
+      <div class="exp-card exp-card--trio rv d2">
+        <div class="trio">
+          <span class="tile"><svg class="ico"><use href="#i-brain"/></svg></span>
+          <span class="tile"><svg class="ico"><use href="#i-sparkles"/></svg></span>
+          <span class="tile"><svg class="ico"><use href="#i-chart"/></svg></span>
+        </div>
+        <div class="val">Neurociência <span class="plus">+</span> I.A. <span class="plus">+</span> Gestão</div>
+        <div class="lbl">aplicadas ao desenvolvimento corporativo</div>
+      </div>
+    </div>
+    <p class="exp-note rv">
+      O Playbook reúne experiência de mercado, estruturas, scripts e ferramentas criados a partir
+      da atuação de Joe Weider com treinamento, liderança e projetos para empresas.
+    </p>
+  </div>
+</section>
+
+<!-- ── Seção 4 · Onde você está hoje ────────── -->
+<section class="band-white" id="hoje">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip chip--rust"><svg class="ico"><use href="#i-pin"/></svg>Onde você está hoje</span>
+      <h2>Seu conhecimento cresceu. <span class="em">Sua carreira acompanhou?</span></h2>
+      <p class="lead">
+        Você estudou, acumulou experiência, já entregou treinamentos, palestras, mentorias ou projetos.
+        Mesmo assim, talvez sua rotina ainda se pareça com isso:
+      </p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card rv">
+        <div class="pain-top"><span class="tile tile--rust"><svg class="ico ico--l"><use href="#i-clock"/></svg></span><span class="pain-idx">01</span></div>
+        <h3>Você ainda troca hora por dinheiro</h3>
+        <p>Para faturar mais, precisa abrir mais espaço na agenda. O crescimento continua preso ao número de horas que você consegue vender.</p>
+      </div>
+      <div class="pain-card rv d1">
+        <div class="pain-top"><span class="tile tile--rust"><svg class="ico ico--l"><use href="#i-restart"/></svg></span><span class="pain-idx">02</span></div>
+        <h3>Cada novo cliente faz você começar quase do zero</h3>
+        <p>Nova proposta, novo escopo, nova apresentação, novos materiais. Você tem conhecimento, mas ainda não transformou isso em uma estrutura que possa reaproveitar.</p>
+      </div>
+      <div class="pain-card rv d2">
+        <div class="pain-top"><span class="tile tile--rust"><svg class="ico ico--l"><use href="#i-chat"/></svg></span><span class="pain-idx">03</span></div>
+        <h3>Você sabe entregar, mas trava na hora de vender</h3>
+        <p>Na conversa com RH ou liderança, nem sempre fica claro por que seu trabalho merece um investimento maior.</p>
+      </div>
+      <div class="pain-card rv d1">
+        <div class="pain-top"><span class="tile tile--rust"><svg class="ico ico--l"><use href="#i-tag"/></svg></span><span class="pain-idx">04</span></div>
+        <h3>Você cobra abaixo do que acumulou de experiência</h3>
+        <p>Sem uma oferta bem posicionada, a negociação volta para hora, diária, quantidade de encontros e preço.</p>
+      </div>
+      <div class="pain-card rv d2">
+        <div class="pain-top"><span class="tile tile--rust"><svg class="ico ico--l"><use href="#i-trend-down"/></svg></span><span class="pain-idx">05</span></div>
+        <h3>O projeto termina e a receita termina junto</h3>
+        <p>Você entrega, recebe e volta para a busca pelo próximo cliente. Pouco do que já foi construído cria continuidade.</p>
+      </div>
+      <div class="pain-card rv d3">
+        <div class="pain-top"><span class="tile tile--rust"><svg class="ico ico--l"><use href="#i-award"/></svg></span><span class="pain-idx">06</span></div>
+        <h3>Sua autoridade técnica ainda não virou autoridade de mercado</h3>
+        <p>Você domina o assunto, mas empresas ainda não enxergam com clareza um método, uma oferta e uma razão para contratar você novamente.</p>
+      </div>
+    </div>
+    <div class="cta-wrap rv">
+      <a href="#oferta-playbook" data-cta-location="pain" class="btn">Quero começar minha virada
+        <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Seção 5 · A virada ───────────────────── -->
+<section class="has-grid has-glow glow-left" id="virada">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip"><svg class="ico"><use href="#i-flag"/></svg>A virada</span>
+      <h2>Pare de depender apenas do que você consegue <span class="em">vender por hora</span></h2>
+      <p class="lead">
+        O Playbook Treinamento Corporativo 4.0 ajuda a organizar seu conhecimento em três movimentos
+        que mudam a forma como você se apresenta ao mercado.
+      </p>
+    </div>
+
+    <div class="steps">
+      <div class="step-row">
+        <div class="step-big rv">
+          <span class="giant">CRIE</span>
+        </div>
+        <div class="step-card rv d1">
+          <span class="tile"><svg class="ico ico--l"><use href="#i-layers"/></svg></span>
+          <h3>Transforme experiência em um programa que uma empresa consegue comprar</h3>
+          <p>Organize diagnóstico, objetivo, conteúdo, jornada, aplicação e resultado em uma oferta clara. Seu conhecimento deixa de ficar espalhado entre apresentações, ideias e projetos feitos caso a caso.</p>
+        </div>
+      </div>
+
+      <div class="step-row flip">
+        <div class="step-big rv">
+          <span class="giant">VENDA</span>
+        </div>
+        <div class="step-card rv d1">
+          <span class="tile"><svg class="ico ico--l"><use href="#i-target"/></svg></span>
+          <h3>Faça a conversa sair de horas e entrar em valor</h3>
+          <p>Estruture proposta, posicionamento e abordagem comercial para que RH e liderança entendam o problema que você resolve, como o programa funciona e por que ele merece investimento.</p>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-big rv">
+          <span class="giant">ENTREGUE</span>
+        </div>
+        <div class="step-card rv d1">
+          <span class="tile"><svg class="ico ico--l"><use href="#i-trend-up"/></svg></span>
+          <h3>Conecte treinamento a resultado e continuidade</h3>
+          <p>Use aplicação, indicadores e acompanhamento para mostrar o que aconteceu depois da entrega e criar uma conversa mais concreta sobre próximos projetos e renovação.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-wrap rv">
+      <a href="#oferta-playbook" data-cta-location="steps" class="btn">Quero o método completo
+        <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Seção 6 · A transformação ────────────── -->
+<section class="band-white" id="transformacao">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip"><svg class="ico"><use href="#i-swap"/></svg>A transformação</span>
+      <h2>O que muda quando seu conhecimento deixa de depender <span class="em">apenas das suas horas</span></h2>
+    </div>
+    <div class="ba-grid">
+      <div class="ba-card ba-card--before rv">
+        <span class="chip chip--rust"><svg class="ico"><use href="#i-clock"/></svg>Antes</span>
+        <ul class="ba-list">
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span><strong>Você vende tempo</strong><span class="t">Seu faturamento cresce quando sua agenda cresce.</span></span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span><strong>Cada cliente exige uma nova construção</strong><span class="t">Proposta, materiais e formato começam quase sempre do zero.</span></span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span><strong>A negociação gira em torno de preço</strong><span class="t">Hora, diária e quantidade de encontros ocupam o centro da conversa.</span></span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span><strong>Você entrega e volta para a prospecção</strong><span class="t">O projeto termina e a busca pelo próximo cliente recomeça.</span></span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span><strong>Seu conhecimento depende da sua presença para gerar receita</strong><span class="t">Tudo passa diretamente por você e pela sua agenda.</span></span></li>
+        </ul>
+      </div>
+
+      <div class="ba-card ba-card--after rv d2">
+        <span class="chip"><svg class="ico"><use href="#i-trend-up"/></svg>Depois</span>
+        <ul class="ba-list">
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span><strong>Você apresenta um programa, não apenas horas de trabalho</strong><span class="t">O cliente entende o problema, a proposta, a jornada e o que será acompanhado.</span></span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span><strong>Você parte de uma base que já existe</strong><span class="t">Diagnóstico, proposta, entrega e materiais podem ser adaptados sem reconstruir todo o trabalho.</span></span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span><strong>Seu valor fica mais fácil de defender</strong><span class="t">A conversa passa a incluir problema, solução, método, aplicação e resultado.</span></span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span><strong>O projeto pode abrir caminho para continuidade</strong><span class="t">Mensuração e acompanhamento ajudam a sustentar conversas sobre expansão, novos ciclos e renovação.</span></span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span><strong>Sua receita deixa de depender somente da próxima hora vendida</strong><span class="t">Cada programa pode gerar continuidade e você começa a construir uma atuação menos presa a projetos isolados.</span></span></li>
+        </ul>
+      </div>
+
+      <div class="ba-pivot rv d2">
+        <div class="ba-pivot-txt">
+          <span class="chip"><svg class="ico"><use href="#i-flag"/></svg>A virada</span>
+          <h3>Seu conhecimento ganha método, oferta e posicionamento</h3>
+          <p>Você passa a organizar o que sabe em uma estrutura que pode ser apresentada, adaptada e aplicada em diferentes projetos.</p>
+        </div>
+      </div>
+    </div>
+    <div class="cta-wrap cta-wrap--tight rv">
+      <a href="#oferta-playbook" data-cta-location="transformation" class="btn">Quero começar minha virada
+        <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Seção 7 · Para quem é ────────────────── -->
+<section class="has-grid" id="para-quem">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip"><svg class="ico"><use href="#i-users"/></svg>Veja se este Playbook faz sentido para o seu momento</span>
+      <h2>Para quem já sabe fazer e quer transformar conhecimento em <span class="em">carreira e renda</span></h2>
+    </div>
+    <div class="for-whom-grid">
+      <div class="fw-card fw-card--yes rv">
+        <div class="fw-head">
+          <span class="chip"><svg class="ico"><use href="#i-check"/></svg>É para você se...</span>
+          <span class="tile tile--sm"><svg class="ico"><use href="#i-user"/></svg></span>
+        </div>
+        <ul class="check-list">
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Você é consultor, instrutor, mentor ou especialista em RH e Desenvolvimento.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Já deu treinamentos, palestras, mentorias ou participou de projetos corporativos.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Tem experiência, mas sente que ainda ganha abaixo do que sabe.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Quer deixar de depender apenas de hora, diária e trabalho avulso.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Tem dificuldade para transformar seu conhecimento em uma oferta clara para empresas.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Quer vender programas com mais estrutura e defender melhor o valor do seu trabalho.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Quer construir autoridade para ser lembrado, contratado novamente e indicado.</span></li>
+          <li><span class="ck-ico"><svg class="ico ico--xs"><use href="#i-check"/></svg></span><span>Trabalha dentro de uma empresa e considera migrar para uma consultoria autônoma de maior valor.</span></li>
+        </ul>
+      </div>
+      <div class="fw-card fw-card--no rv d1">
+        <div class="fw-head">
+          <span class="chip chip--rust"><svg class="ico"><use href="#i-x"/></svg>Não é para você se...</span>
+          <span class="tile tile--sm tile--rust"><svg class="ico"><use href="#i-x"/></svg></span>
+        </div>
+        <ul class="check-list">
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span>Procura uma fórmula de renda rápida sem aplicação.</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span>Espera receber clientes prontos.</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span>Ainda não possui conhecimento ou experiência que possa ser transformado em treinamento.</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span>Quer apenas consumir conteúdo e continuar operando da mesma forma.</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span>Não pretende atuar com treinamento, consultoria, desenvolvimento ou mercado corporativo.</span></li>
+          <li><span class="ck-ico ck-ico--rust"><svg class="ico ico--xs"><use href="#i-x"/></svg></span><span>Espera que o Playbook faça a prospecção, a negociação e a execução no seu lugar.</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="cta-wrap rv">
+      <a href="#oferta-playbook" data-cta-location="for-whom" class="btn">Quero virar referência em treinamento
+        <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Seção 8 · Autor ──────────────────────── -->
+<section class="band-dark has-grid has-glow" id="autor">
+  <div class="wrap">
+    <div class="author-box">
+      <div class="author-avatar rv">
+        <span class="fallback">JW</span>
+        <picture>
+          <source type="image/avif" srcset="../assets/foto-joe.avif">
+          <img src="../assets/foto-joe.jpg" width="479" height="590" alt="Joe Weider, fundador do Instituto Axon" loading="lazy" decoding="async">
+        </picture>
+        <span class="author-badge"><img src="../assets/logo-white.svg" width="102" height="51" alt="Instituto Axon"></span>
+      </div>
+      <div class="author-info rv d1">
+        <span class="chip"><svg class="ico"><use href="#i-user"/></svg>Quem criou este Playbook</span>
+        <h2>Joe <span class="em">Weider</span></h2>
+        <p class="author-role">Fundador · Instituto Axon · Consultor · Mentor · Palestrante</p>
+        <p>
+          Mestre em Administração e especialista em Neurociência aplicada à gestão corporativa.
+          Há mais de 24 anos atua no desenvolvimento de líderes e em projetos de consultoria no Brasil e no exterior.
+        </p>
+        <p>
+          No Instituto Axon, essa experiência se transforma em métodos, frameworks e ferramentas aplicadas ao mercado corporativo.
+          O Playbook reúne parte dessa estrutura para quem quer profissionalizar sua atuação em treinamento.
+        </p>
+        <div class="author-stats">
+          <div class="stat"><div class="val">24+</div><div class="lbl">Anos de<br>Experiência</div></div>
+          <div class="stat"><div class="val">200+</div><div class="lbl">Empresas<br>Atendidas</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Seção 9 · Oferta ─────────────────────── -->
+<section class="has-grid" id="oferta">
+  <div class="wrap">
+    <div class="sec-head center rv">
+      <span class="chip"><svg class="ico"><use href="#i-book"/></svg>Playbook Treinamento Corporativo 4.0</span>
+      <h2>Faça seu conhecimento <span class="em">valer mais</span> no mercado corporativo</h2>
+      <p class="lead">
+        O Playbook funciona como um sistema operacional para sua atuação em treinamento. Método, scripts, templates
+        e ferramentas ajudam você a estruturar o que já sabe em programas que podem ser apresentados, vendidos,
+        entregues e adaptados para novos projetos.
+      </p>
+    </div>
+
+    <p class="sub-label rv"><svg class="ico"><use href="#i-gift"/></svg>O que você recebe</p>
+    <div class="feat-grid">
+      <div class="feat-card rv">
+        <span class="tile"><svg class="ico ico--l"><use href="#i-layout"/></svg></span>
+        <h3>Método para estruturar programas corporativos</h3>
+        <p>Organize conhecimento, diagnóstico, objetivos, jornada e entrega em uma oferta que a empresa consegue entender.</p>
+      </div>
+      <div class="feat-card rv d1">
+        <span class="tile"><svg class="ico ico--l"><use href="#i-copy"/></svg></span>
+        <h3>Templates para deixar de reconstruir tudo a cada cliente</h3>
+        <p>Parta de estruturas que podem ser adaptadas conforme o projeto.</p>
+      </div>
+      <div class="feat-card rv d2">
+        <span class="tile"><svg class="ico ico--l"><use href="#i-file"/></svg></span>
+        <h3>Scripts para propostas e conversas comerciais</h3>
+        <p>Tenha uma base para apresentar seu trabalho, defender valor e conduzir negociações.</p>
+      </div>
+      <div class="feat-card rv">
+        <span class="tile"><svg class="ico ico--l"><use href="#i-brain"/></svg></span>
+        <h3>Neurociência aplicada ao treinamento</h3>
+        <p>Use princípios de comportamento e aprendizagem na construção dos programas.</p>
+      </div>
+      <div class="feat-card rv d1">
+        <span class="tile"><svg class="ico ico--l"><use href="#i-cpu"/></svg></span>
+        <h3>Inteligência Artificial aplicada ao T&amp;D</h3>
+        <p>Utilize I.A. como apoio na criação, personalização e execução.</p>
+      </div>
+      <div class="feat-card rv d2">
+        <span class="tile"><svg class="ico ico--l"><use href="#i-chart"/></svg></span>
+        <h3>Gestão e mensuração</h3>
+        <p>Estruture indicadores para acompanhar impacto e apoiar conversas sobre continuidade.</p>
+      </div>
+    </div>
+
+    <div class="os-block rv">
+      <picture class="os-cover">
+        <source type="image/avif" srcset="../assets/preview-cover.avif">
+        <img src="../assets/preview-cover.jpg" width="662" height="936" alt="Capa do Playbook Treinamento Corporativo 4.0" loading="lazy" decoding="async">
+      </picture>
+      <div class="os-txt">
+        <span class="chip chip--ghost"><svg class="ico"><use href="#i-cpu"/></svg>Playbook Treinamento Corporativo 4.0</span>
+        <h3>Um sistema operacional para sua carreira em treinamento corporativo</h3>
+        <p>
+          O conteúdo foi organizado para aplicação. Você recebe uma base para transformar conhecimento em oferta,
+          proposta, entrega e continuidade, sem precisar começar tudo novamente a cada oportunidade.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="access-band">
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-row"><div class="marquee-track">
+        <span class="mq">Neurociência</span><span class="mq">I.A.</span><span class="mq">Gestão</span><span class="mq">Foco Corporativo</span><span class="mq">Acesso imediato</span><span class="mq">Acesso vitalício</span><span class="mq">Pagamento único</span><span class="mq">Playbook Treinamento Corporativo 4.0</span>
+        <span class="mq">Neurociência</span><span class="mq">I.A.</span><span class="mq">Gestão</span><span class="mq">Foco Corporativo</span><span class="mq">Acesso imediato</span><span class="mq">Acesso vitalício</span><span class="mq">Pagamento único</span><span class="mq">Playbook Treinamento Corporativo 4.0</span>
+      </div></div>
+      <div class="marquee-row"><div class="marquee-track">
+        <span class="mq">Acesso vitalício</span><span class="mq">Pagamento único</span><span class="mq">Gestão</span><span class="mq">Playbook Treinamento Corporativo 4.0</span><span class="mq">Neurociência</span><span class="mq">Foco Corporativo</span><span class="mq">Acesso imediato</span><span class="mq">I.A.</span>
+        <span class="mq">Acesso vitalício</span><span class="mq">Pagamento único</span><span class="mq">Gestão</span><span class="mq">Playbook Treinamento Corporativo 4.0</span><span class="mq">Neurociência</span><span class="mq">Foco Corporativo</span><span class="mq">Acesso imediato</span><span class="mq">I.A.</span>
+      </div></div>
+      <div class="marquee-row"><div class="marquee-track">
+        <span class="mq">I.A.</span><span class="mq">Acesso imediato</span><span class="mq">Playbook Treinamento Corporativo 4.0</span><span class="mq">Neurociência</span><span class="mq">Pagamento único</span><span class="mq">Gestão</span><span class="mq">Foco Corporativo</span><span class="mq">Acesso vitalício</span>
+        <span class="mq">I.A.</span><span class="mq">Acesso imediato</span><span class="mq">Playbook Treinamento Corporativo 4.0</span><span class="mq">Neurociência</span><span class="mq">Pagamento único</span><span class="mq">Gestão</span><span class="mq">Foco Corporativo</span><span class="mq">Acesso vitalício</span>
+      </div></div>
+      <div class="marquee-row"><div class="marquee-track">
+        <span class="mq">Foco Corporativo</span><span class="mq">Gestão</span><span class="mq">Acesso vitalício</span><span class="mq">I.A.</span><span class="mq">Playbook Treinamento Corporativo 4.0</span><span class="mq">Acesso imediato</span><span class="mq">Neurociência</span><span class="mq">Pagamento único</span>
+        <span class="mq">Foco Corporativo</span><span class="mq">Gestão</span><span class="mq">Acesso vitalício</span><span class="mq">I.A.</span><span class="mq">Playbook Treinamento Corporativo 4.0</span><span class="mq">Acesso imediato</span><span class="mq">Neurociência</span><span class="mq">Pagamento único</span>
+      </div></div>
+    </div>
+
+    <div class="wrap">
+      <div class="price-card rv" id="oferta-playbook">
+        <span class="chip"><svg class="ico"><use href="#i-key"/></svg>Seu acesso</span>
+        <h3>Playbook Treinamento Corporativo <span class="em">4.0</span></h3>
+        <div class="price-block">
+          <p class="price-now"><sup>R$</sup>39<span class="cents">,90</span></p>
+        </div>
+        <ul class="includes">
+          <li><svg class="ico"><use href="#i-check"/></svg>Pagamento único</li>
+          <li><svg class="ico"><use href="#i-zap"/></svg>Acesso imediato</li>
+          <li><svg class="ico"><use href="#i-infinity"/></svg>Acesso vitalício</li>
+        </ul>
+        <!-- Conversão principal · Checkout Hotmart -->
+        <a
+          id="checkout-playbook"
+          class="btn btn--full checkout-primary hotmart-fb hotmart__button-checkout"
+          href="https://pay.hotmart.com/R107300924E?checkoutMode=2"
+          onclick="return false;"
+          data-cta-location="offer-primary"
+          data-checkout-provider="hotmart"
+        >
+          Garantir meu acesso agora
+          <span class="arr" aria-hidden="true"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+        </a>
+        <p class="offer-foot">
+          <svg class="ico"><use href="#i-lock"/></svg>
+          Checkout pela Hotmart
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <!-- GARANTIA · pendente: inserir prazo e condições após validação com cliente/Hotmart
+    <div class="help-strip rv">
+      <h3><span class="tile"><svg class="ico"><use href="#i-shield"/></svg></span>Garantia</h3>
+      <p>[texto da garantia]</p>
+    </div>
+    -->
+
+    <div class="help-strip rv">
+      <h3><span class="tile"><svg class="ico"><use href="#i-help"/></svg></span>Tem uma dúvida antes de comprar?</h3>
+      <a href="https://spar.3ads.com.br/l/fernanda-comercial-zyfy" class="btn btn--outline" data-whatsapp>Falar sobre o Playbook
+        <span class="arr"><svg class="ico ico--s"><use href="#i-whatsapp"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Seção 10 · FAQ ───────────────────────── -->
+<section class="band-white" id="faq">
+  <div class="narrow">
+    <div class="sec-head center rv">
+      <span class="chip"><svg class="ico"><use href="#i-help"/></svg>Antes de garantir seu acesso</span>
+      <h2>Dúvidas de quem quer transformar <span class="em">conhecimento em carreira</span></h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item rv" data-faq-id="faq-01">
+        <summary><span class="q">É apenas mais um curso?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">O Playbook foi estruturado como um sistema de aplicação. Você recebe método, scripts, templates e ferramentas para organizar sua atuação no mercado corporativo.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-02">
+        <summary><span class="q">Eu já sei dar treinamento. Ainda faz sentido para mim?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">Sim. O Playbook parte justamente desse ponto. Você já domina seu conteúdo. O trabalho aqui é estruturar o que existe ao redor dele: programa, posicionamento, proposta, venda, entrega, mensuração e continuidade.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-03">
+        <summary><span class="q">Isso pode me ajudar a cobrar mais?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">O Playbook ajuda a apresentar melhor sua proposta, seu método e o valor do trabalho entregue. Isso cria uma base para que a negociação não fique restrita a hora, diária ou quantidade de encontros. O resultado comercial depende da aplicação e da atuação de cada profissional.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-04">
+        <summary><span class="q">Isso serve para quem trabalha dentro de uma empresa?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">Sim. Profissionais de RH, T&amp;D e Desenvolvimento podem aplicar o conteúdo na estruturação de programas internos ou utilizá-lo como preparação para uma futura atuação autônoma.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-05">
+        <summary><span class="q">Preciso saber usar Inteligência Artificial?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">Não. A I.A. entra como ferramenta de apoio dentro do sistema, com aplicações relacionadas à criação, personalização e estruturação dos programas.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-06">
+        <summary><span class="q">Vou aprender a vender treinamento para empresas?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">O Playbook trabalha posicionamento, proposta de valor, estrutura comercial, argumentos, objeções e fechamento dentro do contexto de treinamento corporativo.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-07">
+        <summary><span class="q">O Playbook vai conseguir clientes para mim?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">Não. Ele entrega estrutura, método e ferramentas para profissionalizar sua atuação. Prospecção, relacionamento, posicionamento e execução continuam dependendo de você.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-08">
+        <summary><span class="q">Vou conseguir viver de treinamento corporativo?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">O Playbook ajuda a estruturar uma atuação voltada para esse mercado. Transformar isso em carreira e renda depende da experiência, da aplicação do método, do posicionamento e da execução de cada profissional.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-09">
+        <summary><span class="q">Como isso ajuda a sair dos projetos soltos?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">O método ajuda você a organizar conhecimento, proposta, entrega e mensuração em uma estrutura que pode ser reaproveitada e adaptada. Isso reduz a necessidade de reconstruir toda a operação a cada novo cliente e cria uma base mais clara para continuidade.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-10">
+        <summary><span class="q">Por quanto tempo tenho acesso?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">O acesso é imediato e vitalício.</p>
+      </details>
+      <details class="faq-item rv" data-faq-id="faq-11">
+        <summary><span class="q">Quanto custa?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">R$ 39,90 em pagamento único.</p>
+      </details>
+      <!-- Pendente: "E se eu comprar e não gostar?" · inserir regra da garantia após validação
+      <details class="faq-item rv" data-faq-id="faq-12">
+        <summary><span class="q">E se eu comprar e não gostar?</span><span class="pm"><svg class="ico ico--xs"><use href="#i-plus"/></svg></span></summary>
+        <p class="ans">[regra da garantia]</p>
+      </details>
+      -->
+    </div>
+    <div class="cta-wrap rv">
+      <a href="#oferta-playbook" data-cta-location="faq" class="btn">Quero dar o próximo passo na minha carreira
+        <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Rodapé ───────────────────────────────── -->
+<footer>
+  <div class="wrap">
+    <div class="footer-row">
+      <div class="footer-brand">
+        <img src="../assets/logo-white.svg" width="102" height="51" alt="Instituto Axon">
+        <span>© 2026 Instituto Axon · Todos os direitos reservados</span>
+      </div>
+      <span class="footer-links">
+        <a class="ig" href="https://instagram.com/joeweider.s" target="_blank" rel="noopener">
+          <svg class="ico ico--s" aria-hidden="true"><use href="#i-instagram"/></svg>
+          @joeweider.s
+        </a>
+        <span class="sep">·</span>
+        <a href="#">Termos de Compra</a>
+        <span class="sep">·</span>
+        <span class="dev">Desenvolvido por 3ADS</span>
+      </span>
+    </div>
+    <!-- Pendente: CNPJ · E-mail de suporte · Telefone · WhatsApp -->
+  </div>
+</footer>
+
+<!-- CTA fixo (mobile) -->
+<div class="sticky-cta" id="sticky-cta" aria-hidden="true">
+  <a href="#oferta-playbook" data-cta-location="sticky" class="btn btn--light" tabindex="-1">Quero dar o próximo passo na minha carreira
+    <span class="arr"><svg class="ico ico--s"><use href="#i-arrow"/></svg></span>
+  </a>
+</div>
+
+<script>
+  var CONTATO_URL = 'https://spar.3ads.com.br/l/fernanda-comercial-zyfy';
+
+  (function () {
+    document.querySelectorAll('[data-whatsapp]').forEach(function (a) {
+      a.href = CONTATO_URL;
+      a.target = '_blank';
+      a.rel = 'noopener';
+    });
+  })();
+
+  /* CTAs + checkout Hotmart. Nenhum dado pessoal é enviado ao dataLayer. */
+  (function () {
+    var checkout = document.getElementById('checkout-playbook');
+    if (!checkout) return;
+    var offerTarget = document.getElementById('oferta-playbook');
+    var ga4MeasurementId = 'G-Z5501V90ND';
+    var pageSlug = 'playbook-set26';
+    var product = {
+      item_id: 'R107300924E',
+      item_name: 'Playbook Treinamento Corporativo 4.0',
+      price: 39.90,
+      quantity: 1
+    };
+
+    function pushDataLayer(eventName, parameters) {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push(Object.assign({ event: eventName }, parameters || {}));
+    }
+
+    /* Envia ao Google tag já carregado pelo GTM, sem depender de um acionador personalizado. */
+    function sendGa4Event(eventName, parameters) {
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+      window.gtag('event', eventName, Object.assign({ send_to: ga4MeasurementId }, parameters || {}));
+    }
+
+    /* Preserva UTMs, gclid, fbclid e demais parâmetros recebidos pela landing page. */
+    var pageParams = new URLSearchParams(window.location.search);
+    var checkoutUrl = new URL(checkout.href, window.location.href);
+    pageParams.forEach(function (value, key) {
+      if (!checkoutUrl.searchParams.has(key)) checkoutUrl.searchParams.append(key, value);
+    });
+    checkout.href = checkoutUrl.toString();
+
+    document.querySelectorAll('a[href="#oferta-playbook"]').forEach(function (cta) {
+      cta.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        if (offerTarget) {
+          var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          offerTarget.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+
+          if (window.history && window.history.pushState) {
+            window.history.pushState(null, '', '#oferta-playbook');
+          }
+
+          /* Mantém o card enquadrado enquanto imagens lazy acima dele terminam de carregar. */
+          [250, 550, 950, 1500, 2300, 3200].forEach(function (delay) {
+            window.setTimeout(function () {
+              var delta = offerTarget.getBoundingClientRect().top - 20;
+              if (Math.abs(delta) < 2) return;
+              var previousBehavior = document.documentElement.style.scrollBehavior;
+              document.documentElement.style.scrollBehavior = 'auto';
+              window.scrollBy(0, delta);
+              document.documentElement.style.scrollBehavior = previousBehavior;
+            }, delay);
+          });
+        }
+
+        pushDataLayer('cta_offer_click', {
+          cta_location: cta.dataset.ctaLocation || 'unknown',
+          cta_target: 'checkout_playbook',
+          page_slug: pageSlug
+        });
+      });
+    });
+
+    /*
+     * Usa a fase de captura para registrar o clique antes do widget da Hotmart.
+     * Assim o evento não depende da ordem dos listeners instalados pelo script externo.
+     */
+    document.addEventListener('click', function (event) {
+      var target = event.target.closest && event.target.closest('#checkout-playbook');
+      if (!target) return;
+
+      var clickParameters = {
+        cta_location: 'offer_primary',
+        checkout_provider: 'hotmart',
+        page_slug: pageSlug
+      };
+
+      pushDataLayer('checkout_cta_click', clickParameters);
+      sendGa4Event('checkout_cta_click', clickParameters);
+    }, true);
+
+    /* Confirma que o pop-up realmente abriu ao detectar o iframe do checkout. */
+    var checkoutOpenTracked = false;
+    var checkoutObserver;
+
+    function findHotmartCheckoutFrame() {
+      return Array.prototype.find.call(document.querySelectorAll('iframe'), function (frame) {
+        try {
+          return new URL(frame.src, window.location.href).hostname === 'pay.hotmart.com';
+        } catch (error) {
+          return false;
+        }
+      });
+    }
+
+    function trackCheckoutOpen() {
+      if (checkoutOpenTracked || !findHotmartCheckoutFrame()) return;
+      checkoutOpenTracked = true;
+
+      var ecommerce = {
+        currency: 'BRL',
+        value: 39.90,
+        items: [product]
+      };
+
+      pushDataLayer('hotmart_checkout_open', {
+        cta_location: 'offer_primary',
+        checkout_provider: 'hotmart',
+        page_slug: pageSlug,
+        ecommerce: ecommerce
+      });
+
+      sendGa4Event('begin_checkout', {
+        currency: ecommerce.currency,
+        value: ecommerce.value,
+        items: ecommerce.items,
+        checkout_provider: 'hotmart',
+        page_slug: pageSlug
+      });
+
+      if (checkoutObserver) checkoutObserver.disconnect();
+    }
+
+    checkoutObserver = new MutationObserver(trackCheckoutOpen);
+    checkoutObserver.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['src']
+    });
+
+    [0, 250, 750, 1500, 3000].forEach(function (delay) {
+      window.setTimeout(trackCheckoutOpen, delay);
+    });
+  })();
+
+  /* FAQ: registra abertura e fechamento de cada pergunta. */
+  (function () {
+    document.querySelectorAll('.faq-item').forEach(function (item) {
+      item.addEventListener('toggle', function () {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'faq_toggle',
+          faq_id: item.dataset.faqId,
+          faq_state: item.open ? 'open' : 'closed'
+        });
+      });
+    });
+  })();
+
+  (function () {
+    var els = document.querySelectorAll('.rv');
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+      });
+    }, { threshold: .12, rootMargin: '0px 0px -40px 0px' });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
+
+<script>
+  /* Widget modal oficial da Hotmart. */
+  (function importHotmart() {
+    if (!document.querySelector('script[src="https://static.hotmart.com/checkout/widget.min.js"]')) {
+      var imported = document.createElement('script');
+      imported.src = 'https://static.hotmart.com/checkout/widget.min.js';
+      document.head.appendChild(imported);
+    }
+
+    if (!document.querySelector('link[href="https://static.hotmart.com/css/hotmart-fb.min.css"]')) {
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = 'https://static.hotmart.com/css/hotmart-fb.min.css';
+      document.head.appendChild(link);
+    }
+  })();
+</script>
+
+<script>
+  /* CTA fixo (mobile): aparece depois da hero e some enquanto a oferta está na tela */
+  (function () {
+    var bar = document.getElementById('sticky-cta');
+    var hero = document.querySelector('.hero');
+    var offer = document.getElementById('oferta-playbook');
+    if (!bar || !hero || !offer || !('IntersectionObserver' in window)) return;
+    var pastHero = false, inOffer = false;
+    var update = function () {
+      var on = pastHero && !inOffer;
+      bar.classList.toggle('on', on);
+      bar.setAttribute('aria-hidden', on ? 'false' : 'true');
+      bar.querySelector('a').tabIndex = on ? 0 : -1;
+    };
+    new IntersectionObserver(function (e) { pastHero = !e[0].isIntersecting; update(); }).observe(hero);
+    new IntersectionObserver(function (e) { inOffer = e[0].isIntersecting; update(); }).observe(offer);
+  })();
+</script>
+
+</body>
+</html>

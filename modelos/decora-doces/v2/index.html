@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forminhas de Luxo para Eventos</title>
+<meta name="description" content="Forminhas de luxo, embalagens e linhas especiais para revenda. Condições para lojistas, doceiras, confeiteiras, decoradores e fornecedores de festa. Fale pelo WhatsApp.">
+
+<meta name="theme-color" content="#1A120A">
+<link rel="canonical" href="https://forminhas.decoradoces.com.br/v2/">
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Decora Doces">
+<meta property="og:title" content="Seja revendedor das forminhas de luxo Decora Doces na sua região">
+<meta property="og:description" content="Forminhas de luxo, embalagens e linhas especiais para revenda. Condições para lojistas, doceiras, confeiteiras, decoradores e fornecedores de festa. Fale pelo WhatsApp.">
+<meta property="og:url" content="https://forminhas.decoradoces.com.br/">
+<meta property="og:image" content="https://forminhas.decoradoces.com.br/assets/hero-desktop.webp">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Seja revendedor das forminhas de luxo Decora Doces na sua região">
+<meta name="twitter:description" content="Forminhas de luxo, embalagens e linhas especiais para revenda. Condições para lojistas, doceiras, confeiteiras, decoradores e fornecedores de festa. Fale pelo WhatsApp.">
+<meta name="twitter:image" content="https://forminhas.decoradoces.com.br/assets/hero-desktop.webp">
+
+<link rel="icon" href="../assets/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+<link rel="icon" href="../assets/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="../assets/logo.png" sizes="192x192">
+<link rel="apple-touch-icon" href="../assets/logo.png">
+<link rel="preload" as="image" href="../assets/hero-desktop.webp" media="(min-width:641px)" fetchpriority="high">
+<link rel="preload" as="image" href="../assets/hero-mobile.avif" type="image/avif" media="(max-width:640px)" fetchpriority="high">
+<link rel="preload" as="font" href="../assets/fonts/figtree-latin.woff2" type="font/woff2" crossorigin>
+<link rel="preload" as="font" href="../assets/fonts/playfair-latin.woff2" type="font/woff2" crossorigin>
+
+
+<!-- Google Tag Manager -->
+<!-- rastreio removido pelo portal -->
+<!-- End Google Tag Manager -->
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Decora Doces",
+  "description": "Forminhas de luxo, embalagens e linhas especiais para revenda. Condições para lojistas, doceiras, confeiteiras, decoradores e fornecedores de festa. Fale pelo WhatsApp.",
+  "url": "https://forminhas.decoradoces.com.br/",
+  "image": "https://forminhas.decoradoces.com.br/assets/hero-desktop.webp",
+  "telephone": "+55 62 3432-2222"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  "name": "Como solicitar a tabela de revenda de forminhas de luxo pelo WhatsApp",
+  "description": "Passo a passo para solicitar a tabela de revenda e as condições comerciais de forminhas de luxo junto à Decora Doces.",
+  "step": [
+    {"@type":"HowToStep","position":1,"name":"Nome da empresa","text":"Informe o nome da sua empresa."},
+    {"@type":"HowToStep","position":2,"name":"Segmento de atuação","text":"Diga em qual segmento você atua."},
+    {"@type":"HowToStep","position":3,"name":"Tipo de compra","text":"Informe se a compra é para revenda, fornecimento ou uso próprio."},
+    {"@type":"HowToStep","position":4,"name":"Quantidade por pedido","text":"Informe a quantidade aproximada de forminhas por pedido."},
+    {"@type":"HowToStep","position":5,"name":"Modelos ou referências","text":"Envie modelos ou referências de interesse."},
+    {"@type":"HowToStep","position":6,"name":"Cidade e estado","text":"Informe sua cidade e estado."}
+  ]
+}
+</script>
+
+<style>
+  @font-face{
+    font-family:'Figtree';font-style:normal;font-weight:300 600;font-display:swap;
+    src:url('../assets/fonts/figtree-latin.woff2') format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  @font-face{
+    font-family:'Playfair Display';font-style:normal;font-weight:400 700;font-display:swap;
+    src:url('../assets/fonts/playfair-latin.woff2') format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  :root{
+    --gold:#C9A24B;
+    --gold-deep:#9A6B1F;
+    --gold-light:#E6C879;
+    --ink:#1A120A;            /* base escura */
+    --ink-2:#241910;
+    --paper:#F6ECDD;          /* texto claro quente */
+    --t-light:#F3E9DB;
+    --t-mute:rgba(243,233,219,.78);
+    --line:rgba(255,255,255,.16);
+    --line-strong:rgba(255,255,255,.28);
+    --glass:rgba(255,255,255,.07);
+    --shadow:0 26px 60px -30px rgba(0,0,0,.7);
+    --shadow-sm:0 12px 30px -18px rgba(0,0,0,.6);
+    --radius:20px;
+    --maxw:1180px;
+    --font-display:'Playfair Display',serif;
+    --font-body:'Figtree',sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--font-body);
+    color:var(--t-light);
+    background:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 32px}
+  img{max-width:100%;display:block}
+  picture{display:block}
+
+  /* ---------- Acessibilidade ---------- */
+  .skip-link{
+    position:absolute;left:16px;top:-60px;z-index:200;
+    background:var(--gold-light);color:#2A1D0C;font-weight:600;
+    padding:12px 20px;border-radius:10px;text-decoration:none;
+    transition:top .2s ease;
+  }
+  .skip-link:focus{top:16px}
+  a:focus-visible,button:focus-visible{
+    outline:2px solid var(--gold-light);outline-offset:3px;border-radius:6px;
+  }
+
+  /* ---------- Barra de progresso de rolagem ---------- */
+  .scroll-progress{
+    position:fixed;top:0;left:0;height:3px;width:100%;z-index:100;
+    background:linear-gradient(90deg,var(--gold-light),var(--gold),var(--gold-deep));
+    transform:scaleX(0);transform-origin:0 50%;
+  }
+  @supports (animation-timeline:scroll()){
+    .scroll-progress{animation:grow-progress auto linear;animation-timeline:scroll(root);animation-range:0 100%}
+  }
+  @supports not (animation-timeline:scroll()){
+    .scroll-progress{display:none}
+  }
+  @keyframes grow-progress{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  /* ---------- Tipografia ---------- */
+  .kicker{
+    font-family:var(--font-body);font-weight:500;font-size:.76rem;
+    letter-spacing:.3em;text-transform:uppercase;color:var(--gold-light);
+    display:inline-flex;align-items:center;gap:12px;
+  }
+  .kicker::before{content:"";width:28px;height:1px;background:var(--gold-light)}
+  h1,h2{font-family:var(--font-display);color:#fff;line-height:1.12;letter-spacing:-.04em;text-wrap:balance}
+  h1{font-weight:500;font-size:clamp(2.1rem,4.1vw,3.5rem);text-shadow:0 2px 40px rgba(0,0,0,.45)}
+  h2{font-weight:400;font-size:clamp(1.9rem,3.3vw,2.8rem)}
+  .lead{font-family:var(--font-body);font-style:normal;font-weight:400;font-size:clamp(1.1rem,1.9vw,1.4rem);color:var(--gold-light)}
+  p.body{color:var(--t-mute);font-size:1.05rem;font-weight:300}
+
+  /* ---------- Botões ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:11px;
+    font-family:var(--font-body);font-weight:500;font-size:1rem;letter-spacing:.02em;
+    padding:16px 32px;border-radius:999px;cursor:pointer;border:none;
+    text-decoration:none;transition:transform .25s ease,box-shadow .25s ease,filter .25s ease;
+  }
+  .btn-primary{
+    color:#2A1D0C;
+    background:linear-gradient(135deg,#F3DDA4,var(--gold-light) 45%,var(--gold));
+    box-shadow:0 16px 34px -14px rgba(201,162,75,.6);
+  }
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 22px 44px -16px rgba(201,162,75,.7);filter:saturate(1.06)}
+  .btn svg{width:18px;height:18px}
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(20,13,6,.62);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:22px;position:relative}
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+  .brand .logo-light{height:42px;width:auto;display:block}
+  .brand .mark{width:38px;height:38px;flex:none}
+  .brand .name{font-family:var(--font-display);font-weight:600;font-size:1.4rem;color:var(--gold-light);line-height:1;white-space:nowrap}
+  .nav .btn{padding:12px 26px;font-size:.92rem;flex:none}
+
+  /* ---------- Seção full-bleed com imagem de fundo ---------- */
+  .sec{
+    position:relative;padding:120px 0;
+    background:var(--ink-2);
+    color:var(--t-light);
+  }
+  .sec .wrap{position:relative;z-index:2}
+  /* variação de cor entre as seções (sem imagem de fundo) */
+  .sec--a{background:#1F1610}
+  .sec--b{background:linear-gradient(180deg,#271C12,#1B130C)}
+  .sec--gold{background:linear-gradient(160deg,#3A2A18,#5A3F1C 55%,#7A5520)}
+  /* seção preta com brilho radial suave vindo de cima */
+  .sec--black{background:#0C0805}
+  .sec--black::before{
+    content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(115% 70% at 50% -6%,rgba(238,214,158,.15),rgba(238,214,158,.05) 36%,transparent 62%);
+  }
+  .sec-head{max-width:760px}
+  .sec-head.center{margin:0 auto;text-align:center}
+  .sec-head .kicker{margin-bottom:20px}
+  .sec-head h2{margin-bottom:18px}
+  .sec-head .lead{margin-bottom:18px;display:block}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative;min-height:92vh;display:flex;align-items:center;
+    background-color:var(--ink);
+    background-image:url('../assets/hero-desktop.webp');
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+    color:#fff;overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;z-index:1;
+    background:linear-gradient(90deg,rgba(18,12,6,.82) 0%,rgba(18,12,6,.5) 38%,rgba(18,12,6,.12) 66%,rgba(18,12,6,0) 100%);
+  }
+  .hero .wrap{position:relative;z-index:2;max-width:none;width:100%;margin:0;padding-left:clamp(28px,7vw,130px);padding-right:32px}
+  .hero-inner{max-width:600px;padding:60px 0}
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:9px;margin-bottom:28px;
+    background:rgba(255,255,255,.06);border:1px solid var(--line-strong);
+    padding:9px 18px;border-radius:999px;font-size:.82rem;color:var(--gold-light);
+    backdrop-filter:blur(6px);
+  }
+  .hero-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--gold-light)}
+  .hero h1{margin-bottom:24px}
+  .hero .sub{font-family:var(--font-body);font-style:normal;font-weight:400;font-size:clamp(1.1rem,2vw,1.4rem);color:var(--gold-light);margin-bottom:20px;max-width:600px}
+  .hero-bullets{list-style:none;display:flex;flex-wrap:wrap;gap:10px 24px;margin:22px 0 0}
+  .hero-bullets li{display:inline-flex;align-items:center;gap:10px;color:var(--t-light);font-size:.98rem;font-weight:400}
+  .hero-bullets li svg{width:19px;height:19px;color:var(--gold-light);flex:none}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+  .hero-photo{display:none}
+
+  /* faixa de prova */
+  .trust{position:relative;z-index:50;background:rgba(20,13,6,.78);backdrop-filter:blur(10px);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:-1px}
+  .trust .wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 46px;padding:22px 32px}
+  .trust span{display:inline-flex;align-items:center;gap:11px;color:var(--t-mute);font-size:.96rem}
+  .trust span .ic{display:inline-flex;align-items:center;color:var(--gold-light)}
+  .trust span .ic svg{width:20px;height:20px}
+
+  /* ---------- Cartões de vidro (sobre as fotos) ---------- */
+  .glass{
+    background:var(--glass);border:1px solid var(--line);
+    backdrop-filter:blur(10px) saturate(1.05);-webkit-backdrop-filter:blur(10px);
+    box-shadow:var(--shadow-sm);
+  }
+
+  /* lista de critérios em chips */
+  .chips{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 0}
+  .chip{
+    display:inline-flex;align-items:center;gap:10px;
+    background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(8px);
+    padding:12px 20px;border-radius:999px;font-size:.98rem;color:var(--t-light);font-weight:400;
+  }
+  .chip .ck{width:8px;height:8px;border-radius:50%;background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));flex:none}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center}
+  .field-label{font-weight:400;color:var(--t-light);margin-bottom:14px}
+
+  /* grid de eventos */
+  .events-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin-top:48px}
+  .event{
+    flex:0 1 calc(25% - 14px);min-width:200px;border-radius:var(--radius);
+    padding:28px 20px;text-align:center;
+    background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px);
+  }
+  .event .ec{
+    width:58px;height:58px;margin:0 auto 16px;border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,rgba(230,200,121,.18),rgba(255,255,255,.05));
+    border:1px solid var(--line-strong);color:var(--gold-light);
+  }
+  .event .ec svg{width:28px;height:28px}
+  .event h3{font-family:var(--font-body);font-weight:500;font-size:1.02rem;color:#fff}
+
+  /* cards de público */
+  .persona-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:48px}
+  .persona{border-radius:var(--radius);padding:34px 32px;position:relative;overflow:hidden;
+    background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px)}
+  .persona::after{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--gold-light),var(--gold),var(--gold-deep))}
+  .persona .pn{
+    width:52px;height:52px;border-radius:14px;margin-bottom:22px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));color:#2A1D0C;
+  }
+  .persona .pn svg{width:26px;height:26px}
+  .persona h3{font-family:var(--font-display);font-weight:500;font-size:1.45rem;color:#fff;margin-bottom:10px;font-style:normal}
+  .persona p{color:var(--t-mute);font-size:1rem;font-weight:300}
+
+  /* processo numerado */
+  .process{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:start}
+  .steps{display:flex;flex-direction:column;gap:6px}
+  .step{display:flex;gap:20px;padding:20px 0;border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:none}
+  .step .num{font-family:var(--font-display);font-size:1.8rem;color:var(--gold-light);line-height:1;flex:none;width:48px}
+  .step .st-txt{color:var(--t-light);font-size:1.05rem;padding-top:6px;text-transform:capitalize}
+
+  /* diferenciais */
+  .diff-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:48px}
+  .diff{border-radius:var(--radius);padding:32px;display:flex;gap:18px;
+    background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px)}
+  .diff .di{
+    width:48px;height:48px;flex:none;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,rgba(230,200,121,.18),rgba(255,255,255,.05));
+    border:1px solid var(--line-strong);color:var(--gold-light);
+  }
+  .diff .di svg{width:24px;height:24px}
+  .diff h3{font-family:var(--font-display);font-style:normal;font-weight:500;font-size:1.3rem;margin-bottom:8px;color:#fff}
+  .diff p{color:var(--t-mute);font-size:.98rem;font-weight:300}
+
+  /* ---------- CTA final ---------- */
+  .final-cta{margin-top:34px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;justify-content:center}
+
+  /* ---------- Carrossel ---------- */
+  .carousel{position:relative;margin-top:48px}
+  .car-viewport{overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+  .car-track{display:flex;gap:18px;width:max-content;animation:marquee 38s linear infinite}
+  @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .carousel:hover .car-track{animation-play-state:paused}
+  .car-slide{
+    flex:0 0 auto;width:300px;aspect-ratio:3/4;border-radius:var(--radius);overflow:hidden;
+    background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+    border:1px solid var(--line);position:relative;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .car-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .car-slide .lotus{width:34%;opacity:.8}
+  .car-slide .lbl{position:absolute;bottom:16px;font-family:var(--font-body);font-style:normal;color:var(--gold-light);opacity:.85;font-size:.92rem}
+  .car-arrow{
+    position:absolute;top:50%;transform:translateY(-50%);z-index:3;
+    width:54px;height:54px;border-radius:50%;border:1px solid var(--line-strong);
+    background:rgba(20,13,6,.6);color:var(--gold-light);cursor:pointer;backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .2s ease,background .2s ease;
+  }
+  .car-arrow:hover{transform:translateY(-50%) scale(1.08);background:rgba(20,13,6,.85)}
+  .car-arrow svg{width:22px;height:22px}
+  .car-arrow.prev{left:28px}
+  .car-arrow.next{right:28px}
+
+  /* ---------- Footer ---------- */
+  footer{padding:56px 0 42px;text-align:center;border-top:1px solid var(--line);background:var(--ink)}
+  footer .brand{justify-content:center;margin-bottom:16px}
+  footer .fnum{color:var(--t-mute);font-size:1rem;margin-bottom:6px;display:inline-flex;gap:9px;align-items:center}
+  footer .fnum svg{width:18px;height:18px;color:var(--gold-light)}
+  footer .cr{color:rgba(243,233,219,.45);font-size:.85rem;margin-top:18px}
+  footer .cr:last-of-type{margin-top:6px}
+  .dev-credit{color:var(--gold-light);text-decoration:none;font-weight:500;transition:opacity .2s ease}
+  .dev-credit:hover{opacity:.75;text-decoration:underline}
+
+  /* animação de entrada */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  .reveal-pop{opacity:0;transform:translateY(18px) scale(.97);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.8,.2,1)}
+  .reveal-pop.in{opacity:1;transform:none}
+
+  /* ---------- Responsivo ---------- */
+
+  /* Telas muito grandes: TVs, monitores widescreen/ultrawide */
+  @media(min-width:1600px){
+    :root{--maxw:1320px}
+    .hero-inner{max-width:660px}
+  }
+  @media(min-width:2200px){
+    :root{--maxw:1480px}
+  }
+
+  @media(max-width:980px){
+    .two-col,.process{grid-template-columns:1fr;gap:36px}
+    .event{flex:0 1 calc(50% - 9px)}
+    .sec{padding:88px 0}
+    .hero{min-height:auto;padding:60px 0}
+  }
+  @media(max-width:640px){
+    .wrap{padding:0 20px}
+    .nav{justify-content:space-between}
+    .brand .logo-light{height:36px}
+    .hero{background-image:none;background:var(--ink);min-height:auto;display:block;padding:0}
+    .hero::before{display:none}
+    .hero .wrap{padding:44px 22px 20px}
+    .hero-inner{max-width:100%;padding:0}
+    .hero-photo{display:block;width:100%;height:50vh;object-fit:cover;object-position:center 46%;-webkit-mask-image:linear-gradient(180deg,transparent,#000 15%);mask-image:linear-gradient(180deg,transparent,#000 15%)}
+    .event{flex:0 1 calc(50% - 9px);min-width:0}
+    .car-slide{width:230px}
+    .car-arrow{width:46px;height:46px}
+    .hero-cta{flex-direction:column;align-items:stretch}
+    .hero-cta .btn{justify-content:center}
+    .persona-grid,.diff-grid{grid-template-columns:1fr}
+    .final-cta{flex-direction:column;align-items:stretch}
+    .final-cta .btn{justify-content:center;text-align:center}
+    .brand .name{font-size:1.25rem}
+    /* imagem antes do conteúdo na seção "Mix sob medida" */
+    .mobile-img-first > *:last-child{order:-1;margin-bottom:8px}
+  }
+  @media(max-width:640px) and (max-height:480px){
+    .hero-photo{height:auto;aspect-ratio:16/9}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .reveal,.reveal-pop{opacity:1;transform:none;transition:none}
+    .car-track{animation:none}
+    .car-viewport{overflow-x:auto}
+    .scroll-progress{display:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+<style id="v2-visual">
+  /* ===================================================================
+     CAMADA VISUAL V2: "estojo de joia"
+     Sobrepõe o CSS base acima. Para reverter o visual, basta apagar
+     este bloco style id="v2-visual" inteiro e a v2 volta ao visual original.
+     =================================================================== */
+
+  :root{
+    --glow-gold:rgba(201,162,75,.15);
+    --glow-rose:rgba(150,42,60,.16);
+    --metal:linear-gradient(100deg,#A9762A 0%,#E6C879 16%,#FFF6DC 30%,#E6C879 44%,#B98A34 58%,#EBD08A 78%,#F7E6B8 100%);
+    --ease-out:cubic-bezier(.22,.61,.36,1);
+  }
+
+  /* ---------- Granulado de filme sobre a página inteira ---------- */
+  body::after{
+    content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+    opacity:.055;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+    background-size:140px 140px;
+  }
+
+  /* ---------- Luz ambiente quente dentro de cada seção ---------- */
+  .sec::after{
+    content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(52% 42% at 86% 0%,var(--glow-gold),transparent 60%),
+      radial-gradient(46% 40% at 6% 100%,var(--glow-rose),transparent 62%);
+  }
+  .sec--gold::after{
+    background:
+      radial-gradient(60% 50% at 50% -10%,rgba(255,240,200,.20),transparent 58%),
+      radial-gradient(40% 40% at 10% 110%,rgba(60,20,28,.35),transparent 60%);
+  }
+
+  /* ---------- Ouro metálico: acentos tipográficos ---------- */
+  .gold-accent{
+    font-family:var(--font-display);font-style:italic;font-weight:400;
+    background:var(--metal);background-size:100% 100%;
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:var(--gold-light);
+    padding-right:.06em;
+  }
+  /* só o H1 ganha o brilho que percorre o texto */
+  .hero h1 .gold-accent{
+    background-size:260% 100%;
+    animation:sheen 7.5s ease-in-out infinite;
+  }
+  @keyframes sheen{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+  /* ---------- Ornamento de capítulo (lótus da marca) ---------- */
+  .ornament{
+    display:flex;align-items:center;justify-content:center;gap:20px;
+    max-width:320px;margin:0 auto 36px;
+  }
+  .orn-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(230,200,121,.6))}
+  .orn-line + .orn-line,.ornament .orn-line:last-child{background:linear-gradient(90deg,rgba(230,200,121,.6),transparent)}
+  .orn-mark{width:32px;height:32px;flex:none;filter:drop-shadow(0 0 14px rgba(230,200,121,.4))}
+
+  /* ---------- Botão: metal com brilho que passa ---------- */
+  .btn-primary{
+    position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#F7E6B8 0%,#E6C879 38%,#C9A24B 72%,#B08636 100%);
+    box-shadow:
+      0 16px 34px -14px rgba(201,162,75,.6),
+      inset 0 1px 0 rgba(255,255,255,.65),
+      inset 0 -1px 0 rgba(120,80,20,.35);
+    letter-spacing:.015em;
+  }
+  .btn-primary::after{
+    content:"";position:absolute;top:0;left:0;width:100%;height:100%;
+    background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.55) 48%,transparent 60%);
+    mix-blend-mode:overlay;transform:translateX(-130%);
+  }
+  .btn-primary:hover::after{transform:translateX(130%);transition:transform .8s var(--ease-out)}
+  .btn-primary:hover{
+    box-shadow:
+      0 24px 48px -16px rgba(201,162,75,.75),
+      0 0 34px -12px rgba(230,200,121,.5),
+      inset 0 1px 0 rgba(255,255,255,.7);
+  }
+
+  /* ---------- Hero: entrada em cascata, vinheta e profundidade ---------- */
+  .hero::after{
+    content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:
+      radial-gradient(70% 90% at 22% 50%,rgba(201,162,75,.13),transparent 58%),
+      radial-gradient(120% 100% at 50% 50%,transparent 42%,rgba(10,6,3,.55) 100%);
+  }
+  .hero .hero-inner{opacity:1;transform:none;transition:none}
+  .hero-inner > *{animation:rise .95s var(--ease-out) both}
+  .hero-inner > *:nth-child(1){animation-delay:.10s}
+  .hero-inner > *:nth-child(2){animation-delay:.22s}
+  .hero-inner > *:nth-child(3){animation-delay:.34s}
+  .hero-inner > *:nth-child(4){animation-delay:.46s}
+  .hero-inner > *:nth-child(5){animation-delay:.58s}
+  @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+
+  .hero h1{font-size:clamp(2.3rem,4.7vw,4.1rem);letter-spacing:-.045em}
+  .hero-badge{
+    background:rgba(255,255,255,.07);border-color:rgba(230,200,121,.4);
+    letter-spacing:.14em;text-transform:uppercase;font-size:.74rem;font-weight:500;
+  }
+  .hero-badge .dot{box-shadow:0 0 0 0 rgba(230,200,121,.65);animation:pulse 2.6s ease-out infinite}
+  @keyframes pulse{
+    0%{box-shadow:0 0 0 0 rgba(230,200,121,.6)}
+    70%{box-shadow:0 0 0 9px rgba(230,200,121,0)}
+    100%{box-shadow:0 0 0 0 rgba(230,200,121,0)}
+  }
+  .hero-bullets li{
+    padding:8px 16px;border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.045);
+    backdrop-filter:blur(6px);
+  }
+
+  /* seta de rolagem no fim do hero */
+  .scroll-cue{
+    position:absolute;left:50%;bottom:26px;z-index:3;transform:translateX(-50%);
+    width:26px;height:42px;border:1px solid rgba(230,200,121,.5);border-radius:999px;
+    display:flex;justify-content:center;padding-top:8px;
+    animation:rise 1s var(--ease-out) both;animation-delay:.9s;
+  }
+  .scroll-cue span{
+    width:3px;height:8px;border-radius:2px;background:var(--gold-light);
+    animation:cue 1.9s ease-in-out infinite;
+  }
+  @keyframes cue{0%{transform:translateY(0);opacity:1}60%{transform:translateY(13px);opacity:0}100%{opacity:0}}
+
+  /* ---------- Faixa de prova ---------- */
+  .trust{background:rgba(14,9,4,.86);border-color:rgba(230,200,121,.22)}
+  .trust span{font-size:.9rem;letter-spacing:.02em}
+  .trust span .ic{
+    width:34px;height:34px;border-radius:50%;justify-content:center;
+    background:linear-gradient(135deg,rgba(230,200,121,.20),rgba(255,255,255,.04));
+    border:1px solid rgba(230,200,121,.3);
+  }
+  .trust span .ic svg{width:17px;height:17px}
+
+  /* ---------- Cabeçalhos de seção ---------- */
+  .kicker{font-size:.72rem;letter-spacing:.34em}
+  .sec-head.center .kicker{justify-content:center}
+  .sec-head.center .kicker::before{display:none}
+  h2{font-size:clamp(2rem,3.7vw,3.1rem)}
+
+  /* ---------- Cartões ---------- */
+  .persona,.diff,.event{
+    position:relative;
+    background:linear-gradient(165deg,rgba(255,255,255,.085),rgba(255,255,255,.025));
+  }
+  .persona .pn{box-shadow:0 12px 26px -12px rgba(201,162,75,.7)}
+  .persona h3{font-size:1.5rem}
+
+  /* chips de ocasião */
+  .event{padding:26px 18px}
+  .event h3{letter-spacing:.01em}
+
+  /* condições comerciais: texto à esquerda, cards empilhados à direita */
+  #revenda .diff-grid{grid-template-columns:1fr;margin-top:0;gap:16px}
+  #revenda .diff{padding:26px 28px}
+
+  /* ---------- Passo a passo: numerais editoriais ---------- */
+  .steps{position:relative}
+  .step{position:relative;align-items:baseline}
+  .step .num{
+    font-size:2.5rem;width:66px;letter-spacing:-.03em;
+    background:var(--metal);-webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;opacity:.9;
+  }
+
+
+  /* ---------- Carrossel ---------- */
+  .car-arrow{border-color:rgba(230,200,121,.4)}
+  .car-arrow:hover{border-color:rgba(230,200,121,.75);color:#FFF1CC}
+
+  /* ---------- Rodapé ---------- */
+  footer{background:#0A0603;position:relative}
+  footer::before{
+    content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:min(420px,70%);height:1px;
+    background:linear-gradient(90deg,transparent,rgba(230,200,121,.55),transparent);
+  }
+  footer .brand .mark{filter:drop-shadow(0 0 16px rgba(230,200,121,.35))}
+
+  /* ---------- Detalhes finais ---------- */
+  ::selection{background:rgba(230,200,121,.3);color:#fff}
+  html{scrollbar-color:var(--gold-deep) #0C0805}
+
+  /* ---------- Respiro nos blocos de texto fora de .sec-head ---------- */
+  .two-col > div > .kicker,.process > div > .kicker{margin-bottom:18px}
+  .two-col > div > h2,.process > div > h2{margin-bottom:16px}
+  .two-col > div > .lead,.process > div > .lead{display:block}
+
+  /* ---------- Ajustes responsivos da camada visual ---------- */
+  @media(max-width:980px){
+    .ornament{max-width:240px;margin-bottom:28px}
+  }
+  @media(max-width:640px){
+    .scroll-cue{display:none}
+    .hero-bullets li{padding:7px 13px;font-size:.9rem}
+    .step .num{font-size:2rem;width:52px}
+    body::after{opacity:.04}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    .hero h1 .gold-accent{animation:none}
+    .hero-inner > *,.scroll-cue{animation:none}
+    .hero-badge .dot{animation:none}
+    .scroll-cue span{animation:none}
+    .btn-primary::after{display:none}
+  }
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+
+<!-- End Google Tag Manager (noscript) -->
+
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<div class="scroll-progress" aria-hidden="true"></div>
+
+<!-- ===== Lotus SVG (reutilizável) ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E6C879"/>
+      <stop offset=".5" stop-color="#C9A24B"/>
+      <stop offset="1" stop-color="#9A6B1F"/>
+    </linearGradient>
+    <symbol id="lotus" viewBox="0 0 120 110">
+      <path fill="url(#gold)" d="M60 8c4 8 4 16 0 24-4-8-4-16 0-24z"/>
+      <path fill="url(#gold)" d="M60 30c6 6 9 15 8 26-9-3-15-10-16-21 3-2 6-3 8-5z"/>
+      <path fill="url(#gold)" d="M60 30c-6 6-9 15-8 26 9-3 15-10 16-21-3-2-6-3-8-5z" opacity=".85"/>
+      <path fill="url(#gold)" d="M64 40c12-2 22 2 30 12-11 9-24 9-34 1 1-5 2-9 4-13z"/>
+      <path fill="url(#gold)" d="M56 40c-12-2-22 2-30 12 11 9 24 9 34 1-1-5-2-9-4-13z"/>
+      <circle cx="60" cy="6" r="4" fill="url(#gold)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- ===== Header ===== -->
+<header>
+  <nav class="wrap nav" aria-label="Principal">
+    <a href="#" class="brand">
+      <picture>
+        <source srcset="../assets/logo.avif" type="image/avif">
+        <source srcset="../assets/logo.webp" type="image/webp">
+        <img class="logo-light" src="../assets/logo.webp" width="320" height="148" alt="Decora Doces" decoding="async">
+      </picture>
+    </a>
+    <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20revenda%20das%20forminhas%20Decora%20Doces." target="_blank" rel="noopener">Quero revender</a>
+  </nav>
+</header>
+
+<main id="conteudo">
+<!-- ===== Hero ===== fundo: assets/hero-desktop.webp (desktop) e assets/hero-mobile.webp (mobile) -->
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-inner reveal">
+      <span class="hero-badge"><span class="dot"></span>Revenda • Decora Doces</span>
+      <!-- COPY -->
+      <h1>Revenda forminhas <em class="gold-accent">de luxo</em> na sua região</h1>
+      <!-- COPY -->
+      <p class="sub">Forminhas, embalagens e linhas especiais para lojistas, doceiras, confeiteiras e fornecedores de festa. Um produto de alto valor percebido para vender o ano inteiro.</p>
+      <!-- COPY -->
+      <ul class="hero-bullets">
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 11h12l-1.4 8.2a1 1 0 0 1-1 .8H8.4a1 1 0 0 1-1-.8L6 11z"/><path d="M7.5 11a4.5 4.5 0 0 1 9 0"/><path d="M12 4v2.5"/></svg> Forminhas</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5l9-4.5 9 4.5v9l-9 4.5-9-4.5z"/><path d="M3 7.5l9 4.5 9-4.5M12 12v9"/></svg> Embalagens</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.6L19.5 10l-5.6 1.4L12 17l-1.9-5.6L4.5 10l5.6-1.4z"/></svg> Linhas especiais</li>
+      </ul>
+      <div class="hero-cta">
+        <!-- COPY -->
+        <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20tenho%20interesse%20em%20me%20tornar%20revendedor%20da%20Decora%20Doces.%20Pode%20me%20passar%20as%20condi%C3%A7%C3%B5es%3F" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.7.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.2-.5s0-.4-.1-.5l-.8-1.8c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>
+          Quero ser revendedor
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- imagem só no mobile (no desktop o hero usa background-image) -->
+  <picture>
+    <source srcset="../assets/hero-mobile.avif" type="image/avif">
+    <source srcset="../assets/hero-mobile.webp" type="image/webp">
+    <img class="hero-photo" src="../assets/hero-mobile.webp" width="941" height="1672" alt="Mesa de doces da Decora Doces" fetchpriority="high" decoding="async">
+  </picture>
+
+  <a class="scroll-cue" href="#valor" aria-label="Rolar para o conteúdo"><span></span></a>
+</section>
+
+<!-- ===== Faixa de prova ===== -->
+<div class="trust">
+  <div class="wrap">
+    <!-- COPY -->
+    <span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.3 7.5L3 21l2-5.7A8.4 8.4 0 1 1 21 11.5z"/></svg></span> Atendimento direto pelo WhatsApp</span>
+    <span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.1 5.4L20 9l-4.4 3.7L17 19l-5-3.4L7 19l1.4-6.3L4 9l5.9-.6z"/></svg></span> Condições para quem compra em quantidade</span>
+    <span><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a1.9 1.9 0 0 1-2.7 0l-7-7V4h9.6l7.3 7.3a1.9 1.9 0 0 1 0 2.1z"/><circle cx="8" cy="8" r="1.2"/></svg></span> Linha completa para vender o ano todo</span>
+  </div>
+</div>
+
+<!-- ===== Valor / Problema ===== -->
+<section class="sec sec--black" id="valor">
+  <div class="wrap reveal">
+    <div class="sec-head center">
+      <div class="ornament" aria-hidden="true"><span class="orn-line"></span><svg class="orn-mark" viewBox="0 0 120 110"><use href="#lotus"/></svg><span class="orn-line"></span></div>
+      <span class="kicker">Valor percebido</span>
+      <!-- COPY -->
+      <h2>O detalhe que faz o cliente pagar <em class="gold-accent">mais caro</em> pelo doce</h2>
+      <!-- COPY -->
+      <span class="lead">A forminha é a primeira coisa que aparece na mesa. É ela que separa um doce comum de um doce de festa.</span>
+    </div>
+    <div style="text-align:center;margin-top:30px">
+      <!-- COPY -->
+      <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20gostaria%20de%20receber%20o%20cat%C3%A1logo%20completo%20de%20forminhas%20para%20revenda." target="_blank" rel="noopener">Receber o catálogo completo</a>
+    </div>
+  </div>
+
+  <!-- CARROSSEL: passa sozinho, infinito, largura total (assets/image-01..08) -->
+  <div class="reveal">
+    <div class="carousel" id="carousel">
+      <button class="car-arrow prev" aria-label="Voltar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <div class="car-viewport">
+        <div class="car-track" id="carTrack">
+          <div class="car-slide"><picture><source srcset="../assets/gallery-01.avif" type="image/avif"><source srcset="../assets/gallery-01.webp" type="image/webp"><img src="../assets/gallery-01.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 1" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-02.avif" type="image/avif"><source srcset="../assets/gallery-02.webp" type="image/webp"><img src="../assets/gallery-02.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 2" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-03.avif" type="image/avif"><source srcset="../assets/gallery-03.webp" type="image/webp"><img src="../assets/gallery-03.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 3" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-04.avif" type="image/avif"><source srcset="../assets/gallery-04.webp" type="image/webp"><img src="../assets/gallery-04.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 4" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-05.avif" type="image/avif"><source srcset="../assets/gallery-05.webp" type="image/webp"><img src="../assets/gallery-05.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 5" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-06.avif" type="image/avif"><source srcset="../assets/gallery-06.webp" type="image/webp"><img src="../assets/gallery-06.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 6" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-07.avif" type="image/avif"><source srcset="../assets/gallery-07.webp" type="image/webp"><img src="../assets/gallery-07.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 7" loading="lazy" decoding="async"></picture></div>
+          <div class="car-slide"><picture><source srcset="../assets/gallery-08.avif" type="image/avif"><source srcset="../assets/gallery-08.webp" type="image/webp"><img src="../assets/gallery-08.webp" width="800" height="957" alt="Forminha de luxo Decora Doces, modelo 8" loading="lazy" decoding="async"></picture></div>
+        </div>
+      </div>
+      <button class="car-arrow next" aria-label="Avançar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Escolha com segurança ===== -->
+<section class="sec sec--b">
+  <div class="wrap two-col mobile-img-first">
+    <div class="reveal">
+      <span class="kicker">Mix sob medida</span>
+      <!-- COPY -->
+      <h2>Monte um mix que <em class="gold-accent">gira</em> na sua loja</h2>
+      <!-- COPY -->
+      <span class="lead">A nossa equipe ajuda a selecionar modelos de acordo com o perfil da sua clientela, os estilos de festa que mais saem na sua região e o volume que você trabalha.</span>
+      <div style="margin-top:26px">
+        <!-- COPY -->
+        <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20ajuda%20para%20montar%20um%20mix%20de%20forminhas%20para%20revender." target="_blank" rel="noopener">Montar meu mix de revenda</a>
+      </div>
+    </div>
+    <div class="reveal">
+      <picture>
+        <source srcset="../assets/escolha-modelos.avif" type="image/avif">
+        <source srcset="../assets/escolha-modelos.webp" type="image/webp">
+        <img src="../assets/escolha-modelos.webp" width="765" height="956" alt="Opções de decoração Decora Doces" style="width:100%;height:auto;display:block;border-radius:16px" loading="lazy" decoding="async">
+      </picture>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Modelos para diferentes celebrações ===== -->
+<section class="sec sec--gold" id="eventos">
+  <div class="wrap">
+    <div class="sec-head center reveal-pop">
+      <span class="kicker">Calendário de vendas</span>
+      <!-- COPY -->
+      <h2>Linha completa para vender <em class="gold-accent">o ano inteiro</em></h2>
+      <!-- COPY -->
+      <span class="lead">Casamentos e aniversários sustentam o mês a mês. Páscoa, Natal e datas comemorativas criam picos de demanda que você planeja com antecedência.</span>
+    </div>
+
+    <div class="events-grid">
+      <!-- COPY -->
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg></div><h3>Casamentos</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="9" width="18" height="11" rx="1.5"/><path d="M3 13h18M12 9V6M9 6h6"/></svg></div><h3>Aniversários</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/><path d="M9 4c1-1 5-1 6 0"/></svg></div><h3>Festas infantis</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 9.5h6V19a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M10 9.5V7h4v2.5M11 4h2v3h-2z"/><path d="M9 13.5h6"/></svg></div><h3>Chás de bebê</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v6M9 6h6"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg></div><h3>Chás revelação</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3c2 2 2 4 0 6-2-2-2-4 0-6z"/><path d="M5 21c0-4 3-7 7-7s7 3 7 7"/></svg></div><h3>Batizados</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="8" width="16" height="12" rx="1.5"/><path d="M9 8V5h6v3"/></svg></div><h3>Eventos corporativos</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12h14M12 5c2 2 2 5 0 7-2-2-2-5 0-7z"/><circle cx="12" cy="18" r="2"/></svg></div><h3>Confraternizações</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.2c3.2 0 5.8 4.3 5.8 8.2a5.8 5.8 0 0 1-11.6 0c0-3.9 2.6-8.2 5.8-8.2z"/><path d="M6.6 12.6c1.1.9 2.2.9 3.3 0s2.2-.9 3.3 0 2.2.9 3.3 0"/></svg></div><h3>Páscoa</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3.5l3.4 4.4h-2.1l2.8 4h-2.3l3.2 4.4H7l3.2-4.4H7.9l2.8-4H8.6z"/><path d="M11 16.3v4h2v-4"/></svg></div><h3>Natal</h3></div>
+      <div class="event"><div class="ec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.3 4.7 5.2.8-3.8 3.6.9 5.1L12 14.8 7.4 17l.9-5.1L4.5 8.3l5.2-.8L12 3z"/></svg></div><h3>Datas comemorativas</h3></div>
+    </div>
+
+    <div class="reveal" style="text-align:center;margin-top:48px">
+      <!-- COPY -->
+      <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20conhecer%20as%20linhas%20para%20vender%20o%20ano%20todo%2C%20incluindo%20as%20datas%20sazonais." target="_blank" rel="noopener">Ver linhas do ano todo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Para quem é ===== -->
+<section class="sec sec--black" id="publico">
+  <div class="wrap">
+    <div class="sec-head center reveal-pop">
+      <div class="ornament" aria-hidden="true"><span class="orn-line"></span><svg class="orn-mark" viewBox="0 0 120 110"><use href="#lotus"/></svg><span class="orn-line"></span></div>
+      <span class="kicker">Para quem é</span>
+      <!-- COPY -->
+      <h2>Feito para quem <em class="gold-accent">vende</em>, não para quem dá a festa</h2>
+      <!-- COPY -->
+      <span class="lead">Para quem compra em quantidade, seja para revender, abastecer ou atender os próprios clientes.</span>
+    </div>
+
+    <div class="persona-grid">
+      <div class="persona">
+        <div class="pn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h16l-1 11H5L4 8z"/><path d="M8 8V6a4 4 0 0 1 8 0v2"/></svg></div>
+        <!-- COPY -->
+        <h3>Lojistas e distribuidores</h3>
+        <!-- COPY -->
+        <p>Abasteça sua loja com um produto de alto valor percebido, com giro constante e reposição planejada para as datas de pico do ano.</p>
+      </div>
+      <div class="persona">
+        <div class="pn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7.5l9-4.5 9 4.5v9l-9 4.5-9-4.5z"/><path d="M3 7.5l9 4.5 9-4.5M12 12v9"/></svg></div>
+        <!-- COPY -->
+        <h3>Fornecedores de festa</h3>
+        <!-- COPY -->
+        <p>Componha kits, mesas e encomendas com forminhas que elevam o padrão da entrega e sustentam um ticket maior.</p>
+      </div>
+      <div class="persona">
+        <div class="pn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 13h12l-1 7H7l-1-7z"/><path d="M9 13c0-3 1-5 3-5s3 2 3 5"/><path d="M12 4v2"/></svg></div>
+        <!-- COPY -->
+        <h3>Doceiras e confeiteiras</h3>
+        <!-- COPY -->
+        <p>Cobre mais pelo mesmo doce. A forminha muda a percepção de valor da encomenda antes da primeira mordida.</p>
+      </div>
+      <div class="persona">
+        <div class="pn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/></svg></div>
+        <!-- COPY -->
+        <h3>Decoradores e cerimonialistas</h3>
+        <!-- COPY -->
+        <p>Feche a mesa com um acabamento que conversa com a decoração e aparece bem nas fotos do evento.</p>
+      </div>
+    </div>
+
+    <div class="reveal" style="text-align:center;margin-top:44px">
+      <!-- COPY -->
+      <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site.%20Trabalho%20com%20festas%20e%20quero%20informa%C3%A7%C3%B5es%20sobre%20revenda%20e%20fornecimento." target="_blank" rel="noopener">Quero ser revendedor</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Como funciona a revenda ===== -->
+<section class="sec sec--b" id="revenda">
+  <div class="wrap process">
+    <div class="reveal">
+      <span class="kicker">Condições comerciais</span>
+      <!-- COPY -->
+      <h2>Como funciona a <em class="gold-accent">revenda</em></h2>
+      <!-- COPY -->
+      <span class="lead">Você recebe todas as condições pelo WhatsApp antes de decidir qualquer coisa.</span>
+      <div style="margin-top:26px">
+        <!-- COPY -->
+        <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20saber%20as%20condi%C3%A7%C3%B5es%20de%20revenda%3A%20tabela%20de%20valores%2C%20pedido%20m%C3%ADnimo%20e%20prazos." target="_blank" rel="noopener">Ver condições de revenda</a>
+      </div>
+    </div>
+
+    <div class="diff-grid">
+      <div class="diff">
+        <div class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+        <div>
+          <!-- COPY -->
+          <h3>Tabela de valores para revenda</h3>
+          <!-- COPY -->
+          <p>Você recebe os valores praticados para quem compra em quantidade, separados por linha e por modelo, para calcular sua margem antes de fechar.</p>
+<!-- PREENCHER: quando houver dado real, trocar por algo como "Margem média de X% sobre o preço sugerido de venda" -->
+        </div>
+      </div>
+      <div class="diff">
+        <div class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6" width="19" height="12.5" rx="2"/><path d="M2.5 10.5h19M6 15h4"/></svg></div>
+        <div>
+          <!-- COPY -->
+          <h3>Pedido mínimo e formas de pagamento</h3>
+          <!-- COPY -->
+          <p>Antes de fechar, você sabe exatamente qual o volume mínimo por pedido, as condições de pagamento e o que é preciso para abrir o cadastro.</p>
+<!-- PREENCHER: quando houver dado real, informar o pedido mínimo (ex.: "a partir de X unidades" ou "a partir de R$ X") e se exige CNPJ -->
+        </div>
+      </div>
+      <div class="diff">
+        <div class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6h11v10H3z"/><path d="M14 9.5h4l3 3.2V16h-7z"/><circle cx="7" cy="18" r="1.8"/><circle cx="17.5" cy="18" r="1.8"/></svg></div>
+        <div>
+          <!-- COPY -->
+          <h3>Prazos e envio para a sua região</h3>
+          <!-- COPY -->
+          <p>Confirmamos o prazo de produção e as opções de envio de acordo com a sua cidade e o volume do pedido, para você programar as datas dos seus clientes.</p>
+<!-- PREENCHER: quando houver dado real, informar prazo (ex.: "produção em X dias úteis") e cobertura de frete (ex.: "envio para todo o Brasil") -->
+        </div>
+      </div>
+      <div class="diff">
+        <div class="di"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9.5h6M9 12.5h4"/></svg></div>
+        <div>
+          <!-- COPY -->
+          <h3>Apoio para montar o primeiro pedido</h3>
+          <!-- COPY -->
+          <p>A equipe ajuda a escolher os modelos que fazem mais sentido para o seu público, para você não travar capital em item que não gira.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Como solicitar (processo) ===== -->
+<section class="sec sec--black" id="orcamento">
+  <div class="wrap process">
+    <div class="reveal">
+      <span class="kicker">Passo a passo</span>
+      <!-- COPY -->
+      <h2>Como solicitar sua <em class="gold-accent">tabela de revenda</em></h2>
+      <!-- COPY -->
+      <span class="lead">Envie os dados da sua empresa e receba uma proposta alinhada ao seu volume e ao seu perfil de compra.</span>
+      <div style="margin-top:26px">
+        <!-- COPY -->
+        <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20solicitar%20a%20tabela%20de%20revenda.%20Os%20dados%20da%20minha%20empresa%20s%C3%A3o%3A" target="_blank" rel="noopener">Enviar meus dados</a>
+      </div>
+    </div>
+    <div class="reveal">
+      <p class="field-label">Envie pelo WhatsApp:</p>
+      <div class="steps">
+        <!-- COPY -->
+        <div class="step"><span class="num">01</span><span class="st-txt">nome da empresa</span></div>
+        <div class="step"><span class="num">02</span><span class="st-txt">segmento de atuação</span></div>
+        <div class="step"><span class="num">03</span><span class="st-txt">revenda ou fornecimento</span></div>
+        <div class="step"><span class="num">04</span><span class="st-txt">quantidade por pedido</span></div>
+        <div class="step"><span class="num">05</span><span class="st-txt">modelos ou referências de interesse</span></div>
+        <div class="step"><span class="num">06</span><span class="st-txt">cidade e estado</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA final ===== -->
+<section class="sec sec--gold" id="comecar">
+  <div class="wrap reveal">
+    <div class="sec-head center">
+      <div class="ornament" aria-hidden="true"><span class="orn-line"></span><svg class="orn-mark" viewBox="0 0 120 110"><use href="#lotus"/></svg><span class="orn-line"></span></div>
+      <span class="kicker">Decora Doces</span>
+      <!-- COPY -->
+      <h2>Comece a revender forminhas <em class="gold-accent">de luxo</em> na sua região</h2>
+      <!-- COPY -->
+      <span class="lead">Fale com a nossa equipe, receba as condições de revenda e monte o primeiro pedido com apoio de quem conhece o produto.</span>
+    </div>
+    <div class="final-cta">
+      <!-- COPY -->
+      <a class="btn btn-primary" href="https://wa.me/556234322222?text=Ol%C3%A1%21%20Vim%20pelo%20site%20e%20quero%20come%C3%A7ar%20a%20revender%20as%20forminhas%20Decora%20Doces%20na%20minha%20regi%C3%A3o." target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.7.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.4-5.6c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5c.1-.2.2-.3.2-.5s0-.4-.1-.5l-.8-1.8c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.4 3.9 1.6.7 2.2.7 3 .6.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z"/></svg>
+        Quero ser revendedor
+      </a>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="wrap">
+    <a href="#" class="brand">
+      <svg class="mark" viewBox="0 0 120 110"><use href="#lotus"/></svg>
+      <span class="name">Decora Doces</span>
+    </a>
+    <!-- COPY -->
+    <div class="fnum">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2z"/></svg>
+      WhatsApp: (62) 3432-2222
+    </div>
+    <p class="cr">© 2026 Decora Doces. Todos os direitos reservados.</p>
+    <p class="cr">Desenvolvido por <a class="dev-credit" href="https://3ads.com.br/" target="_blank" rel="noopener">3ADS</a></p>
+  </div>
+</footer>
+
+<script>
+  // Efeito cascata: cada card do grid entra em sequência ao rolar a página
+  document.querySelectorAll('.events-grid, .persona-grid, .diff-grid').forEach(grid=>{
+    [...grid.children].forEach((el,i)=>{
+      el.classList.add('reveal');
+      el.style.transitionDelay=(i%6*70)+'ms';
+    });
+  });
+
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});
+  },{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal, .reveal-pop').forEach(el=>io.observe(el));
+
+  // Carrossel infinito: duplica os slides p/ loop sem emenda e liga as setas
+  const carTrack=document.getElementById('carTrack');
+  if(carTrack){
+    carTrack.innerHTML+=carTrack.innerHTML;
+    const car=document.getElementById('carousel');
+    car.querySelector('.car-arrow.prev').addEventListener('click',()=>{carTrack.style.animationDirection='reverse'});
+    car.querySelector('.car-arrow.next').addEventListener('click',()=>{carTrack.style.animationDirection='normal'});
+  }
+</script>
+</body>
+</html>

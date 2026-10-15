@@ -1,0 +1,150 @@
+/* Banner e painel de privacidade
+   Mobile first: a base é o painel inferior do celular; min-width amplia (640 · 768 · 1100).
+   Tipografia do sistema (sem fonte externa); cores e raios vêm dos tokens da LP (base.css). */
+.cc, .cc-overlay {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--t1);
+}
+.cc *, .cc-overlay * { box-sizing: border-box; }
+.cc p, .cc-overlay p { margin: 0; }
+.cc a, .cc-overlay a { color: var(--primary-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Banner ---------- */
+.cc {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 80;
+  display: grid; gap: 12px;
+  max-height: 72vh; max-height: 72dvh; overflow-y: auto; overscroll-behavior: contain;
+  padding: 14px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -10px 32px rgba(0, 15, 107, .16);
+  animation: cc-in .28s var(--ease) both;
+}
+@keyframes cc-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+/* Celular: ícone e título na mesma linha e o texto na largura toda (banner mais baixo) */
+.cc-main { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 10px; align-items: center; }
+.cc-copy { display: contents; }
+.cc-copy p { grid-column: 1 / -1; }
+.cc-ico { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; background: var(--ice); color: var(--primary); }
+.cc-ico svg, .cc-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cc-title { margin: 0; font-family: var(--font-title); font-size: 1.06rem; font-weight: 600; line-height: 1.3; letter-spacing: 0; color: var(--primary-ink); }
+.cc-copy p { color: var(--t2); max-width: 70ch; }
+
+.cc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cc-actions .cc-btn--line { grid-column: 1 / -1; }
+
+/* Aceitar e rejeitar: mesmo estilo, tamanho e contraste */
+.cc-btn {
+  appearance: none; -webkit-appearance: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 46px; padding: 0 14px;
+  border-radius: 999px; border: 2px solid var(--primary-ink);
+  font: inherit; font-size: 15px; font-weight: 600; line-height: 1.2; text-align: center;
+  cursor: pointer;
+  transition: background-color .2s var(--ease), color .2s var(--ease);
+}
+.cc-btn--solid { background: var(--primary-ink); color: #FFFFFF; }
+.cc-btn--solid:hover { background: var(--navy); }
+.cc-btn--line { background: var(--surface); color: var(--primary-ink); }
+.cc-btn--line:hover { background: var(--ice); }
+.cc :focus-visible, .cc-overlay :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+
+/* Convivência com a barra fixa e o botão flutuante da LP: sobem acima do banner */
+html.cc-open body { padding-bottom: var(--cc-h, 0px); }
+/* transform (e não bottom): a mudança de altura do banner não conta como deslocamento de layout (CLS) */
+.cc-open .mbar { transform: translateY(calc(-1 * var(--cc-h, 0px))); }
+.cc-open .wa-float, .cc-open .wa-float:hover { transform: translateY(calc(-1 * var(--cc-h, 0px))); }
+html.cc-lock { overflow: hidden; }
+
+/* ---------- Painel de preferências ---------- */
+.cc-overlay {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(0, 10, 69, .55);
+}
+.cc-modal {
+  display: flex; flex-direction: column;
+  width: 100%; max-height: 92vh; max-height: 92dvh;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -12px 40px rgba(0, 10, 69, .3);
+  animation: cc-in .28s var(--ease) both;
+}
+.cc-mhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 18px 12px; border-bottom: 1px solid var(--border); }
+.cc-mhead h2 { margin: 0; font-family: var(--font-title); font-size: 1.15rem; font-weight: 600; line-height: 1.3; letter-spacing: 0; color: var(--primary-ink); }
+.cc-mhead h2:focus { outline: none; }
+.cc-x { flex: none; width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 999px; background: transparent; color: var(--primary-ink); cursor: pointer; }
+.cc-x:hover { background: var(--ice); }
+
+.cc-mbody { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 16px 18px; display: grid; gap: 14px; align-content: start; }
+.cc-mbody > p { color: var(--t2); }
+.cc-cat { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 8px; }
+.cc-cat p { color: var(--t2); }
+.cc-cat-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cc-cat-head h3 { margin: 0; font-family: var(--font-title); font-size: 1rem; font-weight: 600; line-height: 1.3; letter-spacing: 0; color: var(--primary-ink); }
+.cc-always { flex: none; padding: 4px 10px; border-radius: 999px; background: var(--ice); color: var(--primary-ink); font-size: .85rem; font-weight: 600; }
+
+/* Interruptor */
+.cc-switch { position: relative; flex: none; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: .9rem; font-weight: 600; color: var(--t2); }
+.cc-switch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.cc-track { position: relative; flex: none; width: 48px; height: 28px; border-radius: 999px; background: var(--t3); transition: background-color .2s var(--ease); }
+.cc-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #FFFFFF; transition: transform .2s var(--ease); }
+.cc-switch input:checked + .cc-track { background: var(--primary-ink); }
+.cc-switch input:checked + .cc-track::after { transform: translateX(20px); }
+.cc-switch input:focus-visible + .cc-track { outline: 3px solid var(--primary); outline-offset: 2px; }
+.cc-state { min-width: 6.2em; }
+
+.cc-det summary { cursor: pointer; font-weight: 600; color: var(--primary-deep); padding: 6px 0; }
+.cc-det[open] summary { margin-bottom: 6px; }
+.cc-item { margin: 0 0 10px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 10px; display: grid; gap: 6px; font-size: .9rem; }
+.cc-item div { display: grid; gap: 0; }
+.cc-item dt { font-weight: 600; color: var(--t2); font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+.cc-item dd { margin: 0; color: var(--t1); overflow-wrap: anywhere; }
+
+.cc-mfoot { display: grid; gap: 8px; padding: 14px 18px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); }
+
+@media (min-width: 640px) {
+  .cc-main { grid-template-columns: 40px minmax(0, 1fr); gap: 0 12px; align-items: start; }
+  .cc-copy { display: block; }
+  .cc-ico { width: 40px; height: 40px; border-radius: 12px; }
+  .cc-ico svg { width: 22px; height: 22px; }
+  .cc-title { margin-bottom: 4px; }
+  .cc-btn { min-height: 48px; padding: 0 18px; }
+  .cc-actions { grid-template-columns: repeat(3, auto); justify-content: end; }
+  .cc-actions .cc-btn--line { grid-column: auto; }
+  .cc-mfoot { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .cc {
+    left: 50%; right: auto; bottom: 16px;
+    width: min(1040px, calc(100% - 32px));
+    transform: translateX(-50%);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 18px 22px;
+    animation-name: cc-in-c;
+  }
+  .cc-overlay { align-items: center; }
+  .cc-modal { width: min(680px, calc(100% - 32px)); max-height: 86vh; max-height: 86dvh; border-radius: 22px; }
+  .cc-mhead { padding: 20px 24px 14px; }
+  .cc-mbody { padding: 18px 24px; }
+  .cc-mfoot { padding: 16px 24px; }
+}
+@keyframes cc-in-c { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translateX(-50%); } }
+
+@media (min-width: 1100px) {
+  .cc { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 24px; }
+}
+
+/* Link de rodapé que reabre as preferências */
+.link-btn { appearance: none; -webkit-appearance: none; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.ftr .link-btn { color: #D2DDF3; text-decoration: none; }
+.ftr .link-btn:hover { text-decoration: underline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cc, .cc-modal { animation: none; }
+}

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Oficina de Scooter e Patinete Elétrico em Goiânia | Scooter Goiânia</title>
+  <meta name="description" content="Conserto e manutenção de scooter, patinete, bike e triciclo elétrico em Goiânia: parte elétrica, bateria de lítio, módulos, pneus, rodas e suspensão. Fale no WhatsApp.">
+  <link rel="canonical" href="https://lp.scootergoiania.com.br/oficina/">
+  
+  <meta name="theme-color" content="#0b0c0e">
+  <meta name="geo.region" content="BR-GO"><meta name="geo.placename" content="Goiânia">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Scooter Goiânia">
+  <meta property="og:title" content="Oficina de Scooter e Patinete Elétrico em Goiânia">
+  <meta property="og:description" content="Manutenção elétrica e mecânica para scooters, patinetes, triciclos e outros veículos elétricos, com equipe especializada.">
+  <meta property="og:url" content="https://lp.scootergoiania.com.br/oficina/">
+  <meta property="og:image" content="https://lp.scootergoiania.com.br/assets/images/og-oficina.jpg">
+  <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Oficina especializada em veículos elétricos da Scooter Goiânia">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oficina de Scooter e Patinete Elétrico em Goiânia">
+  <meta name="twitter:description" content="Manutenção elétrica e mecânica para scooters, patinetes, triciclos e outros veículos elétricos.">
+  <meta name="twitter:image" content="https://lp.scootergoiania.com.br/assets/images/og-oficina.jpg">
+  <link rel="preload" href="../assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" as="image" href="../assets/images/hero-oficina-mobile-v3-720.webp" media="(max-width: 620px)" fetchpriority="high">
+  <link rel="preload" as="image" href="../assets/images/hero-oficina-mobile-v3.webp" media="(min-width: 621px) and (max-width: 900px)" fetchpriority="high">
+  <link rel="preload" as="image" href="../assets/images/hero-oficina-v3.webp" media="(min-width: 901px)" fetchpriority="high">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=4362d79c">
+  <script src="../assets/js/main.js?v=59f5c18a" defer></script>
+  <link rel="icon" href="../assets/images/favicon-48.png" sizes="48x48" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/images/apple-touch-icon.png">
+  <link rel="manifest" href="../site.webmanifest">
+  <!-- build:jsonld --><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":["Store","Organization"],"@id":"https://lp.scootergoiania.com.br/#organizacao","name":"Scooter Goiânia","url":"https://lp.scootergoiania.com.br/","logo":{"@type":"ImageObject","url":"https://lp.scootergoiania.com.br/assets/images/icon-512.png","width":512,"height":512},"image":"https://lp.scootergoiania.com.br/assets/images/og-scooters.jpg","description":"Loja de veículos elétricos em Goiânia: scooters, bikes, triciclos, patinetes, hoverboards e triciclos drift, com garantia, suporte pós-venda e oficina especializada.","telephone":"+55 62 99988-1098","priceRange":"R$ 900 – R$ 13.900","currenciesAccepted":"BRL","address":{"@type":"PostalAddress","streetAddress":"Av. T-7, 310","addressLocality":"Goiânia","addressRegion":"GO","addressCountry":"BR"},"areaServed":[{"@type":"City","name":"Goiânia"},{"@type":"City","name":"Aparecida de Goiânia"}],"department":[{"@type":"Store","name":"Scooter Goiânia — Setor Oeste","address":{"@type":"PostalAddress","streetAddress":"Av. T-7, 310","addressLocality":"Goiânia","addressRegion":"GO","addressCountry":"BR"},"parentOrganization":{"@id":"https://lp.scootergoiania.com.br/#organizacao"}},{"@type":"Store","name":"Scooter Goiânia — Buriti Shopping","address":{"@type":"PostalAddress","streetAddress":"Av. José Leandro da Cruz","addressLocality":"Aparecida de Goiânia","addressRegion":"GO","postalCode":"74915-515","addressCountry":"BR"},"parentOrganization":{"@id":"https://lp.scootergoiania.com.br/#organizacao"}},{"@type":"Store","name":"Scooter Goiânia — AlphaMall","address":{"@type":"PostalAddress","streetAddress":"Av. Alphaville Flamboyant","addressLocality":"Goiânia","addressRegion":"GO","postalCode":"74884-527","addressCountry":"BR"},"parentOrganization":{"@id":"https://lp.scootergoiania.com.br/#organizacao"}}],"contactPoint":[{"@type":"ContactPoint","contactType":"sales","telephone":"+55 62 99988-1098","availableLanguage":"pt-BR","url":"https://wa.me/5562999881098"},{"@type":"ContactPoint","contactType":"technical support","name":"Oficina Scooter Goiânia","telephone":"+55 62 99672-1097","availableLanguage":"pt-BR","url":"https://wa.me/5562996721097"}],"knowsAbout":["Scooter elétrica","Bike elétrica","Triciclo elétrico","Patinete elétrico","Hoverboard","Manutenção de veículos elétricos","Bateria de lítio"]},{"@type":"WebSite","@id":"https://lp.scootergoiania.com.br/#website","url":"https://lp.scootergoiania.com.br/","name":"Scooter Goiânia","inLanguage":"pt-BR","publisher":{"@id":"https://lp.scootergoiania.com.br/#organizacao"}},{"@type":"BreadcrumbList","@id":"https://lp.scootergoiania.com.br/oficina/#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://lp.scootergoiania.com.br/"},{"@type":"ListItem","position":2,"name":"Oficina especializada","item":"https://lp.scootergoiania.com.br/oficina/"}]},{"@type":["WebPage","ItemPage"],"@id":"https://lp.scootergoiania.com.br/oficina/#webpage","url":"https://lp.scootergoiania.com.br/oficina/","name":"Oficina de Scooter e Patinete Elétrico em Goiânia | Scooter Goiânia","description":"Conserto e manutenção de scooter, patinete, bike e triciclo elétrico em Goiânia: parte elétrica, bateria de lítio, módulos, pneus, rodas e suspensão. Fale no WhatsApp.","inLanguage":"pt-BR","isPartOf":{"@id":"https://lp.scootergoiania.com.br/#website"},"about":{"@id":"https://lp.scootergoiania.com.br/#organizacao"},"breadcrumb":{"@id":"https://lp.scootergoiania.com.br/oficina/#breadcrumb"},"primaryImageOfPage":{"@type":"ImageObject","url":"https://lp.scootergoiania.com.br/assets/images/og-oficina.jpg","width":1200,"height":630},"dateModified":"2026-09-25"},{"@type":"Service","@id":"https://lp.scootergoiania.com.br/oficina/#servico","name":"Oficina especializada em veículos elétricos","serviceType":"Manutenção e conserto de scooters, patinetes, bikes e triciclos elétricos","provider":{"@id":"https://lp.scootergoiania.com.br/#organizacao"},"areaServed":[{"@type":"City","name":"Goiânia"},{"@type":"City","name":"Aparecida de Goiânia"}],"url":"https://lp.scootergoiania.com.br/oficina/","hasOfferCatalog":{"@type":"OfferCatalog","name":"Serviços da oficina","itemListElement":[{"@type":"Offer","itemOffered":{"@type":"Service","name":"Revisão elétrica e mecânica"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Troca de módulos e parte elétrica"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Avaliação e troca de bateria de lítio"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Pneus, rodas, desempeno, guidão, quadro e soldas"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Suspensão"}},{"@type":"Offer","itemOffered":{"@type":"Service","name":"Adaptações e customizações"}}]}},{"@type":"FAQPage","@id":"https://lp.scootergoiania.com.br/oficina/#faq","mainEntity":[{"@type":"Question","name":"Onde consertar scooter elétrica em Goiânia?","acceptedAnswer":{"@type":"Answer","text":"Na oficina da Scooter Goiânia, especializada em veículos elétricos como scooters, patinetes, bikes e triciclos. Fale pelo WhatsApp (62) 99672-1097, descreva o problema e a equipe orienta a avaliação."}},{"@type":"Question","name":"Preciso saber qual é o defeito antes de entrar em contato?","acceptedAnswer":{"@type":"Answer","text":"Não. Conte o que você percebeu no funcionamento e a equipe orienta como seguir com a avaliação."}},{"@type":"Question","name":"Vocês fazem revisão elétrica e mecânica?","acceptedAnswer":{"@type":"Answer","text":"Sim. A oficina divulga serviços de revisão elétrica e mecânica para veículos elétricos."}},{"@type":"Question","name":"Trabalham com bateria?","acceptedAnswer":{"@type":"Answer","text":"Sim. A oficina também oferece serviço relacionado à troca de bateria de lítio."}},{"@type":"Question","name":"Fazem serviços em pneus e rodas?","acceptedAnswer":{"@type":"Answer","text":"Sim. Pneus, rodas, guidão, quadro e soldas estão entre os serviços divulgados pela oficina."}},{"@type":"Question","name":"Posso procurar a oficina se comprei meu veículo na Scooter Goiânia?","acceptedAnswer":{"@type":"Answer","text":"Sim. A manutenção e o suporte depois da compra são apresentados pela própria loja como parte do atendimento aos clientes."}},{"@type":"Question","name":"Meu produto ainda está na garantia. O que faço?","acceptedAnswer":{"@type":"Answer","text":"Fale com a equipe com o modelo e os dados da compra para confirmar as condições aplicáveis antes de seguir com o reparo."}}]}]}</script><!-- /build:jsonld -->
+  <!-- Microsoft Clarity -->
+  <!-- rastreio removido pelo portal -->
+</head>
+<body data-whatsapp-number="5562996721097">
+  <!-- Google Tag Manager (noscript) -->
+  
+  <!-- build:sprite --><svg class="icon-sprite" aria-hidden="true" focusable="false"><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="i-battery" viewBox="0 0 24 24"><rect x="3" y="6" width="16" height="12" rx="2"/><path d="M21 10v4M7 10v4m3-4v4m3-4v4m3-4v4"/></symbol><symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"/></symbol><symbol id="i-clipboard" viewBox="0 0 24 24"><path d="M9 5H6a2 2 0 0 0-2 2v13h16V7a2 2 0 0 0-2-2h-3"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="m8 13 2 2 5-5"/></symbol><symbol id="i-customize" viewBox="0 0 24 24"><path d="m4 20 5-5m2-2 7-7 2 2-7 7m-5-1 2 2m5-11 4 4"/><path d="M5 4v4M3 6h4m11 11v4m-2-2h4"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></symbol><symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10"/><path d="M6.2 5.8a8 8 0 1 0 11.6 0"/></symbol><symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.9 8.3 7 10 4.1-1.7 7-5.4 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol><symbol id="i-sound" viewBox="0 0 24 24"><path d="M5 9v6h4l5 4V5L9 9H5Z"/><path d="M17 9a4 4 0 0 1 0 6m2.5-8.5a8 8 0 0 1 0 11"/></symbol><symbol id="i-speed" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0"/><path d="m12 13 4-4M7 17h10"/></symbol><symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="m12 3 0 7m0 4 0 7m9-9-7 0m-4 0-7 0m15.4-6.4-5 5m-2.8 2.8-5 5m12.8 0-5-5m-2.8-2.8-5-5"/></symbol></svg><!-- /build:sprite -->
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site-header site-header-editorial"><div class="container nav liquid-glass"><a class="brand" href="../" aria-label="Scooter Goiânia - página inicial"><img src="../assets/images/logo-scooter-goiania-v2.webp" width="202" height="132" alt="Scooter Goiânia"></a><nav class="nav-links" aria-label="Principal"><a href="#servicos">Serviços</a><a href="#garantia">Garantia</a><a href="#duvidas">Dúvidas</a><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20falar%20com%20a%20oficina%20da%20Scooter%20Goi%C3%A2nia." target="_blank" rel="noopener" class="btn btn-small" data-whatsapp data-message="Olá! Quero falar com a oficina da Scooter Goiânia.">Falar com a oficina</a></nav></div></header>
+  <main id="conteudo">
+    <section class="hero hero-editorial hero-editorial--long hero-editorial--dense" style="--hero:url('../images/hero-oficina-v3.webp');--hero-mobile:url('../images/hero-oficina-mobile-v3.webp');--hero-small:url('../images/hero-oficina-mobile-v3-720.webp')"><div class="container hero-editorial-layout"><div class="hero-copy"><p class="price-pill hero-reveal hero-reveal-label">Oficina de veículos elétricos em Goiânia</p><h1 data-animated-heading aria-label="Sua scooter apresentou problema? Traga para quem trabalha com elétricos todos os dias">Sua scooter apresentou<br>problema? Traga para quem<br>trabalha com elétricos<br>todos os dias</h1><p class="lead hero-reveal hero-reveal-copy">Manutenção elétrica e mecânica para scooters, patinetes, triciclos e outros veículos elétricos, com uma equipe preparada para avaliar o problema e orientar o serviço necessário.</p><p class="lead hero-reveal hero-reveal-copy">A oficina da Scooter Goiânia trabalha com revisão, componentes elétricos, pneus, rodas, bateria, suspensão e outros reparos.</p><div class="hero-actions hero-reveal hero-reveal-actions"><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20falar%20com%20a%20oficina%20sobre%20meu%20ve%C3%ADculo%20el%C3%A9trico." target="_blank" rel="noopener" class="btn" data-whatsapp data-message="Olá! Quero falar com a oficina sobre meu veículo elétrico.">Falar com a oficina</a></div></div></div></section>
+    <div class="trust-row" aria-label="Diferenciais" data-reveal-stagger><div class="trust-item"><span class="trust-icon" data-icon="clipboard"><svg aria-hidden="true" focusable="false"><use href="#i-clipboard"/></svg></span>Revisão especializada</div><div class="trust-item"><span class="trust-icon" data-icon="battery"><svg aria-hidden="true" focusable="false"><use href="#i-battery"/></svg></span>Elétrica e bateria</div><div class="trust-item"><span class="trust-icon" data-icon="settings"><svg aria-hidden="true" focusable="false"><use href="#i-settings"/></svg></span>Mecânica e suspensão</div><div class="trust-item"><span class="trust-icon" data-icon="shield"><svg aria-hidden="true" focusable="false"><use href="#i-shield"/></svg></span>Orientação de garantia</div></div>
+
+    <section><div class="container split"><div data-reveal="left"><p class="eyebrow">O que está acontecendo com seu veículo?</p><h2>Perdeu força, não liga ou começou a funcionar diferente?</h2><p>Ruídos que não existiam, falhas na parte elétrica, bateria descarregando de forma diferente, problemas nos pneus, rodas ou suspensão são sinais de que o veículo precisa ser avaliado.</p><p>Você não precisa saber qual peça apresentou defeito para falar com a oficina. Conte o que está acontecendo e a equipe orienta como seguir.</p><div class="hero-actions"><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Meu%20ve%C3%ADculo%20el%C3%A9trico%20apresentou%20um%20problema%20e%20quero%20orienta%C3%A7%C3%A3o." target="_blank" rel="noopener" class="btn btn-dark" data-whatsapp data-message="Olá! Meu veículo elétrico apresentou um problema e quero orientação.">Quero falar sobre o problema</a></div></div><div class="visual-card" data-reveal="zoom"><img src="../assets/images/oficina-diagnostico-mecanico-640.webp" srcset="../assets/images/oficina-diagnostico-mecanico-640.webp 640w, ../assets/images/oficina-diagnostico-mecanico-860.webp 860w, ../assets/images/oficina-diagnostico-mecanico.webp 1120w" sizes="(min-width: 2560px) 1100px, (min-width: 1920px) 820px, (min-width: 1600px) 720px, (min-width: 901px) 600px, 100vw" width="1120" height="1500" loading="lazy" decoding="async" alt="Mecânico avaliando uma scooter elétrica na oficina da Scooter Goiânia"><div class="visual-note"><strong>Diagnóstico antes do reparo</strong><span>Descreva os sinais e a equipe orienta a avaliação.</span></div></div></div></section>
+
+    <section class="dark-section" id="servicos"><div class="container"><div class="section-intro" data-reveal><p class="eyebrow">Manutenção e conserto de veículos elétricos</p><h2>Do sistema elétrico às rodas, veja o que podemos avaliar</h2></div><div class="service-grid" data-reveal-stagger>
+      <article class="service-card"><div class="service-icon" data-icon="clipboard"><svg aria-hidden="true" focusable="false"><use href="#i-clipboard"/></svg></div><h3>Revisão elétrica e mecânica</h3><p>Avaliação dos sistemas do veículo para identificar falhas e pontos que precisam de manutenção.</p></article>
+      <article class="service-card"><div class="service-icon" data-icon="bolt"><svg aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg></div><h3>Módulos e parte elétrica</h3><p>Troca de módulos, instalações elétricas e serviços relacionados aos componentes elétricos do veículo.</p></article>
+      <article class="service-card"><div class="service-icon" data-icon="battery"><svg aria-hidden="true" focusable="false"><use href="#i-battery"/></svg></div><h3>Bateria</h3><p>Avaliação e substituição de bateria quando necessário, incluindo atendimento com baterias de lítio.</p></article>
+      <article class="service-card"><div class="service-icon" data-icon="wheel"><svg aria-hidden="true" focusable="false"><use href="#i-wheel"/></svg></div><h3>Pneus, rodas e guidão</h3><p>Serviços relacionados a pneus, rodas, desempeno, guidão, quadro e soldas.</p></article>
+      <article class="service-card"><div class="service-icon" data-icon="settings"><svg aria-hidden="true" focusable="false"><use href="#i-settings"/></svg></div><h3>Suspensão</h3><p>Avaliação e serviços relacionados ao sistema de suspensão.</p></article>
+      <article class="service-card"><div class="service-icon" data-icon="customize"><svg aria-hidden="true" focusable="false"><use href="#i-customize"/></svg></div><h3>Adaptações e customizações</h3><p>Bagageiro, setas, farolete, guidão, para-lama e outras modificações conforme o projeto.</p></article>
+    </div><div class="hero-actions"><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20falar%20sobre%20o%20servi%C3%A7o%20necess%C3%A1rio%20no%20meu%20ve%C3%ADculo%20el%C3%A9trico." target="_blank" rel="noopener" class="btn" data-whatsapp data-message="Olá! Quero falar sobre o serviço necessário no meu veículo elétrico.">Falar sobre meu veículo</a></div></div></section>
+
+    <section><div class="container"><div class="section-intro" data-reveal><p class="eyebrow">Não sabe qual é o defeito?</p><h2>Conte o que mudou e deixe a avaliação para a oficina</h2><p>Algumas informações já ajudam a equipe a entender o que precisa ser verificado. Se conseguir, informe também quando o problema começou e se aconteceu alguma coisa antes da falha.</p></div><div class="problem-grid" data-reveal-stagger><div class="problem-card"><span class="problem-icon" data-icon="power"><svg aria-hidden="true" focusable="false"><use href="#i-power"/></svg></span><div><strong>Não liga ou liga com dificuldade</strong><p>Conte quando começou e se algum alerta apareceu.</p></div></div><div class="problem-card"><span class="problem-icon" data-icon="speed"><svg aria-hidden="true" focusable="false"><use href="#i-speed"/></svg></span><div><strong>Perdeu força ou rendimento</strong><p>Informe se a mudança foi repentina ou gradual.</p></div></div><div class="problem-card"><span class="problem-icon" data-icon="battery"><svg aria-hidden="true" focusable="false"><use href="#i-battery"/></svg></span><div><strong>A bateria passou a durar menos</strong><p>Diga quanto tempo ou distância ela costuma render.</p></div></div><div class="problem-card"><span class="problem-icon" data-icon="sound"><svg aria-hidden="true" focusable="false"><use href="#i-sound"/></svg></span><div><strong>Começou a fazer algum ruído</strong><p>Se possível, explique de onde parece vir o som.</p></div></div><div class="problem-card"><span class="problem-icon" data-icon="wheel"><svg aria-hidden="true" focusable="false"><use href="#i-wheel"/></svg></span><div><strong>Pneu, roda ou suspensão</strong><p>Descreva qualquer mudança no comportamento.</p></div></div><div class="problem-card"><span class="problem-icon" data-icon="bolt"><svg aria-hidden="true" focusable="false"><use href="#i-bolt"/></svg></span><div><strong>Função elétrica sem resposta</strong><p>Informe qual comando ou componente parou.</p></div></div></div><div class="hero-actions"><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20descrever%20o%20problema%20do%20meu%20ve%C3%ADculo%20para%20a%20oficina." target="_blank" rel="noopener" class="btn btn-dark" data-whatsapp data-message="Olá! Quero descrever o problema do meu veículo para a oficina.">Falar com a oficina</a></div></div></section>
+
+    <section><div class="container"><div class="support-banner" data-reveal="zoom"><p class="eyebrow">Para quem comprou na Scooter Goiânia</p><h2>O suporte continua mesmo depois que o produto sai da loja</h2><p>Se surgir uma dúvida, necessidade de manutenção ou algum problema com o veículo, fale com a equipe da Scooter Goiânia.</p><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Comprei%20na%20Scooter%20Goi%C3%A2nia%20e%20preciso%20de%20suporte." target="_blank" rel="noopener" class="btn btn-dark" data-whatsapp data-message="Olá! Comprei na Scooter Goiânia e preciso de suporte.">Preciso de suporte</a></div></div></section>
+
+    <section id="garantia"><div class="container split"><div data-reveal="left"><p class="eyebrow">Garantia</p><h2>Fale com a equipe antes de autorizar qualquer reparo</h2><p>Tenha em mãos o modelo e as informações da compra. A equipe confere as condições aplicáveis ao produto e orienta você sobre como seguir com o atendimento. Os prazos e coberturas podem mudar de um modelo para outro.</p><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20falar%20sobre%20a%20garantia%20do%20meu%20produto." target="_blank" rel="noopener" class="btn btn-dark" data-whatsapp data-message="Olá! Quero falar sobre a garantia do meu produto.">Falar sobre garantia</a></div><div class="visual-card visual-card--short" data-reveal="zoom"><img src="../assets/images/products/power-u1-720.webp" srcset="../assets/images/products/power-u1-480.webp 480w, ../assets/images/products/power-u1-720.webp 720w, ../assets/images/products/power-u1.webp 900w" sizes="(min-width: 1920px) 820px, (min-width: 901px) 600px, 100vw" width="900" height="775" loading="lazy" decoding="async" alt="Triciclo elétrico Power U1 vendido pela Scooter Goiânia"><div class="visual-note"><strong>Antes de qualquer reparo</strong><span>Confirme as condições aplicáveis ao seu produto.</span></div></div></div></section>
+
+    <section class="section-sand"><div class="container"><div class="section-intro center" data-reveal><p class="eyebrow">Para começar</p><h2>Explique o problema e leve o veículo para avaliação</h2><p>Você pode entrar em contato pelo WhatsApp e contar o que está acontecendo. A partir daí, nossa equipe orienta sobre a avaliação do veículo e os próximos passos para o serviço.</p></div><div class="steps" data-reveal-stagger><article class="step"><h3>Fale com a oficina</h3><p>Informe o modelo e descreva o problema.</p></article><article class="step"><h3>Leve o veículo para avaliação</h3><p>A equipe verifica os pontos que precisam de atenção.</p></article><article class="step"><h3>Siga com o serviço necessário</h3><p>Com o problema identificado, você recebe a orientação para o reparo.</p></article></div><div class="center-actions"><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20iniciar%20o%20atendimento%20da%20oficina." target="_blank" rel="noopener" class="btn btn-dark" data-whatsapp data-message="Olá! Quero iniciar o atendimento da oficina.">Quero falar com a oficina</a></div></div></section>
+
+    <section id="duvidas" aria-labelledby="titulo-duvidas"><div class="container"><div class="section-intro center" data-reveal><p class="eyebrow">Dúvidas sobre a oficina</p><h2 id="titulo-duvidas">Algumas respostas podem ajudar</h2></div><div class="faq-list" data-reveal-stagger>
+      <details class="faq-item" name="faq"><summary>Onde consertar scooter elétrica em Goiânia?</summary><p>Na oficina da Scooter Goiânia, especializada em veículos elétricos como scooters, patinetes, bikes e triciclos. Fale pelo WhatsApp (62) 99672-1097, descreva o problema e a equipe orienta a avaliação.</p></details>
+      <details class="faq-item" name="faq"><summary>Preciso saber qual é o defeito antes de entrar em contato?</summary><p>Não. Conte o que você percebeu no funcionamento e a equipe orienta como seguir com a avaliação.</p></details>
+      <details class="faq-item" name="faq"><summary>Vocês fazem revisão elétrica e mecânica?</summary><p>Sim. A oficina divulga serviços de revisão elétrica e mecânica para veículos elétricos.</p></details>
+      <details class="faq-item" name="faq"><summary>Trabalham com bateria?</summary><p>Sim. A oficina também oferece serviço relacionado à troca de bateria de lítio.</p></details>
+      <details class="faq-item" name="faq"><summary>Fazem serviços em pneus e rodas?</summary><p>Sim. Pneus, rodas, guidão, quadro e soldas estão entre os serviços divulgados pela oficina.</p></details>
+      <details class="faq-item" name="faq"><summary>Posso procurar a oficina se comprei meu veículo na Scooter Goiânia?</summary><p>Sim. A manutenção e o suporte depois da compra são apresentados pela própria loja como parte do atendimento aos clientes.</p></details>
+      <details class="faq-item" name="faq"><summary>Meu produto ainda está na garantia. O que faço?</summary><p>Fale com a equipe com o modelo e os dados da compra para confirmar as condições aplicáveis antes de seguir com o reparo.</p></details>
+    </div></div></section>
+
+    <section class="contact-section" id="lojas"><div class="container"><div class="contact-panel" data-reveal><div class="contact-top"><div><p class="eyebrow">Precisa resolver um problema no seu veículo?</p><h2>Fale com a nossa equipe ou visite uma de nossas unidades</h2><p>Precisa de manutenção, suporte depois da compra ou orientação sobre garantia? Entre em contato com a Scooter Goiânia.</p></div><a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Preciso%20de%20manuten%C3%A7%C3%A3o%20ou%20suporte%20para%20meu%20ve%C3%ADculo%20el%C3%A9trico." target="_blank" rel="noopener" class="btn" data-whatsapp data-message="Olá! Preciso de manutenção ou suporte para meu veículo elétrico.">Falar no WhatsApp</a></div><div class="stores" data-reveal-stagger><div class="store"><strong>Setor Oeste</strong><span>Av. T-7, 310 - Setor Oeste, Goiânia - GO</span><br><a class="store-map" href="https://www.google.com/maps/search/?api=1&amp;query=Scooter+Goi%C3%A2nia+Av.+T-7+310+Setor+Oeste+Goi%C3%A2nia" target="_blank" rel="noopener"><span data-icon="pin"><svg aria-hidden="true" focusable="false"><use href="#i-pin"/></svg></span>Ver no mapa</a></div><div class="store"><strong>Buriti Shopping</strong><span>Av. José Leandro da Cruz - Vila São Tomaz, Aparecida de Goiânia - GO - CEP 74915-515</span><br><a class="store-map" href="https://www.google.com/maps/search/?api=1&amp;query=Scooter+Goi%C3%A2nia+Buriti+Shopping+Aparecida+de+Goi%C3%A2nia" target="_blank" rel="noopener"><span data-icon="pin"><svg aria-hidden="true" focusable="false"><use href="#i-pin"/></svg></span>Ver no mapa</a></div><div class="store"><strong>AlphaMall</strong><span>Av. Alphaville Flamboyant - Goiânia - GO - CEP 74884-527</span><br><a class="store-map" href="https://www.google.com/maps/search/?api=1&amp;query=Scooter+Goi%C3%A2nia+AlphaMall+Goi%C3%A2nia" target="_blank" rel="noopener"><span data-icon="pin"><svg aria-hidden="true" focusable="false"><use href="#i-pin"/></svg></span>Ver no mapa</a></div></div></div></div></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><img src="../assets/images/logo-scooter-goiania-v2.webp" width="202" height="132" loading="lazy" decoding="async" alt="Scooter Goiânia"><span>© <span data-year>2026</span> Todos os direitos reservados.</span></div><nav class="footer-links" aria-label="Outras páginas"><a href="../scooters-e-bikes/">Scooters e bikes elétricas</a><a href="../triciclos/">Triciclos elétricos</a><a href="../diversao-eletrica/">Patinetes e hoverboards</a></nav><p class="footer-credit">Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener">3ADS</a></p></div></footer>
+  <a href="https://wa.me/5562996721097?text=Ol%C3%A1!%20Quero%20falar%20com%20a%20oficina%20da%20Scooter%20Goi%C3%A2nia." target="_blank" rel="noopener" class="floating-whatsapp" data-whatsapp data-message="Olá! Quero falar com a oficina da Scooter Goiânia." aria-label="Falar no WhatsApp"><!-- build:wa-icon --><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="M17.415 14.382C17.117 14.233 15.656 13.515 15.384 13.415C15.112 13.315 14.914 13.267 14.715 13.565C14.517 13.862 13.948 14.531 13.775 14.729C13.601 14.928 13.428 14.952 13.131 14.804C12.834 14.654 11.876 14.341 10.741 13.329C9.858 12.541 9.261 11.568 9.088 11.27C8.915 10.973 9.069 10.812 9.218 10.664C9.352 10.531 9.515 10.317 9.664 10.144C9.813 9.97103 9.862 9.84603 9.961 9.64703C10.061 9.44903 10.011 9.27603 9.936 9.12703C9.862 8.97803 9.268 7.51503 9.02 6.92003C8.779 6.34103 8.534 6.42003 8.352 6.41003C8.178 6.40203 7.98 6.40003 7.782 6.40003C7.584 6.40003 7.262 6.47403 6.99 6.77203C6.717 7.06903 5.95 7.78803 5.95 9.25103C5.95 10.713 7.014 12.126 7.163 12.325C7.312 12.524 9.258 15.525 12.239 16.812C12.949 17.118 13.502 17.301 13.933 17.437C14.645 17.664 15.293 17.632 15.805 17.555C16.375 17.47 17.563 16.836 17.811 16.142C18.059 15.448 18.058 14.853 17.984 14.729C17.91 14.605 17.712 14.531 17.414 14.382M11.992 21.785H11.988C10.2174 21.7854 8.47937 21.3094 6.956 20.407L6.596 20.193L2.854 21.175L3.853 17.527L3.618 17.153C2.62809 15.5774 2.10424 13.7538 2.107 11.893C2.109 6.44303 6.543 2.00903 11.996 2.00903C13.2948 2.00509 14.5814 2.25934 15.781 2.75702C16.9807 3.2547 18.0694 3.98587 18.984 4.90803C19.9045 5.82433 20.6341 6.91412 21.1305 8.11431C21.6269 9.3145 21.8803 10.6012 21.876 11.9C21.874 17.35 17.44 21.785 11.992 21.785ZM20.404 3.48803C19.3021 2.3793 17.9913 1.50013 16.5474 0.901413C15.1035 0.302696 13.5551 -0.0036753 11.992 3.32698e-05C5.438 3.32698e-05 0.102 5.33503 0.1 11.892C0.096774 13.9788 0.644198 16.0295 1.687 17.837L0 24L6.304 22.346C8.04817 23.2954 10.0022 23.7932 11.988 23.794H11.993C18.547 23.794 23.883 18.459 23.885 11.901C23.8899 10.3383 23.5848 8.79011 22.9875 7.34603C22.3902 5.90196 21.5124 4.59067 20.405 3.48803"/></svg><!-- /build:wa-icon --></a>
+</body>
+</html>

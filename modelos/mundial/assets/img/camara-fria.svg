@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 330" width="400" height="330">
+  <defs>
+    <linearGradient id="l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F5F8FF"/><stop offset="1" stop-color="#E3EBFA"/></linearGradient>
+    <linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9E4F8"/><stop offset="1" stop-color="#C4D4F2"/></linearGradient>
+    <linearGradient id="d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#EFF3FC"/></linearGradient>
+    <radialGradient id="sh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000F6B" stop-opacity=".22"/><stop offset="1" stop-color="#000F6B" stop-opacity="0"/></radialGradient>
+  </defs>
+  <ellipse cx="205" cy="292" rx="175" ry="26" fill="url(#sh)"/>
+  <!-- unidade condensadora -->
+  <polygon points="120,72 190,56 232,68 162,84" fill="#FFFFFF" stroke="#A6BCE8" stroke-width="1.2"/>
+  <polygon points="120,72 162,84 162,104 120,92" fill="#E7EEFB" stroke="#A6BCE8" stroke-width="1.2"/>
+  <polygon points="162,84 232,68 232,88 162,104" fill="#D0DDF4" stroke="#A6BCE8" stroke-width="1.2"/>
+  <ellipse cx="197" cy="86" rx="14" ry="7.5" transform="rotate(-13 197 86)" fill="#0064FF" opacity=".85"/>
+  <ellipse cx="197" cy="86" rx="4" ry="2.2" transform="rotate(-13 197 86)" fill="#EAF1FF"/>
+  <!-- topo -->
+  <polygon points="50,100 225,62 355,100 180,140" fill="#FFFFFF" stroke="#A6BCE8" stroke-width="1.4"/>
+  <!-- face esquerda -->
+  <polygon points="50,100 180,140 180,300 50,262" fill="url(#l)" stroke="#A6BCE8" stroke-width="1.4"/>
+  <g stroke="#CAD8F2" stroke-width="1.2"><line x1="93" y1="113" x2="93" y2="275"/><line x1="137" y1="127" x2="137" y2="288"/></g>
+  <!-- face direita -->
+  <polygon points="180,140 355,100 355,262 180,300" fill="url(#r)" stroke="#A6BCE8" stroke-width="1.4"/>
+  <line x1="327" y1="107" x2="327" y2="268" stroke="#B6C8EC" stroke-width="1.2"/>
+  <!-- porta -->
+  <polygon points="208,150 302,129 302,268 208,290" fill="url(#d)" stroke="#0064FF" stroke-width="2.4" stroke-linejoin="round"/>
+  <polygon points="214,156 296,137 296,262 214,283" fill="none" stroke="#A6BCE8" stroke-width="1"/>
+  <polygon points="284,192 290,190.7 290,224 284,225.3" fill="#0064FF"/>
+  <!-- display -->
+  <polygon points="222,165 258,157 258,172 222,180" fill="#000F6B"/>
+  <text x="226" y="223" font-family="Poppins, Arial, sans-serif" font-size="9" font-weight="700" fill="#5FD0F5" transform="matrix(1 -0.22 0 1 0 0)">-18°C</text>
+  <!-- cortina de ar / faixa -->
+  <polygon points="180,140 355,100 355,108 180,148" fill="#0064FF" opacity=".9"/>
+</svg>

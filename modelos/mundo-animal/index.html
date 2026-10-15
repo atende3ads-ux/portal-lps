@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mundo Animal · Clínica Veterinária 24h</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===================== TOKENS — DNA VISUAL MUNDO ANIMAL ===================== */
+:root{
+  --primary:#10A37A;          /* teal-verde: cuidado, saúde */
+  --primary-deep:#0B7A5C;
+  --primary-soft:#E4F5EF;
+  --accent:#FF5A4D;           /* coral: emergência / alerta */
+  --accent-deep:#E63946;
+  --accent-soft:#FFE8E5;
+  --bg:#F5FBF9;
+  --surface:#FFFFFF;
+  --surface-2:#F0F8F5;
+  --t1:#0F2A22;
+  --t2:#4A5E57;
+  --t3:#81958E;
+  --border:#E1EFE9;
+  --radius:20px;
+  --radius-sm:14px;
+  --shadow-sm:0 4px 18px rgba(15,42,34,.06);
+  --shadow-md:0 18px 44px rgba(15,42,34,.10);
+  --shadow-lg:0 30px 70px rgba(15,42,34,.16);
+  --maxw:1180px;
+  --ff-title:'Figtree',sans-serif;
+  --ff-body:'Figtree',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--ff-body);
+  color:var(--t1);
+  background:var(--bg);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:var(--ff-title);line-height:1.14;letter-spacing:-.038em}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+section{position:relative}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.grad{background:linear-gradient(120deg,var(--primary),var(--primary-deep));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--ff-title);font-weight:600;font-size:.78rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--primary-deep);
+  background:var(--primary-soft);border-radius:999px;padding:8px 16px;
+}
+.sec-head{max-width:720px;margin:0 auto 52px;text-align:center}
+.sec-head h2{font-size:clamp(1.9rem,4vw,2.9rem);font-weight:700;margin:18px 0 14px}
+.sec-head p{color:var(--t2);font-size:1.06rem}
+@media(min-width:721px){.sec-head h2.nowrap{white-space:nowrap}}
+
+/* ===================== BOTÕES ===================== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  font-family:var(--ff-title);font-weight:600;font-size:1rem;
+  padding:15px 28px;border-radius:999px;cursor:pointer;border:none;
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease;
+  white-space:nowrap;
+}
+.btn svg{width:19px;height:19px;flex-shrink:0}
+.btn-emergency{
+  background:linear-gradient(120deg,var(--accent),var(--accent-deep));
+  color:#fff;box-shadow:0 12px 30px rgba(230,57,70,.34);
+}
+.btn-emergency:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(230,57,70,.44)}
+.btn-primary{
+  background:linear-gradient(120deg,var(--primary),var(--primary-deep));
+  color:#fff;box-shadow:0 12px 30px rgba(16,163,122,.30);
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(16,163,122,.40)}
+.btn-ghost{
+  background:var(--surface);color:var(--t1);border:1.5px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.btn-ghost:hover{transform:translateY(-3px);border-color:var(--primary);color:var(--primary-deep)}
+.btn-lg{padding:18px 34px;font-size:1.05rem}
+
+/* pulse dot */
+.dot{width:9px;height:9px;border-radius:50%;background:#fff;position:relative;flex-shrink:0}
+.dot::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:rgba(255,255,255,.5);animation:pulse 1.8s ease-out infinite}
+.dot-live{background:#2ecc71}
+.dot-live::after{background:rgba(46,204,113,.55)}
+@keyframes pulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+
+/* ===================== HEADER ===================== */
+header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(245,251,249,.82);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.nav{display:flex;align-items:center;justify-content:space-between;height:74px}
+.logo{display:flex;align-items:center}
+.logo-img{height:46px;width:auto;display:block}
+.nav-links{display:flex;align-items:center;gap:30px}
+.nav-links a{font-weight:500;color:var(--t2);font-size:.96rem;transition:color .2s}
+.nav-links a:hover{color:var(--primary-deep)}
+.nav-cta{display:flex;align-items:center;gap:12px}
+.nav-phone{display:flex;align-items:center;gap:8px;font-family:var(--ff-title);font-weight:600;color:var(--t1);font-size:.98rem}
+.nav-phone svg{width:18px;height:18px;color:var(--primary)}
+
+/* ===================== HERO ===================== */
+.hero{
+  position:relative;padding:48px 0 52px;overflow:hidden;isolation:isolate;
+  background-image:url('assets/hero.png');
+  background-size:cover;background-position:right center;background-repeat:no-repeat;
+}
+/* overlay p/ garantir contraste do texto sobre a imagem */
+.hero-overlay{
+  position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,
+    var(--bg) 0%, rgba(245,251,249,.94) 30%, rgba(245,251,249,.55) 46%,
+    rgba(245,251,249,.12) 58%, transparent 68%);
+}
+.hero .hero-copy{max-width:600px}
+.hero-photo-m{display:none}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);
+  padding:9px 18px;border-radius:999px;font-weight:600;font-size:.9rem;color:var(--t1);
+}
+.hero h1{font-size:clamp(2.1rem,4.4vw,3.15rem);font-weight:800;margin:20px 0 16px}
+.hero .lead{font-size:1.1rem;color:var(--t2);max-width:520px;margin-bottom:12px;font-weight:500}
+.hero .sub{font-size:.98rem;color:var(--t3);max-width:500px;margin-bottom:26px}
+
+/* bifurcação de públicos */
+.hero-paths{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:560px}
+.path-card{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow-sm);transition:transform .2s,box-shadow .2s,border-color .2s;
+  display:flex;flex-direction:column;gap:14px;
+}
+.path-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.path-card.is-emergency{border-color:var(--accent-soft);background:linear-gradient(180deg,#fff, #FFF7F6)}
+.path-card.is-emergency:hover{border-color:var(--accent)}
+.path-tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--ff-title);font-weight:600;font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
+.path-tag.red{color:var(--accent-deep)}
+.path-tag.green{color:var(--primary-deep)}
+.path-card p{font-size:.9rem;color:var(--t2);margin:-4px 0 2px}
+.path-card .btn{width:100%}
+
+/* trust subelement */
+.hero-trust{
+  margin-top:26px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;
+  font-size:.92rem;color:var(--t2);font-weight:500;
+}
+.hero-trust span{display:inline-flex;align-items:center;gap:8px}
+.hero-trust svg{width:17px;height:17px;color:var(--primary)}
+.hero-trust .sep{width:5px;height:5px;border-radius:50%;background:var(--border)}
+
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+/* ===================== STATS / SELOS ANIMADOS ===================== */
+.stats{padding:20px 0 70px}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:20px;
+  background:var(--surface);border:1px solid var(--border);border-radius:26px;
+  padding:38px 24px;box-shadow:var(--shadow-sm);
+}
+.stat{text-align:center;position:relative}
+.stat + .stat::before{content:"";position:absolute;left:-10px;top:50%;transform:translateY(-50%);width:1px;height:52px;background:var(--border)}
+.stat .num{font-family:var(--ff-title);font-weight:800;font-size:clamp(2.1rem,4vw,2.9rem);color:var(--primary-deep);line-height:1}
+.stat .num .suf{font-size:1.3rem;color:var(--primary)}
+.stat .num .suf.star{color:#FFB800;font-size:1.6rem}
+.stat .lbl{color:var(--t2);font-size:.92rem;margin-top:8px;font-weight:500}
+.stat .lbl-google{display:flex;align-items:center;justify-content:center;gap:6px}
+.g-logo{width:15px;height:15px;flex-shrink:0}
+.stat .live{display:inline-flex;align-items:center;gap:7px;margin-top:8px;font-size:.82rem;font-weight:600;color:var(--primary-deep);background:var(--primary-soft);padding:4px 12px;border-radius:999px}
+
+/* ===================== SERVIÇOS (cards clicáveis/expansíveis) ===================== */
+.services{padding:80px 0}
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.svc-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:26px;transition:transform .25s,box-shadow .25s,border-color .25s;
+  position:relative;
+}
+.svc-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-md);border-color:var(--primary-soft)}
+.svc-card.open{border-color:var(--primary);box-shadow:var(--shadow-md)}
+.svc-ic{width:54px;height:54px;border-radius:15px;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary-deep);margin-bottom:18px;transition:transform .25s}
+.svc-card:hover .svc-ic{transform:scale(1.08) rotate(-4deg)}
+.svc-ic svg{width:28px;height:28px}
+.svc-card h3{font-size:1.22rem;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.svc-toggle,.svc-hint{display:none}
+.svc-detail{margin-top:14px}
+.svc-detail p{color:var(--t2);font-size:.98rem;border-top:1px dashed var(--border);padding-top:14px}
+
+/* faixa CTA por seção */
+.sec-cta{text-align:center;margin-top:48px}
+
+/* ===================== DIFERENCIAIS ===================== */
+.pillars{padding:70px 0;background:var(--surface-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.pillar-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.pillar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:26px;text-align:center;transition:transform .25s,box-shadow .25s}
+.pillar:hover{transform:translateY(-5px);box-shadow:var(--shadow-md)}
+.pillar-ic{width:60px;height:60px;border-radius:50%;margin:0 auto 16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff}
+.pillar-ic svg{width:28px;height:28px}
+.pillar h3{font-size:1.08rem;font-weight:600}
+
+/* ===================== GALERIA / CARROSSEL ===================== */
+.gallery{padding:80px 0}
+.carousel{position:relative}
+.carousel-track{display:flex;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 18px;scroll-behavior:smooth;-ms-overflow-style:none;scrollbar-width:none}
+.carousel-track::-webkit-scrollbar{display:none}
+.slide{
+  flex:0 0 300px;scroll-snap-align:center;height:300px;border-radius:var(--radius);
+  position:relative;overflow:hidden;box-shadow:var(--shadow-sm);
+  transition:transform .25s,box-shadow .25s;background:var(--surface-2);
+}
+.slide:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.slide img{width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+.slide:hover img{transform:scale(1.05)}
+.carousel-nav{display:flex;justify-content:center;gap:12px;margin-top:8px}
+.cbtn{width:52px;height:52px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;color:var(--t1);transition:.2s;box-shadow:var(--shadow-sm)}
+.cbtn:hover{background:var(--primary);color:#fff;border-color:var(--primary);transform:translateY(-2px)}
+.cbtn svg{width:22px;height:22px}
+
+
+/* ===================== DEPOIMENTOS ===================== */
+.testi{padding:80px 0;background:var(--surface-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.testi-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:920px;margin:0 auto}
+.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;box-shadow:var(--shadow-sm);position:relative}
+.tcard .quote{font-size:3.4rem;font-family:var(--ff-title);color:var(--primary-soft);line-height:.6;position:absolute;top:24px;right:26px}
+.tcard .stars{color:#FFB800;font-size:1.05rem;letter-spacing:2px;margin-bottom:14px}
+.tcard p{color:var(--t1);font-size:1.04rem;font-weight:500;position:relative;z-index:1}
+.tcard .who{display:flex;align-items:center;gap:13px;margin-top:22px}
+.tcard .av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-deep));display:grid;place-items:center;color:#fff;font-family:var(--ff-title);font-weight:700}
+.tcard .who b{font-family:var(--ff-title);font-weight:600;display:block;font-size:.98rem}
+.tcard .who small{color:var(--t3)}
+.testi-seal{display:flex;justify-content:center;margin-top:34px}
+.seal{display:inline-flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:12px 22px;font-weight:600;box-shadow:var(--shadow-sm)}
+.seal .sic{width:34px;height:34px;border-radius:50%;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary-deep)}
+.seal small{display:block;font-weight:500;color:var(--t3);font-size:.78rem}
+
+/* ===================== URGÊNCIA 24h ===================== */
+.urgency{padding:26px 0}
+.urg-inner{
+  background:linear-gradient(120deg,#E63946,#FF5A4D);border-radius:30px;
+  padding:52px 46px;display:grid;grid-template-columns:1fr auto;gap:30px;align-items:center;
+  box-shadow:0 30px 60px rgba(230,57,70,.30);position:relative;overflow:hidden;color:#fff;
+}
+.urg-inner::before{content:"";position:absolute;top:-40%;right:-6%;width:340px;height:340px;border-radius:50%;background:rgba(255,255,255,.10)}
+.urg-inner::after{content:"";position:absolute;bottom:-50%;left:8%;width:280px;height:280px;border-radius:50%;background:rgba(255,255,255,.08)}
+.urg-txt{position:relative;z-index:1}
+.urg-pill{display:inline-flex;align-items:center;gap:9px;background:rgba(255,255,255,.18);padding:7px 16px;border-radius:999px;font-weight:600;font-size:.85rem;margin-bottom:14px}
+.urg-inner h2{color:#fff;font-size:clamp(1.7rem,3.6vw,2.5rem);font-weight:700;margin-bottom:8px}
+.urg-inner p{color:rgba(255,255,255,.92);font-size:1.06rem;max-width:520px}
+.urg-inner .btn-white{background:#fff;color:var(--accent-deep);box-shadow:0 14px 30px rgba(0,0,0,.18);position:relative;z-index:1}
+.urg-inner .btn-white:hover{transform:translateY(-3px);box-shadow:0 20px 40px rgba(0,0,0,.24)}
+
+/* ===================== CTA FINAL / CONTATO ===================== */
+.final{padding:84px 0}
+.final-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.final h2{font-size:clamp(2rem,4.4vw,3rem);font-weight:800;margin-bottom:18px}
+.final .lead{color:var(--t2);font-size:1.1rem;margin-bottom:28px;max-width:460px}
+.final ul{list-style:none;display:flex;flex-direction:column;gap:14px}
+.final li{display:flex;align-items:center;gap:13px;font-weight:500}
+.final li .ci{width:34px;height:34px;border-radius:10px;background:var(--primary-soft);display:grid;place-items:center;color:var(--primary-deep);flex-shrink:0}
+.final li .ci svg{width:18px;height:18px}
+.final li small{display:block;color:var(--t3);font-weight:400;font-size:.82rem}
+.contact-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:28px;
+  padding:38px;box-shadow:var(--shadow-md);
+}
+.contact-card h3{font-size:1.4rem;font-weight:700;margin-bottom:6px}
+.contact-card .sub{color:var(--t2);margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:.86rem;font-weight:600;color:var(--t2);margin-bottom:7px}
+.field input,.field select{
+  width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:13px;
+  font-family:var(--ff-body);font-size:.98rem;background:var(--bg);transition:border-color .2s,box-shadow .2s;color:var(--t1);
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
+.contact-card .btn{width:100%;margin-top:6px}
+.contact-note{text-align:center;font-size:.82rem;color:var(--t3);margin-top:14px;display:flex;align-items:center;justify-content:center;gap:7px}
+.contact-note svg{width:15px;height:15px;color:var(--primary)}
+
+/* ===================== FOOTER ===================== */
+footer{background:var(--t1);color:#cfe0da;padding:56px 0 30px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:36px;margin-bottom:38px}
+footer .logo-img{height:56px}
+footer p{color:#a7bfb7;font-size:.94rem;margin-top:14px;max-width:320px}
+footer h4{color:#fff;font-family:var(--ff-title);font-size:1rem;margin-bottom:16px;font-weight:600}
+footer ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+footer ul li{display:flex;align-items:flex-start;gap:9px;font-size:.92rem;color:#a7bfb7}
+footer ul li svg{width:17px;height:17px;color:var(--primary);flex-shrink:0;margin-top:3px}
+footer ul a:hover{color:#fff}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.10);padding-top:22px;text-align:center;font-size:.86rem;color:#7f978e;display:flex;flex-direction:column;gap:6px;align-items:center}
+.foot-credit .heart{color:var(--accent)}
+.foot-credit a{color:#cfe0da;font-weight:600;transition:color .2s}
+.foot-credit a:hover{color:#fff}
+
+/* botão flutuante emergência mobile */
+.floating-emg{
+  position:fixed;bottom:20px;right:20px;z-index:70;display:none;
+  box-shadow:0 14px 34px rgba(230,57,70,.5);animation:floaty 3s ease-in-out infinite;
+}
+
+/* ===================== REVEAL ANIM ===================== */
+.reveal{opacity:0;transform:translateY(34px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}.reveal.d2{transition-delay:.16s}.reveal.d3{transition-delay:.24s}
+.reveal.d4{transition-delay:.32s}.reveal.d5{transition-delay:.40s}.reveal.d6{transition-delay:.48s}
+
+/* ===================== RESPONSIVO ===================== */
+@media (max-width:960px){
+  .hero .hero-copy{max-width:560px}
+  .hero-overlay{background:linear-gradient(90deg,var(--bg) 0%,rgba(245,251,249,.95) 34%,rgba(245,251,249,.6) 52%,rgba(245,251,249,.15) 64%,transparent 74%)}
+  .final-grid{grid-template-columns:1fr;gap:36px}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .svc-grid,.pillar-grid,.stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat + .stat::before{display:none}
+  .nav-links{display:none}
+}
+@media (max-width:640px){
+  .wrap{padding:0 18px}
+  .nav-phone span{display:none}
+  .logo-img{height:40px}
+  .nav-cta .btn-emergency{display:none}
+  /* mobile: sem imagem esmaecida atrás do texto; pets viram foto nítida embaixo */
+  .hero{background-image:none;padding:28px 0 40px}
+  .hero-overlay{display:none}
+  .hero .hero-copy{max-width:100%}
+  .hero-photo-m{
+    display:block;margin-top:26px;height:330px;border-radius:22px;
+    background-image:url('assets/hero-mobile.png');
+    background-size:cover;background-position:center 46%;background-repeat:no-repeat;
+    box-shadow:var(--shadow-md);
+  }
+  .hero-paths{grid-template-columns:1fr}
+  .hero-trust{
+    flex-direction:column;align-items:flex-start;gap:11px;font-size:.9rem;
+    background:rgba(255,255,255,.8);backdrop-filter:blur(6px);
+    border:1px solid var(--border);border-radius:16px;padding:15px 17px;box-shadow:var(--shadow-sm);
+  }
+  .hero-trust .sep{display:none}
+  .testi-grid{grid-template-columns:1fr}
+  .urg-inner{grid-template-columns:1fr;text-align:center;padding:40px 26px}
+  .urg-pill{margin-left:auto;margin-right:auto}
+  .urg-inner .btn{width:100%}
+  .foot-grid{grid-template-columns:1fr}
+  .slide{flex-basis:280px;height:240px}
+  .floating-emg{display:inline-flex}
+}
+@media (max-width:420px){
+  .svc-grid,.pillar-grid,.stats-grid{grid-template-columns:1fr}
+  .stat{border-bottom:1px solid var(--border);padding-bottom:14px}
+  .stat:last-child{border-bottom:none;padding-bottom:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none;transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header>
+  <div class="wrap nav">
+    <a href="#" class="logo">
+      <img class="logo-img" src="assets/logo-verde.png" alt="Mundo Animal - Clínica Veterinária e Pet Shop">
+    </a>
+    <nav class="nav-links">
+      <a href="#servicos">Serviços</a>
+      <a href="#estrutura">Estrutura</a>
+      <a href="#depoimentos">Depoimentos</a>
+      <a href="#contato">Contato</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="tel:+5562981890399" class="nav-phone">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
+        <span>(62) 98189-0399</span>
+      </a>
+      <a href="tel:+5562981890399" class="btn btn-emergency" style="padding:11px 20px;font-size:.92rem"><span class="dot"></span>Emergência 24h</a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-overlay"></div>
+  <div class="wrap">
+    <div class="hero-copy">
+      <div class="hero-badge reveal">
+        <span class="dot dot-live"></span>
+        <!-- COPY (selo animado — atendimento ativo agora) -->
+        Aberto 24 horas · atendimento ativo agora
+      </div>
+      <!-- COPY (headline) -->
+      <h1 class="reveal d1">Atendimento Veterinário Completo <span class="grad">24horas</span></h1>
+      <!-- COPY (subtítulo) -->
+      <p class="lead reveal d2">Atendimento Veterinário Completo 24h Porque Seu Pet Merece o Melhor, Sempre!</p>
+      <!-- COPY (descrição introdutória) -->
+      <p class="sub reveal d2">Com anos de experiência e uma equipe dedicada, oferecemos tecnologia de ponta e uma abordagem empática para cada pet, em qualquer situação.</p>
+
+      <!-- BIFURCAÇÃO DE PÚBLICOS -->
+      <div class="hero-paths reveal d3">
+        <div class="path-card is-emergency">
+          <span class="path-tag red">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+            Meu pet precisa agora
+          </span>
+          <p>Emergência ou pet em risco? Fale direto com a equipe de plantão.</p>
+          <a href="tel:+5562981890399" class="btn btn-emergency">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Ligar para emergência
+          </a>
+        </div>
+        <div class="path-card">
+          <span class="path-tag green">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Quero agendar rotina
+          </span>
+          <p>Consultas, vacinas e exames de rotina no melhor horário para você.</p>
+          <a href="#contato" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            Agendar consulta
+          </a>
+        </div>
+      </div>
+
+      <!-- SUBELEMENTO DE CONFIANÇA -->
+      <div class="hero-trust reveal d4">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Equipe presente 24h</span>
+        <span class="sep"></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>Centro cirúrgico próprio</span>
+        <span class="sep"></span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>+ de 30 anos de experiência em longevidade animal</span>
+      </div>
+    </div>
+    <!-- foto dos pets — visível só no mobile -->
+    <div class="hero-photo-m" role="img" aria-label="Cão e gato atendidos na Mundo Animal"></div>
+  </div>
+</section>
+
+<!-- ============ STATS / SELOS ANIMADOS ============ -->
+<section class="stats">
+  <div class="wrap">
+    <div class="stats-grid reveal">
+      <div class="stat">
+        <div class="num"><span class="count" data-to="37">0</span></div>
+        <div class="lbl">anos de mercado</div>
+      </div>
+      <div class="stat">
+        <div class="num"><span class="count" data-to="24">0</span><span class="suf">h</span></div>
+        <div class="lbl">de portas abertas</div>
+        <span class="live"><span class="dot dot-live" style="width:7px;height:7px"></span>ativo agora</span>
+      </div>
+      <div class="stat">
+        <div class="num"><span class="count" data-to="4.7">0</span><span class="suf star">★</span></div>
+        <div class="lbl lbl-google">
+          <svg class="g-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.06 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h6.2a5.3 5.3 0 0 1-2.3 3.48v2.89h3.72c2.18-2 3.44-4.96 3.44-8.38z"/><path fill="#34A853" d="M12 24c3.1 0 5.7-1.03 7.6-2.78l-3.72-2.89c-1.03.69-2.35 1.1-3.88 1.1-2.98 0-5.5-2.01-6.4-4.72H1.76v2.98A11.5 11.5 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.6 14.71a6.9 6.9 0 0 1 0-4.42V7.31H1.76a11.5 11.5 0 0 0 0 10.38l3.84-2.98z"/><path fill="#EA4335" d="M12 4.75c1.68 0 3.19.58 4.38 1.72l3.28-3.28C17.7 1.3 15.1.25 12 .25A11.5 11.5 0 0 0 1.76 6.31l3.84 2.98C6.5 6.76 9.02 4.75 12 4.75z"/></svg>
+          179 avaliações no Google
+        </div>
+      </div>
+      <div class="stat">
+        <div class="num"><span class="count" data-to="100">0</span></div>
+        <div class="lbl">de NPS · satisfação e lealdade</div>
+      </div>
+      <div class="stat">
+        <div class="num"><span class="suf">+</span><span class="count" data-to="10">0</span></div>
+        <div class="lbl">especialidades num só lugar</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SERVIÇOS ============ -->
+<section class="services" id="servicos">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">O que oferecemos</span>
+      <h2>Cuidado completo, <span class="grad">em qualquer situação</span></h2>
+      <p>Tudo o que seu pet precisa, sob o mesmo teto.</p>
+    </div>
+
+    <div class="svc-grid">
+      <!-- Card 1 -->
+      <article class="svc-card reveal" tabindex="0">
+        <div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-4.5-9-10a5 5 0 019-3 5 5 0 019 3c-2 5.5-9 10-9 10z"/></svg></div>
+        <h3>Consultas<span class="svc-toggle">+</span></h3>
+        <div class="svc-detail"><!-- COPY --><p>Não importa a idade ou condição do seu pet, temos especialistas prontos para cuidar</p></div>
+        <div class="svc-hint"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>ver detalhes</div>
+      </article>
+      <!-- Card 2 -->
+      <article class="svc-card reveal d1" tabindex="0">
+        <div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 3v6l-5 8a2 2 0 002 3h12a2 2 0 002-3l-5-8V3"/><path d="M8 3h8"/></svg></div>
+        <h3>Exames laboratoriais<span class="svc-toggle">+</span></h3>
+        <div class="svc-detail"><!-- COPY --><p>Diagnósticos rápidos e precisos</p></div>
+        <div class="svc-hint"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>ver detalhes</div>
+      </article>
+      <!-- Card 3 -->
+      <article class="svc-card reveal d2" tabindex="0">
+        <div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 2l-9 9a2.1 2.1 0 000 3l4 4a2.1 2.1 0 003 0l9-9"/><path d="M8 8l8 8M18.5 12.5L22 16a2 2 0 01-3 3l-3.5-3.5"/></svg></div>
+        <h3>Cirurgias<span class="svc-toggle">+</span></h3>
+        <div class="svc-detail"><!-- COPY --><p>Procedimentos com total segurança e monitoramento</p></div>
+        <div class="svc-hint"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>ver detalhes</div>
+      </article>
+      <!-- Card 4 -->
+      <article class="svc-card reveal" tabindex="0">
+        <div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 14c1.5-1.5 3-3.5 3-5.5A3.5 3.5 0 0018.5 5c-1.7 0-3 1-3.5 2C14.5 6 13.2 5 11.5 5A3.5 3.5 0 008 8.5c0 2 1.5 4 3 5.5l3.5 3.5L19 14z"/></svg></div>
+        <h3>Vacinação<span class="svc-toggle">+</span></h3>
+        <div class="svc-detail"><!-- COPY --><p>Proteção completa, com vacinas de alta qualidade</p></div>
+        <div class="svc-hint"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>ver detalhes</div>
+      </article>
+      <!-- Card 5 -->
+      <article class="svc-card reveal d1" tabindex="0">
+        <div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 20h20M4 20V9l8-5 8 5v11M9 20v-6h6v6"/></svg></div>
+        <h3>Internação 24h<span class="svc-toggle">+</span></h3>
+        <div class="svc-detail"><!-- COPY --><p>equipe presente o tempo todo</p></div>
+        <div class="svc-hint"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>ver detalhes</div>
+      </article>
+      <!-- Card 6 -->
+      <article class="svc-card reveal d2" tabindex="0">
+        <div class="svc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <h3>Exames de imagem<span class="svc-toggle">+</span></h3>
+        <div class="svc-detail"><!-- COPY --><p>raio-X digital de alta qualidade e ultrassom</p></div>
+        <div class="svc-hint"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01" stroke-linecap="round"/></svg>ver detalhes</div>
+      </article>
+    </div>
+
+    <!-- CTA VARIAÇÃO 1 -->
+    <div class="sec-cta reveal">
+      <a href="#contato" class="btn btn-primary btn-lg">
+        Ver disponibilidade agora
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DIFERENCIAIS / PILARES ============ -->
+<section class="pillars">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Por que a Mundo Animal</span>
+      <h2>Tudo para cuidar do seu pet <span class="grad">com segurança</span></h2>
+    </div>
+    <div class="pillar-grid">
+      <div class="pillar reveal">
+        <div class="pillar-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <!-- COPY --><h3>Atendimento 24 horas</h3>
+      </div>
+      <div class="pillar reveal d1">
+        <div class="pillar-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M3 12h18M7.5 7.5l9 9M16.5 7.5l-9 9"/></svg></div>
+        <!-- COPY --><h3>Centro clínico completo</h3>
+      </div>
+      <div class="pillar reveal d2">
+        <div class="pillar-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 6a6 6 0 00-6 6v8h12v-8a6 6 0 00-6-6zM9 13h6M12 10v6"/></svg></div>
+        <!-- COPY --><h3>Farmácia completa</h3>
+      </div>
+      <div class="pillar reveal d3">
+        <div class="pillar-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/></svg></div>
+        <!-- COPY --><h3>Profissionais especializados</h3>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALERIA / CARROSSEL ============ -->
+<section class="gallery" id="estrutura">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Conheça nossa estrutura</span>
+      <h2 class="nowrap">Um ambiente <span class="grad">pensado para o seu pet</span></h2>
+    </div>
+  </div>
+  <div class="wrap carousel">
+    <div class="carousel-track" id="track">
+      <figure class="slide" data-src="assets/carrossel/14.jpg"><img src="assets/carrossel/14.jpg" alt="Médica veterinária da Mundo Animal com pet" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/11.jpg"><img src="assets/carrossel/11.jpg" alt="Equipe da Mundo Animal com pet" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/12.jpg"><img src="assets/carrossel/12.jpg" alt="Equipe da Mundo Animal com pet" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/01.jpg"><img src="assets/carrossel/01.jpg" alt="Equipe da Mundo Animal com pet" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/02.jpg"><img src="assets/carrossel/02.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/03.jpg"><img src="assets/carrossel/03.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/04.jpg"><img src="assets/carrossel/04.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/05.jpg"><img src="assets/carrossel/05.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/06.jpg"><img src="assets/carrossel/06.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/07.jpg"><img src="assets/carrossel/07.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/08.jpg"><img src="assets/carrossel/08.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/09.jpg"><img src="assets/carrossel/09.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+      <figure class="slide" data-src="assets/carrossel/10.jpg"><img src="assets/carrossel/10.jpg" alt="Estrutura da clínica Mundo Animal" loading="lazy"></figure>
+    </div>
+    <div class="carousel-nav">
+      <button class="cbtn" id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="cbtn" id="next" aria-label="Próximo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DEPOIMENTOS ============ -->
+<section class="testi" id="depoimentos">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="kicker">Quem confia na gente</span>
+      <h2>Histórias de <span class="grad">quem já foi atendido</span></h2>
+    </div>
+    <!-- ⚠️ SUBSTITUIR: a LP atual não traz depoimentos reais. Troque os textos, nomes e notas abaixo por depoimentos verdadeiros (ex.: reviews do Google) antes de publicar. -->
+    <div class="testi-grid">
+      <div class="tcard reveal">
+        <span class="quote">”</span>
+        <div class="stars">★★★★★</div>
+        <p>[DEPOIMENTO REAL AQUI] Descreva em uma ou duas frases a experiência do tutor com o atendimento da clínica.</p>
+        <div class="who"><span class="av">A</span><div><b>[Nome do tutor]</b><small>[tutor do(a) pet]</small></div></div>
+      </div>
+      <div class="tcard reveal d1">
+        <span class="quote">”</span>
+        <div class="stars">★★★★★</div>
+        <p>[DEPOIMENTO REAL AQUI] Descreva em uma ou duas frases a experiência do tutor com o atendimento da clínica.</p>
+        <div class="who"><span class="av">M</span><div><b>[Nome do tutor]</b><small>[tutor do(a) pet]</small></div></div>
+      </div>
+    </div>
+    <div class="testi-seal reveal d1">
+      <span class="seal"><span class="sic"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z"/></svg></span><div>37 anos de mercado<small>cuidando de pets em Goiânia</small></div></span>
+    </div>
+    <!-- CTA VARIAÇÃO 2 -->
+    <div class="sec-cta reveal">
+      <a href="#contato" class="btn btn-primary btn-lg">
+        Quero esse cuidado pro meu pet
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s-7-4.5-9-10a5 5 0 019-3 5 5 0 019 3c-2 5.5-9 10-9 10z"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ URGÊNCIA 24h ============ -->
+<section class="urgency">
+  <div class="wrap">
+    <div class="urg-inner reveal">
+      <div class="urg-txt">
+        <span class="urg-pill"><span class="dot"></span>Plantão ativo agora · 24h</span>
+        <!-- COPY --><h2>Não deixe para depois. O bem-estar do seu pet é nossa prioridade!</h2>
+        <p>Se é uma emergência, cada minuto conta. Nossa equipe de plantão está pronta para atender agora mesmo.</p>
+      </div>
+      <!-- CTA VARIAÇÃO 3 -->
+      <a href="tel:+5562981890399" class="btn btn-white btn-lg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg>
+        Emergência? Fale com a equipe 24h
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL / CONTATO ============ -->
+<section class="final" id="contato">
+  <div class="wrap final-grid">
+    <div class="final-copy reveal">
+      <span class="kicker">Agende agora</span>
+      <!-- COPY --><h2>Marque Agora <span class="grad">Atendimento Imediato</span></h2>
+      <p class="lead">Escolha o melhor horário para a consulta de rotina do seu pet ou ligue direto se for emergência.</p>
+      <ul>
+        <li><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span><div><!-- COPY -->R. C-209, 386 - Jardim América, Goiânia - GO, 74270-220<small>Nossa localização</small></div></li>
+        <li><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg></span><div><!-- COPY -->(62) 98189-0399<small>Telefone e WhatsApp</small></div></li>
+        <li><span class="ci"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><div><!-- COPY -->Aberto 24 horas<small>Todos os dias, sem exceção</small></div></li>
+      </ul>
+    </div>
+
+    <div class="contact-card reveal d1">
+      <h3>Agendar consulta de rotina</h3>
+      <p class="sub">Preencha e a equipe retorna para confirmar o horário.</p>
+      <form onsubmit="return false">
+        <div class="field"><label>Seu nome</label><input type="text" placeholder="Como podemos te chamar?"></div>
+        <div class="field"><label>WhatsApp</label><input type="tel" placeholder="(62) 90000-0000"></div>
+        <div class="field"><label>Nome e tipo do pet</label><input type="text" placeholder="Ex.: Thor, cachorro"></div>
+        <div class="field"><label>Tipo de atendimento</label>
+          <select>
+            <option>Consulta de rotina</option>
+            <option>Vacinação</option>
+            <option>Exames</option>
+            <option>Cirurgia</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <a href="tel:+5562981890399" class="btn btn-primary">Marque Agora - Atendimento Imediato</a>
+        <div class="contact-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round"/></svg>É emergência? <a href="tel:+5562981890399" style="color:var(--accent-deep);font-weight:600;margin-left:4px">Ligue agora 24h</a></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a href="#" class="logo">
+          <img class="logo-img" src="assets/logo-branca.png" alt="Mundo Animal - Clínica Veterinária e Pet Shop">
+        </a>
+        <p>Atendimento veterinário completo 24 horas. Porque seu pet merece o melhor, sempre.</p>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>R. C-209, 386 - Jardim América, Goiânia - GO, 74270-220</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:+5562981890399">(62) 98189-0399</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Horário</h4>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Aberto 24 horas · todos os dias</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Mundo Animal · Clínica Veterinária. Todos os direitos reservados.</span>
+      <span class="foot-credit">Desenvolvido com <span class="heart">♥</span> por <a href="https://3ads.com.br" target="_blank" rel="noopener">3ADS</a></span>
+    </div>
+  </div>
+</footer>
+
+<!-- botão flutuante emergência (mobile) -->
+<a href="tel:+5562981890399" class="btn btn-emergency floating-emg"><span class="dot"></span>Emergência 24h</a>
+
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- reveal on scroll ---- */
+  var reveals = document.querySelectorAll('.reveal');
+  if(reduce){ reveals.forEach(function(el){el.classList.add('in')}); }
+  else{
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+    },{threshold:.14, rootMargin:'0px 0px -40px 0px'});
+    reveals.forEach(function(el){io.observe(el)});
+  }
+
+  /* ---- contadores animados ---- */
+  var counted = false;
+  function runCount(){
+    if(counted) return; counted = true;
+    document.querySelectorAll('.count').forEach(function(el){
+      var raw = el.getAttribute('data-to'), to = parseFloat(raw), dec = raw.indexOf('.')>=0, dur = 1400, start = null;
+      function fmt(v){ return dec ? v.toFixed(1).replace('.', ',') : Math.round(v); }
+      if(reduce){ el.textContent = fmt(to); return; }
+      function step(ts){
+        if(!start) start = ts;
+        var p = Math.min((ts-start)/dur,1);
+        var eased = 1 - Math.pow(1-p,3);
+        el.textContent = fmt(eased*to);
+        if(p<1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  var statsEl = document.querySelector('.stats-grid');
+  if(statsEl){
+    var io2 = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if(e.isIntersecting){ runCount(); io2.disconnect(); } });
+    },{threshold:.4});
+    io2.observe(statsEl);
+  }
+
+  /* ---- carrossel ---- */
+  var track = document.getElementById('track');
+  var step = 358;
+  document.getElementById('prev').addEventListener('click', function(){ track.scrollBy({left:-step,behavior:'smooth'}); });
+  document.getElementById('next').addEventListener('click', function(){ track.scrollBy({left:step,behavior:'smooth'}); });
+  // drag to scroll
+  var isDown=false,startX,scrollLeft;
+  track.addEventListener('mousedown',function(e){isDown=true;startX=e.pageX-track.offsetLeft;scrollLeft=track.scrollLeft;track.style.cursor='grabbing';});
+  ['mouseup','mouseleave'].forEach(function(ev){track.addEventListener(ev,function(){isDown=false;track.style.cursor='';});});
+  track.addEventListener('mousemove',function(e){ if(!isDown)return; e.preventDefault(); var x=e.pageX-track.offsetLeft; track.scrollLeft=scrollLeft-(x-startX)*1.4; });
+})();
+</script>
+</body>
+</html>

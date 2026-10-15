@@ -1,0 +1,328 @@
+/* ICEO static enhancements — mobile first, performance and accessibility. */
+:root {
+  --iceo-focus: #47ff66;
+  --iceo-brand-dark: #004f62;
+  --iceo-reveal-distance: 24px;
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-width: 320px;
+  margin: 0;
+  overflow-x: clip;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+svg,
+video {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* Keep the above-the-fold hero visible even if deferred Elementor effects load late. */
+.elementor-element.elementor-element-98f6178,
+.elementor-element.elementor-element-98f6178 .elementor-widget-container,
+.elementor-element.elementor-element-98f6178 img {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.elementor-element.elementor-element-98f6178 img {
+  width: 100% !important;
+  height: auto !important;
+}
+
+h1,
+h2,
+h3,
+p,
+.elementor-button-text,
+.elementor-icon-list-text {
+  overflow-wrap: break-word;
+}
+
+a,
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid var(--iceo-focus) !important;
+  outline-offset: 4px;
+}
+
+.elementor-button {
+  min-height: 44px;
+}
+
+/* Compact, balanced header CTA without reducing its accessible hit area. */
+.elementor-element.elementor-element-e90ac36 .elementor-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 18px !important;
+  line-height: 1.2;
+}
+
+.elementor-element.elementor-element-e90ac36 .elementor-button-content-wrapper {
+  align-items: center;
+  gap: 8px;
+}
+
+.elementor-element.elementor-element-e90ac36 .elementor-button-icon {
+  display: flex;
+  margin: 0;
+}
+
+.elementor-element.elementor-element-e90ac36 .elementor-button-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.eael-accordion-header[aria-expanded="true"] + .eael-accordion-content {
+  display: block !important;
+}
+
+.elementor .elementor-heading-title {
+  text-wrap: balance;
+}
+
+.elementor-widget-text-editor p {
+  text-wrap: pretty;
+}
+
+/* Contrast fixes identified by Lighthouse. */
+.elementor-element.elementor-element-0640286 {
+  color: #064e4b !important;
+}
+
+.elementor-10 .elementor-element.elementor-element-4630607 .elementor-heading-title span {
+  color: #00677a !important;
+}
+
+.elementor-10 .elementor-element.elementor-element-5507edf:not(.elementor-motion-effects-element-type-background) {
+  background-color: var(--iceo-brand-dark) !important;
+  background-image: linear-gradient(225deg, #32d6ff 0%, #004f62 100%) !important;
+}
+
+.elementor-10 .elementor-element.elementor-element-f17c013:not(.elementor-motion-effects-element-type-background) {
+  background-color: #0f172a !important;
+}
+
+.elementor-10 .elementor-element.elementor-element-f17cfca {
+  color: #cbd5e1 !important;
+}
+
+/* Scroll-triggered fade. Only JS-enhanced sections are hidden. */
+.js .iceo-reveal {
+  opacity: 0;
+  transform: translate3d(0, var(--iceo-reveal-distance), 0);
+  transition:
+    opacity 620ms cubic-bezier(.2, .65, .3, 1),
+    transform 720ms cubic-bezier(.2, .65, .3, 1);
+  will-change: opacity, transform;
+}
+
+.js .iceo-reveal.iceo-reveal--right {
+  transform: translate3d(18px, 0, 0);
+}
+
+.js .iceo-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  will-change: auto;
+}
+
+/* Lightweight native replacements for the exported builder runtime. */
+.elementor-location-popup {
+  display: none !important;
+}
+
+.elementor-location-popup.iceo-popup-open {
+  position: fixed !important;
+  z-index: 2147483646 !important;
+  inset: 0;
+  display: flex !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(0, 39, 57, .72);
+}
+
+body.iceo-menu-open {
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .elementor-element.elementor-element-63508ad {
+    --margin-top: 64px !important;
+  }
+}
+
+.elementor-widget-image-carousel {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0;
+}
+
+.iceo-native-carousel {
+  width: 100%;
+  overflow: hidden;
+}
+
+.iceo-native-carousel .swiper-wrapper {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: 88%;
+  gap: 12px;
+  width: 100% !important;
+  overflow-x: auto;
+  padding-block: 6px 14px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  transform: none !important;
+}
+
+.iceo-native-carousel .swiper-slide {
+  width: 100% !important;
+  min-width: 0;
+  max-width: none !important;
+  margin: 0 !important;
+  justify-self: stretch;
+  scroll-snap-align: center;
+}
+
+.iceo-native-carousel .swiper-slide-inner {
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+.iceo-native-carousel .swiper-slide picture,
+.iceo-native-carousel .swiper-slide img {
+  display: block;
+  width: 100%;
+}
+
+.ti-reviews-container-wrapper {
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.ti-review-item {
+  scroll-snap-align: start;
+}
+
+/* Keep both WhatsApp scheduling buttons above every site layer. */
+:where([data-id="e0adc9d"], [data-id="b53421f"]) {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  isolation: isolate !important;
+  pointer-events: none !important;
+}
+
+:where([data-id="e0adc9d"], [data-id="b53421f"]) :where(.e-con-inner, img) {
+  pointer-events: none !important;
+}
+
+:where([data-id="e0adc9d"], [data-id="b53421f"]) .elementor-widget {
+  pointer-events: auto !important;
+}
+
+:where([data-id="e0adc9d"], [data-id="b53421f"]) a,
+:where([data-id="e0adc9d"], [data-id="b53421f"]) a * {
+  position: relative !important;
+  z-index: 2147483647 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+
+/* Mobile-first progressive layout guardrails. */
+@media (min-width: 480px) {
+  :root {
+    --iceo-reveal-distance: 28px;
+  }
+}
+
+@media (min-width: 768px) {
+  html {
+    scroll-padding-top: 82px;
+  }
+
+  :root {
+    --iceo-reveal-distance: 32px;
+  }
+
+  .iceo-native-carousel .swiper-wrapper {
+    grid-auto-columns: calc((100% - 16px) / 2);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .iceo-native-carousel .swiper-wrapper {
+    grid-auto-columns: calc((100% - 32px) / 3);
+  }
+
+  [data-id="a6087e8"] .iceo-native-carousel .swiper-wrapper {
+    grid-auto-columns: calc((100% - 48px) / 4);
+  }
+}
+
+@media (min-width: 1440px) {
+  .elementor > .e-con-boxed > .e-con-inner {
+    width: min(1250px, calc(100vw - 80px));
+    margin-inline: auto;
+  }
+}
+
+@media (min-width: 1920px) {
+  .elementor > .e-con-boxed > .e-con-inner {
+    width: min(1440px, calc(100vw - 128px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+
+  .js .iceo-reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

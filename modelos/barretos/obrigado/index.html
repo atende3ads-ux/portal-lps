@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Google Tag Manager -->
+<!-- rastreio removido pelo portal -->
+<!-- End Google Tag Manager -->
+<!-- Google tag (gtag.js) -->
+<!-- rastreio removido pelo portal -->
+<!-- rastreio removido pelo portal -->
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obrigado! — Barretos Country Resort</title>
+<meta name="description" content="Recebemos seus dados. Nossa equipe comercial do Barretos Country Resort vai entrar em contato em breve.">
+
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"></noscript>
+<style>
+/* Fontes oficiais Barretos Country */
+@font-face{
+  font-family:'Albra';
+  src:url('../fonts/AlbraBold.otf') format('opentype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Gelion';
+  src:url('../fonts/Gelion-Regular.ttf') format('truetype');
+  font-weight:400;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Gelion';
+  src:url('../fonts/Gelion-SemiBold.ttf') format('truetype');
+  font-weight:600;
+  font-style:normal;
+  font-display:swap;
+}
+@font-face{
+  font-family:'Gelion';
+  src:url('../fonts/Gelion-Bold.ttf') format('truetype');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+:root{
+  --orange:#f04c24;
+  --orange-soft:rgba(240,76,36,0.1);
+  --orange-soft-2:rgba(240,76,36,0.18);
+  --orange-shadow:rgba(240,76,36,0.28);
+  --navy:#23265a;
+  --navy-2:#20265b;
+  --navy-08:rgba(35,38,90,0.08);
+  --navy-06:rgba(35,38,90,0.06);
+  --navy-25:rgba(35,38,90,0.25);
+  --navy-40:rgba(35,38,90,0.40);
+  --navy-50:rgba(35,38,90,0.50);
+  --navy-70:rgba(35,38,90,0.70);
+  --navy-75:rgba(35,38,90,0.75);
+  --brown:#68280f;
+  --brown-2:#502d1d;
+  --cream:#faf6ee;
+  --cream-2:#f9f4df;
+  --line-cream:#e8e0ce;
+  --muted:#6d6457;
+  --ink:#1a1a1a;
+  --wa-green:#25d366;
+  --white-08:rgba(255,255,255,0.08);
+  --white-40:rgba(255,255,255,0.40);
+  --white-50:rgba(255,255,255,0.50);
+  --white-70:rgba(255,255,255,0.70);
+  --white-85:rgba(255,255,255,0.85);
+  --shadow-soft:0 24px 60px rgba(35,38,90,0.18);
+  --shadow-card:0 12px 16px rgba(35,38,90,0.10);
+  --shadow-cta:0 8px 10px rgba(240,76,36,0.28);
+  --font-display:'Albra','DM Serif Display',Georgia,serif;
+  --font-ui:'Gelion','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  --container:1240px;
+  --gutter:clamp(20px, 5vw, 80px);
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;color-scheme:light;background:#fff}
+body{margin:0;background:#fff;color:var(--ink);font-family:var(--font-ui);font-weight:500;-webkit-font-smoothing:antialiased;line-height:1.5;color-scheme:light}
+h1,h2,h3,h4{margin:0;font-family:var(--font-display);font-weight:700;color:var(--brown);letter-spacing:-0.02em;line-height:1.1}
+p{margin:0}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+button{font:inherit;cursor:pointer;border:0;background:none;padding:0;color:inherit}
+
+.eyebrow{display:inline-flex;align-items:center;gap:12px;font-family:var(--font-ui);font-weight:700;font-size:11.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--orange)}
+.eyebrow::before{content:"";width:22px;height:1px;background:currentColor}
+
+.h-display{font-family:var(--font-display);font-weight:700;font-size:clamp(32px,5vw,52px);line-height:1.1;color:var(--brown);letter-spacing:-0.02em}
+.h-display .accent{color:var(--orange)}
+
+.cta{display:inline-flex;align-items:center;gap:10px;padding:18px 28px;border-radius:12px;font-weight:700;font-size:16px;line-height:1.2;letter-spacing:-0.005em;transition:transform .15s ease,box-shadow .15s ease,background .15s ease}
+.cta-orange{background:var(--orange);color:#fff;box-shadow:var(--shadow-cta)}
+.cta-orange:hover{transform:translateY(-1px);box-shadow:0 12px 18px rgba(240,76,36,0.34)}
+.cta-outline-navy{background:transparent;color:var(--navy);border:1px solid var(--navy-40)}
+.cta-wa{background:var(--wa-green);color:#fff}
+.cta-wa:hover{transform:translateY(-1px)}
+.cta-arrow{font-weight:700;font-size:18px;line-height:1;display:inline-block;transition:transform .15s ease}
+.cta:hover .cta-arrow{transform:translateX(3px)}
+.cta-wa svg{width:20px;height:20px;flex:0 0 20px}
+
+.topbar{position:sticky;top:0;z-index:50;background:var(--orange);color:#fff;box-shadow:0 2px 14px rgba(0,0,0,0.18)}
+.topbar-inner{max-width:var(--container);margin:0 auto;padding:0 var(--gutter);display:flex;align-items:center;justify-content:center;gap:16px;height:64px}
+.topbar a{display:inline-flex;align-items:center}
+.topbar-logo{height:48px;width:auto;display:block}
+@media (max-width:520px){.topbar-inner{height:56px}.topbar-logo{height:38px}}
+
+.thanks{background:linear-gradient(90deg,#f9f4df 0%,#faf6ee 100%);padding:120px var(--gutter);min-height:calc(100vh - 64px - 260px);display:flex;align-items:center}
+.thanks-card{max-width:720px;margin:0 auto;text-align:center}
+.thanks-icon{width:72px;height:72px;border-radius:50%;background:var(--orange);color:#fff;display:grid;place-items:center;margin:0 auto 24px;font-size:34px}
+.thanks-card .h-display{margin:16px 0 20px}
+.thanks-body{color:var(--muted);font-size:18px;line-height:1.65;margin-bottom:36px;max-width:560px;margin-left:auto;margin-right:auto}
+.thanks-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:14px}
+
+.footer{background:var(--navy-2);padding:64px var(--gutter) 32px;text-align:center}
+.footer-inner{max-width:var(--container);margin:0 auto}
+.footer-logo{width:319px;max-width:80%;height:auto;margin:0 auto 48px}
+.footer-bar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-top:29px;border-top:1px solid var(--white-08)}
+.footer-bar small{color:var(--white-40);font-size:12.5px;line-height:1.6}
+.footer-bar a{color:#fff;text-decoration:underline;font-weight:700}
+
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .9s cubic-bezier(.16,.84,.32,1),transform 1.1s cubic-bezier(.16,.84,.32,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+@media (max-width:620px){
+  .thanks{padding:72px var(--gutter)}
+}
+</style>
+</head>
+<body>
+
+<!-- ───────── TOPBAR ───────── -->
+<header class="topbar" data-screen-label="Top Bar">
+  <div class="topbar-inner">
+    <a href="../" aria-label="Barretos Country">
+      <img class="topbar-logo" src="../images/logo-white.png" alt="Logo Barretos Country" width="260" height="100" decoding="async">
+    </a>
+  </div>
+</header>
+
+<!-- ───────── OBRIGADO ───────── -->
+<section class="thanks">
+  <div class="thanks-card reveal in">
+    <span class="thanks-icon" aria-hidden="true">✓</span>
+    <span class="eyebrow" style="justify-content:center">Dados recebidos com sucesso</span>
+    <h1 class="h-display">Obrigado! <span class="accent">Já estamos com sua solicitação.</span></h1>
+    <p class="thanks-body">Nossa equipe comercial vai entrar em contato em breve com valores, disponibilidade e condições para a sua viagem ao Barretos Country Resort. Se preferir, fale com a gente agora mesmo pelo WhatsApp.</p>
+    <div class="thanks-actions">
+      <a class="cta cta-wa" href="https://wa.me/551733212324" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.3c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.2.2-.3.2-.6.1-.3-.2-1.2-.5-2.3-1.4-.9-.7-1.4-1.7-1.6-1.9-.2-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.2-.5.1-.2 0-.4 0-.5 0-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 .9-1 2.3 0 1.4 1 2.7 1.2 2.9.2.3 2.1 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.7.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.2.2-1.3 0-.1-.3-.2-.6-.4z"/><path d="M20.5 3.5C18.3 1.2 15.2 0 12 0 5.4 0 0 5.4 0 12c0 2.1.6 4.2 1.6 6L0 24l6.2-1.6c1.7.9 3.7 1.4 5.7 1.4 6.6 0 12-5.4 12-12 .1-3.2-1.2-6.3-3.4-8.3zM12 21.8c-1.8 0-3.6-.5-5.1-1.4l-.4-.2-3.7 1 1-3.6-.2-.4c-1-1.6-1.5-3.4-1.5-5.2C2.1 6.5 6.5 2.1 12 2.1c2.7 0 5.2 1 7 2.9 1.9 1.9 2.9 4.4 2.9 7-.1 5.5-4.5 9.8-9.9 9.8z"/></svg>
+        Falar no WhatsApp agora
+      </a>
+      <a class="cta cta-outline-navy" href="../">Voltar para o site <span class="cta-arrow">→</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── FOOTER ───────── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <img class="footer-logo" src="../images/logo-bc-resort.png" alt="Barretos Country Resort" width="640" height="216" loading="lazy" decoding="async">
+    <div class="footer-bar" style="justify-content:center">
+      <small>© Barretos Country Resort. CNPJ: 01.733.212/0324-XX</small>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

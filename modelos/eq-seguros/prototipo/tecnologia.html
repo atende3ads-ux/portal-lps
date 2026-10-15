@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tecnologia EQ: Integração simples e com escala | EQ Seguros</title>
+<meta name="description" content="Seguros na jornada de venda do cliente, com processos de vendas e gestão de produtos através de API única.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="crumbbar"><div class="wrap"><div class="crumb"><a href="index.html">Home</a><span class="sep">›</span><b>Tecnologia EQ</b></div></div></div>
+<section class="phero dark has-div"><div class="wrap"><div class="phero-grid"><div class="rv-init"><span class="kicker">Linha de soluções</span><h1>Tecnologia EQ: Integração de forma simples e com escala</h1><p class="lead">Seguros na jornada de venda do cliente, com processos de vendas e gestão de produtos através de <b>API única</b>, conectando produtos de seguros aos parceiros.</p><div class="btn-row rv-init"><a class="btn btn-primary" href="api.html">Ver integrações / API</a><a class="link-arrow" href="contato.html"><span>Falar com time técnico</span><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div><div class="rv-init"><img class="phero-art" src="assets/hero-desktop.png" alt="Desenvolvedor integrando a API da EQ, com ícones de conexão, segurança e documentação" width="465" height="570" loading="eager"></div></div></div><div class="divider bottom"><svg viewBox="230 0 1460 56.38"><path class="div-paper" d="M306.991 33.55H-6V56.38H1927V33.55H1613.62C1597.38 33.55 1583.15 27.57 1578.88 18.95L1576.73 14.6C1572.46 5.98 1558.23 0 1541.99 0H378.617C362.377 0 348.148 5.98 343.882 14.6L341.727 18.95C337.46 27.57 323.231 33.55 306.991 33.55Z"/></svg></div></section>
+<section class="sec "><div class="wrap"><div class="sechead rv-init"><span class="kicker">Integração simples</span><h2>O que a Tech EQ entrega</h2><p class="lead">Confira nossa documentação completa e entenda a facilidade de integrar as vendas de seguros com a EQ.</p></div><div class="grid g3"><div class="card techcard rv-init"><div class="tc-media"><span class="tc-badge"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span><img src="assets/tech/iliustração-01.png" alt=""></div><h4>API única para todos os produtos</h4><p>Uma só integração para todo o portfólio.</p></div><div class="card techcard rv-init"><div class="tc-media"><span class="tc-badge"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span><img src="assets/tech/iliustração-02.png" alt=""></div><h4>Equipe Tech EQ especializada</h4><p>Agilidade em ajustes de produtos.</p></div><div class="card techcard rv-init"><div class="tc-media"><span class="tc-badge"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span><img src="assets/tech/iliustração-03.png" alt=""></div><h4>Business Intelligence</h4><p>Acompanhe as vendas em tempo real.</p></div></div><div class="btn-row rv-init"><a class="link-arrow" href="api.html"><span>Ver documentação</span><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div></div></section>
+<section class="sec dark has-div-top has-div-bot"><div class="divider top"><svg viewBox="230 0 1460 36.3"><path class="div-paper" d="M306.991 2.71H-6V-20.12H1927V2.71H1613.62C1597.38 2.71 1583.15 8.69 1578.88 17.31L1576.73 21.66C1572.46 30.28 1558.23 36.26 1541.99 36.26H378.617C362.377 36.26 348.148 30.28 343.882 21.66L341.727 17.31C337.46 8.69 323.231 2.71 306.991 2.71Z"/></svg></div><div class="wrap"><div class="sechead rv-init"><span class="kicker">API · Seguro embarcado</span><h2>Seguro embarcado via API</h2><p class="lead"><b>Embedded insurance:</b> produtos embarcados na jornada de venda do cliente parceiro. O parceiro vira o <b>canal de distribuição</b>, com integração via API, num modelo escalável e de baixo custo de aquisição.</p></div><div class="grid g4"><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h4>Cotação</h4><p>Endpoint de cotação em tempo real.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><h4>Emissão</h4><p>Emissão de apólice/bilhete via API.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div><h4>Sinistro</h4><p>Abertura e acompanhamento de sinistro.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><h4>Webhooks</h4><p>Eventos em tempo real para o seu sistema.</p></div></div></div><div class="divider bottom"><svg viewBox="230 0 1460 56.38"><path class="div-paper" d="M306.991 33.55H-6V56.38H1927V33.55H1613.62C1597.38 33.55 1583.15 27.57 1578.88 18.95L1576.73 14.6C1572.46 5.98 1558.23 0 1541.99 0H378.617C362.377 0 348.148 5.98 343.882 14.6L341.727 18.95C337.46 27.57 323.231 33.55 306.991 33.55Z"/></svg></div></section>
+<section class="sec "><div class="wrap"><div class="feat-row"><div class="feat-content rv-init"><span class="feat-tag">Para quem é</span><h2>Parceiros que vendem mais com seguro embarcado</h2><ul class="feat-list"><li>Fintechs e bancos</li><li>Varejo e e-commerce</li><li>RH e benefícios</li><li>Corretoras e correspondentes</li></ul><a class="btn btn-primary" href="api.html">Ver documentação da API</a></div><div class="diagbox rv-init"><svg class="diag" viewBox="0 0 560 350" role="img" aria-label="Uma única integração: fintechs e bancos, varejo e e-commerce, RH e benefícios e corretoras conectam-se à API única da EQ e passam a distribuir todo o portfólio de seguros de pessoas."><rect width="560" height="350" rx="18" fill="#161D2B"/><rect x=".5" y=".5" width="559" height="349" rx="17.5" fill="none" stroke="rgba(255,255,255,.20)"/><rect x="0" y="46" width="3" height="258" rx="1.5" fill="#E8981C"/><title>Uma integração, todo o portfólio</title><rect x="24" y="72" width="172" height="38" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.13)"/><text x="110" y="95" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">Fintechs e bancos</text><rect x="24" y="122" width="172" height="38" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.13)"/><text x="110" y="145" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">Varejo e e-commerce</text><rect x="24" y="172" width="172" height="38" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.13)"/><text x="110" y="195" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">RH e benefícios</text><rect x="24" y="222" width="172" height="38" rx="10" fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.13)"/><text x="110" y="245" text-anchor="middle" fill="#fff" font-size="11" font-weight="600">Corretoras e correspondentes</text><path d="M196 91 C220 91 224 172 246 172" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="1.4"/><path d="M196 141 C220 141 224 172 246 172" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="1.4"/><path d="M196 191 C220 191 224 172 246 172" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="1.4"/><path d="M196 241 C220 241 224 172 246 172" fill="none" stroke="rgba(255,255,255,.26)" stroke-width="1.4"/><rect x="246" y="140" width="92" height="64" rx="16" fill="#0F1520" stroke="#E8981C" stroke-width="1.4"/><text x="292" y="169" text-anchor="middle" fill="#E8981C" font-size="16" font-weight="800">API</text><text x="292" y="189" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">única</text><line x1="338" y1="172" x2="384" y2="172" stroke="#E8981C" stroke-width="1.6"/><polygon points="386,172 377,167.5 377,176.5" fill="#E8981C"/><rect x="392" y="72" width="142" height="200" rx="14" fill="rgba(255,255,255,.05)" stroke="rgba(255,255,255,.13)"/><text x="404" y="97" fill="rgba(255,255,255,.66)" font-size="9.5" font-weight="700" letter-spacing=".09em">PORTFÓLIO EQ</text><circle cx="404" cy="108" r="2.5" fill="#E8981C"/><text x="416" y="112" fill="#fff" font-size="11.5">Seguro de Vida</text><circle cx="404" cy="136" r="2.5" fill="#E8981C"/><text x="416" y="140" fill="#fff" font-size="11.5">Prestamista</text><circle cx="404" cy="164" r="2.5" fill="#E8981C"/><text x="416" y="168" fill="#fff" font-size="11.5">Viagem Nacional</text><circle cx="404" cy="192" r="2.5" fill="#E8981C"/><text x="416" y="196" fill="#fff" font-size="11.5">Seguro Funeral</text><circle cx="404" cy="220" r="2.5" fill="#E8981C"/><text x="416" y="224" fill="#fff" font-size="11.5">Acidentes Pessoais</text><circle cx="404" cy="248" r="2.5" fill="#E8981C"/><text x="416" y="252" fill="#fff" font-size="11.5">Assistências</text><line x1="24" y1="292" x2="534" y2="292" stroke="rgba(255,255,255,.13)"/><text x="110" y="317" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="10.5">uma integração</text><text x="463" y="317" text-anchor="middle" fill="rgba(255,255,255,.66)" font-size="10.5">todo o portfólio</text></svg></div></div></div></section>
+<section class="sec dark has-div-top has-div-bot"><div class="divider top"><svg viewBox="230 0 1460 36.3"><path class="div-paper" d="M306.991 2.71H-6V-20.12H1927V2.71H1613.62C1597.38 2.71 1583.15 8.69 1578.88 17.31L1576.73 21.66C1572.46 30.28 1558.23 36.26 1541.99 36.26H378.617C362.377 36.26 348.148 30.28 343.882 21.66L341.727 17.31C337.46 8.69 323.231 2.71 306.991 2.71Z"/></svg></div><div class="wrap"><div class="sechead rv-init"><span class="kicker">Cases · Quem já integra</span><h2>Parceiros que distribuem os seguros embarcados da EQ</h2><p class="lead">Produtos embarcados na jornada de venda do cliente parceiro, com o parceiro como canal de distribuição.</p></div></div><div class="marquee rv-init"><div class="marquee-track"><div class="logo-slot"><img src="assets/logo01.png" alt=""></div><div class="logo-slot"><img src="assets/logo02.png" alt=""></div><div class="logo-slot"><img src="assets/logo03.png" alt=""></div><div class="logo-slot"><img src="assets/logo04.png" alt=""></div><div class="logo-slot"><img src="assets/logo05.png" alt=""></div><div class="logo-slot"><img src="assets/logo06.png" alt=""></div><div class="logo-slot"><img src="assets/logo07.png" alt=""></div><div class="logo-slot"><img src="assets/logo08.png" alt=""></div><div class="logo-slot"><img src="assets/logo09.png" alt=""></div><div class="logo-slot"><img src="assets/logo10.png" alt=""></div><div class="logo-slot"><img src="assets/logo11.png" alt=""></div><div class="logo-slot"><img src="assets/logo01.png" alt=""></div><div class="logo-slot"><img src="assets/logo02.png" alt=""></div><div class="logo-slot"><img src="assets/logo03.png" alt=""></div><div class="logo-slot"><img src="assets/logo04.png" alt=""></div><div class="logo-slot"><img src="assets/logo05.png" alt=""></div><div class="logo-slot"><img src="assets/logo06.png" alt=""></div><div class="logo-slot"><img src="assets/logo07.png" alt=""></div><div class="logo-slot"><img src="assets/logo08.png" alt=""></div><div class="logo-slot"><img src="assets/logo09.png" alt=""></div><div class="logo-slot"><img src="assets/logo10.png" alt=""></div><div class="logo-slot"><img src="assets/logo11.png" alt=""></div></div></div><div class="wrap"></div><div class="wrap case-strip"><div class="casegrid" id="cases-destaque"></div><a class="link-arrow case-more rv-init" href="cases.html"><span>Ver todos os cases</span><svg viewBox="0 0 24 24"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></a></div><div class="divider bottom"><svg viewBox="230 0 1460 56.38"><path class="div-paper" d="M306.991 33.55H-6V56.38H1927V33.55H1613.62C1597.38 33.55 1583.15 27.57 1578.88 18.95L1576.73 14.6C1572.46 5.98 1558.23 0 1541.99 0H378.617C362.377 0 348.148 5.98 343.882 14.6L341.727 18.95C337.46 27.57 323.231 33.55 306.991 33.55Z"/></svg></div></section>
+<section class="sec"><div class="wrap"><div class="sechead rv-init"><span class="kicker">Segurança</span><h2>Dados protegidos e em conformidade</h2></div><div class="grid g4"><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h4>LGPD</h4><p>Tratamento conforme a Lei nº 13.709/2018.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h4>Criptografia</h4><p>Dados protegidos em trânsito e em repouso.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div><h4>Monitoramento</h4><p>Observabilidade e resposta a incidentes.</p></div><div class="card rv-init"><div class="cico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><h4>Backups</h4><p>Rotinas de continuidade e recuperação.</p></div></div></div></section>
+<section class="sec dark has-div-top"><div class="divider top"><svg viewBox="230 0 1460 36.3"><path class="div-paper" d="M306.991 2.71H-6V-20.12H1927V2.71H1613.62C1597.38 2.71 1583.15 8.69 1578.88 17.31L1576.73 21.66C1572.46 30.28 1558.23 36.26 1541.99 36.26H378.617C362.377 36.26 348.148 30.28 343.882 21.66L341.727 17.31C337.46 8.69 323.231 2.71 306.991 2.71Z"/></svg></div><div class="wrap"><div class="sechead center rv-init"><h2>Conheça a tecnologia por trás do EQ Grupo</h2><p class="lead">Fale com o nosso time técnico e entenda como integrar.</p></div><div class="btn-row rv-init" style="justify-content:center;"><a class="btn btn-primary" href="contato.html">Falar com especialista</a></div></div></section>
+
+<div id="site-footer"></div>
+<script src="assets/cases.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

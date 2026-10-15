@@ -1,0 +1,4 @@
+.legal-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;font-size:12px;line-height:1.6}
+.legal-links a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+.legal-links a:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+footer.shell .legal-links,footer .shell .legal-links{margin-top:12px}

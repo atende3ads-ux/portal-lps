@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<!-- Google tag (gtag.js) -->
+<!-- rastreio removido pelo portal -->
+<!-- rastreio removido pelo portal -->
+
+<!-- Event snippet for Click WhatsApp conversion page
+In your html page, add the snippet and call gtag_report_conversion when someone clicks on the chosen link or button. -->
+<script>
+function gtag_report_conversion(url) {
+  var callback = function () {
+    if (typeof(url) != 'undefined') {
+      window.location = url;
+    }
+  };
+  gtag('event', 'conversion', {
+      'send_to': 'AW-16533031982/vWxzCKmx5s8cEK6YyMs9',
+      'event_callback': callback
+  });
+  return false;
+}
+</script>
+
+<meta charset="UTF-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0C1860">
+<meta name="color-scheme" content="light dark">
+
+<!-- ===================== SEO / AEO / GEO ===================== -->
+<title>Capa Térmica de Piscina Sob Medida em Goiânia | Império das Piscinas</title>
+<meta name="description" content="Capa térmica de 300 micras sob medida para sua piscina em Goiânia. Retém o calor, corta a evaporação e mantém a água limpa. A partir de R$14,99/m, instalação imediata.">
+<meta name="keywords" content="capa térmica piscina, capa térmica 300 micras, capa de piscina sob medida, capa térmica Goiânia, cobertura térmica piscina">
+<meta name="author" content="Império das Piscinas">
+
+<link rel="canonical" href="https://imperiodaspiscinasgo.com.br/capas-termica">
+<meta name="geo.region" content="BR-GO">
+<meta name="geo.placename" content="Goiânia">
+<meta name="geo.position" content="-16.6869;-49.2648">
+<meta name="ICBM" content="-16.6869, -49.2648">
+
+<!-- Open Graph / redes sociais -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Império das Piscinas">
+<meta property="og:title" content="Capa Térmica de Piscina Sob Medida em Goiânia | Império das Piscinas">
+<meta property="og:description" content="Capa térmica de 300 micras sob medida. Retém o calor, corta a evaporação e mantém a água limpa. A partir de R$14,99/m, instalação imediata em Goiânia.">
+<meta property="og:url" content="https://imperiodaspiscinasgo.com.br/capas-termica">
+<meta property="og:image" content="https://imperiodaspiscinasgo.com.br/assets/img/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Capa Térmica de Piscina Sob Medida em Goiânia | Império das Piscinas">
+<meta name="twitter:description" content="Capa térmica de 300 micras sob medida. Retém calor, corta evaporação e mantém a água limpa. A partir de R$14,99/m.">
+<meta name="twitter:image" content="https://imperiodaspiscinasgo.com.br/assets/img/og-image.jpg">
+
+<!-- Favicon (troca conforme o tema do navegador) -->
+<link rel="icon" href="assets/favicon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+<link rel="icon" href="assets/favicon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="assets/favicon-48.png" sizes="48x48" type="image/png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+<!-- Fontes: carregamento não bloqueante -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="assets/img/hero.webp" fetchpriority="high">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap"></noscript>
+
+<!-- Tags de rastreio (GTM + GA4 + Google Ads) carregadas após interação/idle p/ preservar performance -->
+<!-- rastreio removido pelo portal -->
+<style>
+/* ============================================================
+   DNA VISUAL — IDENTIDADE OFICIAL IMPÉRIO DAS PISCINAS
+   Paleta derivada da logo: azul-marinho real (#0C1860) como
+   cor de marca + azul-água (piscina) como apoio. Branco como
+   base. Sem laranja, sem gradiente em títulos.
+   ============================================================ */
+:root{
+  --navy:#0C1860;          /* azul da marca (logo) — títulos e âncoras */
+  --navy-2:#152A82;        /* navy mais claro p/ profundidade */
+  --blue:#0E7EC4;          /* azul-água — CTA e destaques */
+  --blue-deep:#0A5E96;     /* hover do azul-água */
+  --blue-bright:#27A9E5;   /* azul-piscina vivo */
+  --sky:#D9ECF9;           /* azul claro de apoio */
+  --bg:#F4F9FD;            /* fundo claro levemente azulado */
+  --surface:#FFFFFF;
+  --surface-2:#EAF3FB;
+  --t1:#101A3A;            /* texto primário */
+  --t2:#465A73;            /* texto secundário */
+  --t3:#748699;            /* texto terciário */
+  --border:#D7E6F2;
+  --shadow:0 14px 44px rgba(12,24,96,.12);
+  --shadow-sm:0 6px 18px rgba(12,24,96,.09);
+  --radius:18px;
+  --maxw:1180px;
+  --font-head:'Sora',sans-serif;
+  --font-body:'Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);color:var(--t1);background:var(--bg);
+  line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+h1,h2,h3,.kicker{font-family:var(--font-head)}
+a{text-decoration:none;color:inherit}
+img{max-width:100%;display:block}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px}
+section{padding:88px 0;border-bottom:1px solid var(--border)}
+@media(max-width:900px){section{padding:60px 0}}
+
+/* Kicker / título / apoio */
+.kicker{
+  display:inline-block;font-size:.78rem;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--blue-deep);
+  background:var(--surface-2);border:1px solid var(--border);
+  padding:6px 14px;border-radius:100px;margin-bottom:20px;
+}
+.h-sec{font-size:clamp(1.7rem,3.4vw,2.5rem);font-weight:700;line-height:1.18;letter-spacing:-.02em;color:var(--navy)}
+.h-sec .hl{color:var(--blue)}
+.lead{font-size:1.06rem;color:var(--t2);max-width:640px;margin-top:16px}
+
+/* Botões */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;font-family:var(--font-head);
+  font-weight:600;font-size:1rem;padding:15px 28px;border-radius:100px;
+  cursor:pointer;border:none;transition:.25s ease;white-space:nowrap;
+}
+.btn-primary{
+  background:var(--blue);color:#fff;box-shadow:0 10px 26px rgba(14,126,196,.30);
+}
+.btn-primary:hover{background:var(--blue-deep);transform:translateY(-2px);box-shadow:0 14px 32px rgba(14,126,196,.40)}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--blue);background:var(--surface-2)}
+.btn-wa{background:#25D366;color:#fff;box-shadow:0 8px 24px rgba(37,211,102,.28)}
+.btn-wa:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(37,211,102,.40)}
+
+/* ---------- HEADER (faixa de urgência) ---------- */
+header{position:sticky;top:0;z-index:50;background:var(--blue);color:#fff;box-shadow:0 4px 18px rgba(12,24,96,.16)}
+.urgency-bar{display:flex;align-items:center;justify-content:center;gap:22px;min-height:58px;padding:10px 0;flex-wrap:wrap;text-align:center}
+.urgency-text{font-family:var(--font-head);font-weight:600;font-size:1rem;color:#fff;display:flex;align-items:center;gap:10px;line-height:1.3}
+.urgency-text svg{flex-shrink:0}
+.urgency-text b{font-weight:800}
+.urgency-bar .btn{background:#fff;color:var(--blue-deep);padding:11px 24px;font-size:.94rem;box-shadow:0 6px 18px rgba(12,24,96,.22)}
+.urgency-bar .btn:hover{background:var(--navy);color:#fff;transform:translateY(-2px)}
+@media(max-width:640px){.urgency-text{font-size:.9rem}.urgency-bar{gap:12px}}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative;padding:124px 0 140px;border-bottom:none;color:#fff;overflow:hidden;
+  background:
+    linear-gradient(90deg,rgba(6,12,42,.88) 0%,rgba(6,12,42,.58) 36%,rgba(6,12,42,.20) 66%,rgba(6,12,42,.05) 100%),
+    url('assets/img/hero.webp') center/cover no-repeat;
+}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.hero-content{max-width:600px}
+.hero-side{justify-self:end;width:100%;max-width:440px}
+.hero-side .hero-qualify{margin-top:0;max-width:none;width:100%}
+.hero-brand{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.hero-logo{height:50px;width:auto}
+.hero-brand .kicker{margin-bottom:0;background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.30);color:#dcecfb}
+@media(max-width:640px){.hero-logo{height:42px}}
+.hero h1{font-size:clamp(2.1rem,5vw,3.5rem);font-weight:800;line-height:1.1;letter-spacing:-.03em;color:#fff;text-shadow:0 2px 24px rgba(6,12,42,.45)}
+.hero h1 .hl{color:var(--blue-bright)}
+.hero p.sub{font-size:1.14rem;color:rgba(255,255,255,.90);margin:22px 0 32px;max-width:520px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-badges{display:flex;gap:22px;margin-top:34px;flex-wrap:wrap}
+.hero-badge{display:flex;align-items:center;gap:8px;font-size:.9rem;color:rgba(255,255,255,.92);font-weight:500}
+.hero-badge svg{color:var(--blue-bright);flex-shrink:0}
+.hero-wave{position:absolute;left:0;right:0;bottom:-1px;line-height:0;z-index:2;pointer-events:none}
+.hero-wave svg{display:block;width:100%;height:clamp(48px,7vw,96px)}
+.hero-wave path{fill:var(--surface)}
+/* qualificação no hero */
+.hero-qualify{margin-top:26px;max-width:520px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:18px 20px;backdrop-filter:blur(10px)}
+.hq-title{display:block;font-family:var(--font-head);font-weight:600;font-size:.95rem;color:#fff;margin-bottom:12px}
+.hq-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.hq-field{display:flex;flex-direction:column;gap:6px}
+.hq-field>span{font-size:.78rem;font-weight:500;color:rgba(255,255,255,.85)}
+.hq-field select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.95);color:var(--t1);font-family:var(--font-body);font-size:.9rem;cursor:pointer}
+.hq-field select:focus{outline:none;border-color:var(--blue-bright);box-shadow:0 0 0 3px rgba(39,169,229,.3)}
+.hero-qualify .btn{width:100%;justify-content:center}
+@media(max-width:520px){.hq-fields{grid-template-columns:1fr}}
+/* botão "ver como funciona" */
+.btn-see{margin-top:26px}
+.btn-see svg{animation:bob 1.6s ease-in-out infinite}
+.btn-see:hover svg{animation-play-state:paused;transform:translateY(3px)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
+@media(prefers-reduced-motion:reduce){.btn-see svg{animation:none}}
+
+/* ---------- STATS ---------- */
+.stats{background:var(--surface)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;text-align:center}
+.stat .ico{width:48px;height:48px;border-radius:13px;display:grid;place-items:center;margin:0 auto 14px;background:var(--surface-2);color:var(--blue)}
+.stat b{font-family:var(--font-head);font-size:clamp(1.2rem,2.4vw,1.5rem);font-weight:700;color:var(--navy);line-height:1.15;display:block}
+.stat span{font-size:.9rem;color:var(--t2);margin-top:8px;display:block}
+@media(max-width:640px){.stats-grid{grid-template-columns:repeat(2,1fr);gap:32px 16px}}
+
+/* ---------- PROBLEMA / VS ---------- */
+.prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.vs-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px;box-shadow:var(--shadow-sm)}
+.vs-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;padding:16px 18px;border-radius:12px}
+.vs-row+.vs-row{margin-top:6px}
+.vs-cold{background:var(--surface-2)}
+.vs-hot{background:var(--sky)}
+.vs-side{font-size:.95rem;font-weight:500}
+.vs-side.cold{color:var(--t3)}
+.vs-side.hot{color:var(--navy);font-weight:600}
+.vs-mid{width:40px;height:40px;border-radius:50%;background:var(--navy);color:#fff;display:grid;place-items:center;font-family:var(--font-head);font-weight:700;font-size:.78rem;flex-shrink:0}
+.prob-list{list-style:none;margin-top:22px}
+.prob-list li{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);color:var(--t2);font-size:1rem}
+.prob-list li:last-child{border:none}
+.prob-list svg{color:var(--blue);flex-shrink:0;margin-top:3px}
+@media(max-width:900px){.prob-grid{grid-template-columns:1fr;gap:32px}}
+
+/* ---------- SOLUÇÃO / GRID ---------- */
+.sol{background:var(--surface)}
+.sol-head{text-align:center;max-width:720px;margin:0 auto 40px}
+.sol-head .lead{margin-left:auto;margin-right:auto}
+.gallery-label{text-align:center;font-family:var(--font-head);font-weight:600;font-size:1.08rem;color:var(--navy);margin:0 0 22px}
+.gallery{display:flex;align-items:center;gap:16px;margin:0 auto 48px;max-width:var(--maxw)}
+.gallery-track{flex:1 1 auto;min-width:0;display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:2px 0;scrollbar-width:none;-ms-overflow-style:none}
+.gallery-track::-webkit-scrollbar{display:none}
+.gallery-item{flex:0 0 calc((100% - 40px)/3);scroll-snap-align:start;border-radius:var(--radius);overflow:hidden;position:relative}
+.gallery-item img{width:100%;height:clamp(200px,19vw,250px);object-fit:cover}
+.gallery-item .cap{position:absolute;left:16px;bottom:14px;color:#fff;font-family:var(--font-head);font-weight:600;font-size:.92rem;
+  text-shadow:0 2px 10px rgba(12,24,96,.6);z-index:2}
+.gallery-item::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 62%,rgba(12,24,96,.4));z-index:1}
+.gnav{flex-shrink:0;width:46px;height:46px;border-radius:50%;border:1px solid var(--border);
+  cursor:pointer;background:#fff;color:var(--navy);display:grid;place-items:center;box-shadow:var(--shadow-sm);transition:.2s}
+.gnav:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.gnav:disabled{opacity:.35;cursor:default;box-shadow:none}
+.gnav:disabled:hover{background:#fff;color:var(--navy);border-color:var(--border)}
+@media(max-width:900px){.gallery-item{flex-basis:calc((100% - 20px)/2)}}
+@media(max-width:640px){.gallery-item{flex-basis:100%}.gnav{width:40px;height:40px}}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{
+  background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);
+  padding:28px;transition:.28s ease;position:relative;overflow:hidden;
+}
+.card-ico{
+  width:50px;height:50px;border-radius:13px;display:grid;place-items:center;margin-bottom:18px;
+  background:var(--surface-2);color:var(--blue);
+}
+.card h3{font-size:1.14rem;font-weight:600;margin-bottom:9px;letter-spacing:-.01em;color:var(--navy)}
+.card p{font-size:.96rem;color:var(--t2)}
+@media(max-width:900px){.grid3{grid-template-columns:1fr;gap:18px}}
+
+/* ---------- PROCESSO ---------- */
+.proc-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center}
+.steps{list-style:none;counter-reset:s}
+.step{display:flex;gap:20px;padding:22px 0;border-bottom:1px solid var(--border);counter-increment:s}
+.step:last-child{border:none}
+.step::before{
+  content:"0" counter(s);font-family:var(--font-head);font-weight:800;font-size:1.35rem;
+  color:var(--blue);opacity:.6;min-width:44px;
+}
+.step-b h3{font-size:1.1rem;font-weight:600;margin-bottom:5px;color:var(--navy)}
+.step-b p{font-size:.96rem;color:var(--t2)}
+@media(max-width:900px){.proc-grid{grid-template-columns:1fr;gap:34px}}
+
+/* ---------- DIFERENCIAIS (faixa com foto) ---------- */
+.diff{
+  position:relative;border-bottom:none;color:#fff;
+  background:linear-gradient(155deg,rgba(12,24,96,.95),rgba(10,94,150,.88)),url('assets/img/piscina-lazer.webp') center/cover fixed no-repeat;
+}
+.diff .h-sec{color:#fff}
+.diff .h-sec .hl{color:var(--blue-bright)}
+.diff .lead{color:rgba(255,255,255,.85)}
+.diff .kicker{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.28);color:#cfe6f7}
+.diff-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:44px}
+.diff-card{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.20);border-radius:14px;padding:26px;backdrop-filter:blur(6px)}
+.diff-card h3{font-size:1.12rem;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:10px;color:#fff}
+.diff-card h3 svg{color:var(--blue-bright)}
+.diff-card p{font-size:.96rem;color:rgba(255,255,255,.84)}
+@media(max-width:640px){.diff-grid{grid-template-columns:1fr}}
+
+/* ---------- DEPOIMENTO ---------- */
+.quote{background:var(--surface)}
+.quote-card{max-width:820px;margin:0 auto;text-align:center;padding:8px}
+.quote-mark{font-family:var(--font-head);font-size:4rem;color:var(--blue);line-height:.6;opacity:.55}
+.quote-card p{font-size:clamp(1.15rem,2.4vw,1.5rem);font-weight:500;color:var(--navy);line-height:1.5;margin:14px 0 24px;letter-spacing:-.01em}
+.quote-note{font-size:.9rem;color:var(--t3)}
+
+/* ---------- FAQ ---------- */
+.faq-grid{max-width:820px;margin:44px auto 0}
+details{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;transition:.2s}
+details[open]{box-shadow:var(--shadow-sm);border-color:var(--blue)}
+summary{list-style:none;cursor:pointer;padding:20px 24px;font-family:var(--font-head);font-weight:600;font-size:1.04rem;color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary .plus{width:26px;height:26px;flex-shrink:0;position:relative;transition:.25s}
+summary .plus::before,summary .plus::after{content:"";position:absolute;background:var(--blue);border-radius:2px}
+summary .plus::before{width:14px;height:2px;top:12px;left:6px}
+summary .plus::after{width:2px;height:14px;top:6px;left:12px;transition:.25s}
+details[open] summary .plus::after{transform:rotate(90deg);opacity:0}
+details .ans{padding:0 24px 22px;color:var(--t2);font-size:.98rem}
+
+/* ---------- CTA FINAL / FORM ---------- */
+.cta{background:var(--surface);border-bottom:none}
+.cta-split{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+.cta-left .h-sec{margin-bottom:14px}
+.cta-bullets{list-style:none;margin-top:26px}
+.cta-bullets li{display:flex;gap:12px;align-items:center;padding:10px 0;color:var(--t2);font-size:1.02rem}
+.cta-bullets svg{color:var(--blue);flex-shrink:0}
+.form-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:34px;box-shadow:var(--shadow)}
+.form-card h3{font-size:1.3rem;font-weight:700;margin-bottom:4px;color:var(--navy)}
+.form-card .fsub{font-size:.94rem;color:var(--t2);margin-bottom:22px}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:.85rem;font-weight:500;color:var(--t2);margin-bottom:6px}
+.field input,.field select{
+  width:100%;padding:13px 15px;border:1.5px solid var(--border);border-radius:11px;
+  font-family:var(--font-body);font-size:.98rem;color:var(--t1);background:var(--surface);transition:.2s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(14,126,196,.14)}
+.form-card .btn{width:100%;justify-content:center;margin-top:8px}
+.form-note{font-size:.8rem;color:var(--t3);text-align:center;margin-top:12px}
+@media(max-width:900px){.cta-split{grid-template-columns:minmax(0,1fr);gap:34px}.cta-left,.form-card{min-width:0}}
+
+/* ---------- FOOTER ---------- */
+footer{background:var(--navy);color:rgba(255,255,255,.7);text-align:center;padding:48px 0}
+.footer-logo{height:44px;width:auto;margin:0 auto 16px}
+.foot-links{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin:16px 0;font-size:.9rem}
+.foot-links a{color:rgba(255,255,255,.75)}
+.foot-links a:hover{color:#fff}
+footer .cr{font-size:.82rem;color:rgba(255,255,255,.5);margin-top:14px}
+.foot-credit{font-size:.82rem;color:rgba(255,255,255,.55);margin-top:8px}
+.foot-credit a{color:rgba(255,255,255,.8);font-weight:600;transition:.2s}
+.foot-credit a:hover{color:#fff}
+
+/* ---------- MOBILE ---------- */
+@media(max-width:900px){
+  .diff{background-attachment:scroll}
+  .hero-grid{grid-template-columns:1fr;gap:32px}
+  .hero-side{justify-self:stretch;max-width:none;margin-top:4px}
+}
+@media(max-width:760px){
+  /* overlay mais uniforme p/ legibilidade quando o texto ocupa a largura toda */
+  .hero{
+    background:
+      linear-gradient(180deg,rgba(6,12,42,.84) 0%,rgba(6,12,42,.62) 48%,rgba(6,12,42,.76) 100%),
+      url('assets/img/hero.webp') center/cover no-repeat;
+  }
+}
+@media(max-width:640px){
+  .wrap{padding:0 20px}
+  .btn{white-space:normal}
+  .hero{padding:56px 0 92px}
+  .hero p.sub{font-size:1.05rem}
+  .hero-cta{flex-direction:column;align-items:stretch}
+  .hero-cta .btn{width:100%;justify-content:center}
+  .hero-badges{gap:12px 20px;margin-top:26px}
+  .urgency-bar{padding:18px 20px;gap:14px}
+  .urgency-bar .btn{width:100%;max-width:340px}
+  .form-card{padding:24px}
+  .diff-card{padding:22px}
+  .quote-card p{font-size:1.2rem}
+}
+
+/* ---------- ANIMAÇÕES DE SCROLL / FADE IN ---------- */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);will-change:opacity,transform}
+.reveal.in{opacity:1;transform:none}
+.reveal.r-left{transform:translateX(-34px)}
+.reveal.r-right{transform:translateX(34px)}
+.reveal.r-zoom{transform:scale(.94)}
+.reveal.r-left.in,.reveal.r-right.in,.reveal.r-zoom.in{transform:none}
+.stagger>*{opacity:0;transform:translateY(24px);transition:opacity .6s cubic-bezier(.2,.7,.2,1),transform .6s cubic-bezier(.2,.7,.2,1)}
+.stagger.in>*{opacity:1;transform:none}
+.stagger.in>*:nth-child(1){transition-delay:.05s}
+.stagger.in>*:nth-child(2){transition-delay:.13s}
+.stagger.in>*:nth-child(3){transition-delay:.21s}
+.stagger.in>*:nth-child(4){transition-delay:.29s}
+.stagger.in>*:nth-child(5){transition-delay:.37s}
+.stagger.in>*:nth-child(6){transition-delay:.45s}
+@media(prefers-reduced-motion:reduce){
+  .reveal,.stagger>*{opacity:1!important;transform:none!important;transition:none!important}
+}
+
+/* ---------- TELAS GRANDES (widescreen / TV / 4K) ---------- */
+@media(min-width:1600px){
+  :root{--maxw:1320px}
+  .hero h1{font-size:clamp(3.2rem,3.6vw,4.2rem)}
+}
+@media(min-width:2200px){
+  :root{--maxw:1480px}
+  body{font-size:18px}
+}
+</style>
+
+<!-- ===================== DADOS ESTRUTURADOS (AEO/GEO) ===================== -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@graph":[
+    {
+      "@type":"LocalBusiness",
+      "@id":"https://imperiodaspiscinasgo.com.br/#business",
+      "name":"Império das Piscinas",
+      "description":"Capas térmicas de 300 micras sob medida para piscinas em Goiânia e região. Instalação imediata.",
+      "url":"https://imperiodaspiscinasgo.com.br/capas-termica",
+      "image":"https://imperiodaspiscinasgo.com.br/assets/img/og-image.jpg",
+      "telephone":"+55-62-99483-6246",
+      "priceRange":"$$",
+      "areaServed":["Goiânia","Aparecida de Goiânia","Trindade","Goianira","Nerópolis"],
+      "address":{"@type":"PostalAddress","addressLocality":"Goiânia","addressRegion":"GO","addressCountry":"BR"},
+      "geo":{"@type":"GeoCoordinates","latitude":-16.6869,"longitude":-49.2648}
+    },
+    {
+      "@type":"Product",
+      "name":"Capa térmica de piscina 300 micras sob medida",
+      "description":"Capa térmica de 300 micras feita sob medida para o formato exato da sua piscina. Retém calor, corta a evaporação e protege da sujeira.",
+      "brand":{"@type":"Brand","name":"Império das Piscinas"},
+      "offers":{"@type":"Offer","price":"14.99","priceCurrency":"BRL","priceValidUntil":"2026-12-31","availability":"https://schema.org/InStock","url":"https://imperiodaspiscinasgo.com.br/capas-termica","priceSpecification":{"@type":"UnitPriceSpecification","price":"14.99","priceCurrency":"BRL","unitText":"metro linear"}}
+    },
+    {
+      "@type":"FAQPage",
+      "mainEntity":[
+        {"@type":"Question","name":"Como funciona o preço de R$14,99 por metro?","acceptedAnswer":{"@type":"Answer","text":"É o valor por metro linear da capa, sem mínimo e sem variação. O total depende do tamanho e do formato da sua piscina, por isso medimos antes de fechar o valor exato."}},
+        {"@type":"Question","name":"A capa é feita sob medida mesmo?","acceptedAnswer":{"@type":"Answer","text":"Sim. Fabricamos no formato e tamanho exatos da sua piscina, incluindo recortes de escada e formatos diferentes."}},
+        {"@type":"Question","name":"A capa térmica aquece a piscina?","acceptedAnswer":{"@type":"Answer","text":"Ela retém o calor que a água já tem e reduz a perda durante a noite, mantendo a temperatura por mais tempo. Além disso, corta a evaporação e protege da sujeira."}},
+        {"@type":"Question","name":"O que são 300 micras?","acceptedAnswer":{"@type":"Answer","text":"É a espessura da capa. Uma capa de 300 micras é mais reforçada e resistente, com melhor desempenho para reter calor no dia a dia."}},
+        {"@type":"Question","name":"Quanto tempo leva a instalação?","acceptedAnswer":{"@type":"Answer","text":"A instalação é imediata. A gente mede, produz e instala com agilidade, sem semanas de espera."}},
+        {"@type":"Question","name":"Vocês atendem em quais cidades?","acceptedAnswer":{"@type":"Answer","text":"Goiânia e região: Aparecida de Goiânia, Trindade, Goianira e Nerópolis."}}
+      ]
+    }
+  ]
+}
+</script>
+<!-- Meta Pixel Code -->
+<!-- rastreio removido pelo portal -->
+<!-- End Meta Pixel Code -->
+</head>
+<body>
+
+<!-- Google Tag Manager (noscript) -->
+
+<!-- End Google Tag Manager (noscript) -->
+
+<!-- ======================= BOTÃO FLUTUANTE WHATSAPP ======================= -->
+<a href="https://spar.3ads.com.br/l/imperio-piscinas-pr5g" onclick="return gtag_report_conversion(this.href);" target="_blank" rel="noopener" style="position: fixed; z-index: 9999; right: 20px; bottom: 20px; width: 64px; height: 64px; display: flex; justify-content: center; align-items: center; background: #00AD57; border-radius: 100%;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#FFFFFF" width="32" height="32"><path d="M7.25361 18.4944L7.97834 18.917C9.18909 19.623 10.5651 20 12.001 20C16.4193 20 20.001 16.4183 20.001 12C20.001 7.58172 16.4193 4 12.001 4C7.5827 4 4.00098 7.58172 4.00098 12C4.00098 13.4363 4.37821 14.8128 5.08466 16.0238L5.50704 16.7478L4.85355 19.1494L7.25361 18.4944ZM2.00516 22L3.35712 17.0315C2.49494 15.5536 2.00098 13.8345 2.00098 12C2.00098 6.47715 6.47813 2 12.001 2C17.5238 2 22.001 6.47715 22.001 12C22.001 17.5228 17.5238 22 12.001 22C10.1671 22 8.44851 21.5064 6.97086 20.6447L2.00516 22ZM8.39232 7.30833C8.5262 7.29892 8.66053 7.29748 8.79459 7.30402C8.84875 7.30758 8.90265 7.31384 8.95659 7.32007C9.11585 7.33846 9.29098 7.43545 9.34986 7.56894C9.64818 8.24536 9.93764 8.92565 10.2182 9.60963C10.2801 9.76062 10.2428 9.95633 10.125 10.1457C10.0652 10.2428 9.97128 10.379 9.86248 10.5183C9.74939 10.663 9.50599 10.9291 9.50599 10.9291C9.50599 10.9291 9.40738 11.0473 9.44455 11.1944C9.45903 11.25 9.50521 11.331 9.54708 11.3991C9.57027 11.4368 9.5918 11.4705 9.60577 11.4938C9.86169 11.9211 10.2057 12.3543 10.6259 12.7616C10.7463 12.8783 10.8631 12.9974 10.9887 13.108C11.457 13.5209 11.9868 13.8583 12.559 14.1082L12.5641 14.1105C12.6486 14.1469 12.692 14.1668 12.8157 14.2193C12.8781 14.2457 12.9419 14.2685 13.0074 14.2858C13.0311 14.292 13.0554 14.2955 13.0798 14.2972C13.2415 14.3069 13.335 14.2032 13.3749 14.1555C14.0984 13.279 14.1646 13.2218 14.1696 13.2222V13.2238C14.2647 13.1236 14.4142 13.0888 14.5476 13.097C14.6085 13.1007 14.6691 13.1124 14.7245 13.1377C15.2563 13.3803 16.1258 13.7587 16.1258 13.7587L16.7073 14.0201C16.8047 14.0671 16.8936 14.1778 16.8979 14.2854C16.9005 14.3523 16.9077 14.4603 16.8838 14.6579C16.8525 14.9166 16.7738 15.2281 16.6956 15.3913C16.6406 15.5058 16.5694 15.6074 16.4866 15.6934C16.3743 15.81 16.2909 15.8808 16.1559 15.9814C16.0737 16.0426 16.0311 16.0714 16.0311 16.0714C15.8922 16.159 15.8139 16.2028 15.6484 16.2909C15.391 16.428 15.1066 16.5068 14.8153 16.5218C14.6296 16.5313 14.4444 16.5447 14.2589 16.5347C14.2507 16.5342 13.6907 16.4482 13.6907 16.4482C12.2688 16.0742 10.9538 15.3736 9.85034 14.402C9.62473 14.2034 9.4155 13.9885 9.20194 13.7759C8.31288 12.8908 7.63982 11.9364 7.23169 11.0336C7.03043 10.5884 6.90299 10.1116 6.90098 9.62098C6.89729 9.01405 7.09599 8.4232 7.46569 7.94186C7.53857 7.84697 7.60774 7.74855 7.72709 7.63586C7.85348 7.51651 7.93392 7.45244 8.02057 7.40811C8.13607 7.34902 8.26293 7.31742 8.39232 7.30833Z"></path></svg></a>
+
+<!-- ======================= HEADER ======================= -->
+<header>
+  <div class="wrap urgency-bar">
+    <p class="urgency-text">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2m-3-7-1.5 1.5M6.5 17.5 5 19m0-14 1.5 1.5m11 11L19 19"/></svg>
+      Sua piscina perde calor todo dia e você nem percebe. <b>Capa térmica sob medida a partir de R$14,99/m.</b>
+    </p>
+    <a href="#orcamento" class="btn">Fazer meu orçamento</a>
+  </div>
+</header>
+
+<!-- ======================= HERO ======================= -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-content reveal in">
+      <div class="hero-brand">
+        <img src="assets/img/logo-white.webp" alt="Império das Piscinas — capas térmicas sob medida" class="hero-logo" width="520" height="173" fetchpriority="high">
+        <span class="kicker">Capas térmicas 300 micras · sob medida · Goiânia e região</span>
+      </div>
+      <!-- COPY: hero -->
+      <h1>Pare de perder <span class="hl">o calor da sua piscina</span> toda noite.</h1>
+      <p class="sub">Sem capa, a água esfria, evapora e enche de sujeira, e você paga a conta em água, produto químico e limpeza. A capa térmica de 300 micras da Império das Piscinas segura o calor, corta a evaporação e mantém a piscina protegida. Feita sob medida e instalada na hora, a partir de R$14,99 o metro linear.</p>
+      <div class="hero-cta">
+        <a href="#orcamento" class="btn btn-primary">Quero meu orçamento agora</a>
+      </div>
+      <div class="hero-badges stagger">
+        <div class="hero-badge"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Sob medida</div>
+        <div class="hero-badge"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>Instalação imediata</div>
+        <div class="hero-badge"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>300 micras</div>
+      </div>
+    </div>
+    <div class="hero-side reveal in">
+      <div class="hero-qualify">
+        <span class="hq-title">Adiante seu atendimento em 2 perguntas</span>
+        <div class="hq-fields">
+          <label class="hq-field"><span>Qual o formato da sua piscina?</span>
+            <select id="qShape">
+              <option value="">Selecione</option>
+              <option>Retangular</option>
+              <option>Redonda</option>
+              <option>Com escada</option>
+              <option>Outro formato</option>
+            </select>
+          </label>
+          <label class="hq-field"><span>Metragem aproximada?</span>
+            <select id="qSize">
+              <option value="">Selecione</option>
+              <option>Até 30 m²</option>
+              <option>De 30 a 50 m²</option>
+              <option>Mais de 50 m²</option>
+            </select>
+          </label>
+        </div>
+        <a id="qWa" href="https://spar.3ads.com.br/l/imperio-piscinas-pr5g" class="btn btn-wa" onclick="return gtag_report_conversion(this.href);" target="_blank" rel="noopener"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35z"/><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.06-1.33A10 10 0 1 0 12 2zm0 18.2c-1.5 0-2.98-.4-4.27-1.16l-.3-.18-3.17.83.85-3.09-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>Falar no WhatsApp</a>
+      </div>
+    </div>
+  </div>
+  <div class="hero-wave" aria-hidden="true">
+    <svg viewBox="0 0 1440 100" preserveAspectRatio="none"><path d="M0,52 C180,100 360,100 540,72 C720,44 900,4 1080,20 C1224,32 1344,64 1440,58 L1440,100 L0,100 Z"/></svg>
+  </div>
+</section>
+
+<!-- ======================= STATS ======================= -->
+<section class="stats">
+  <div class="wrap stats-grid">
+    <!-- COPY: barra de benefícios -->
+    <div class="stat reveal">
+      <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg></div>
+      <b>300 micras</b><span>capa reforçada, feita pra durar e reter mais calor</span>
+    </div>
+    <div class="stat reveal">
+      <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.82A2 2 0 0 0 9.59 3H4a1 1 0 0 0-1 1v5.59A2 2 0 0 0 3.59 11l9.59 9.59a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg></div>
+      <b>A partir de R$14,99/m</b><span>metro linear, sem mínimo e sem pegadinha</span>
+    </div>
+    <div class="stat reveal">
+      <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <b>Instalação imediata</b><span>mediu, produziu, instalou. Você não fica esperando</span>
+    </div>
+    <div class="stat reveal">
+      <div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z"/><path d="m7.5 6.5 1.5 1.5M10.5 9.5 12 11M13.5 12.5 15 14"/></svg></div>
+      <b>Sob medida</b><span>no formato exato da sua piscina, sem improviso</span>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PROBLEMA / VS ======================= -->
+<section id="problema">
+  <div class="wrap prob-grid">
+    <div class="reveal">
+      <span class="kicker">O problema</span>
+      <!-- COPY: problema -->
+      <h2 class="h-sec">A piscina descoberta <span class="hl">custa caro todo dia.</span></h2>
+      <p class="lead">A água esfria à noite, evapora durante o dia e vira depósito de folha e poeira. Resultado: mais água pra repor, mais cloro pra corrigir e mais tempo limpando, semana após semana. E o pior: você quase não usa.</p>
+      <ul class="prob-list">
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>A água amanhece fria e ninguém entra</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Você repõe água toda semana por causa da evaporação</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Folha e sujeira caem direto na piscina e dão trabalho</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Mais cloro e produto pra manter a água em dia</li>
+      </ul>
+      <a href="#solucao" class="btn btn-ghost btn-see">Ver como resolvemos isso <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg></a>
+    </div>
+    <div class="vs-card reveal">
+      <div class="vs-row vs-cold">
+        <div class="vs-side cold">Sem capa térmica</div>
+        <div class="vs-mid">VS</div>
+        <div class="vs-side hot">Com capa térmica 300 micras</div>
+      </div>
+      <div class="vs-row vs-hot"><div class="vs-side cold">Perde calor toda noite</div><div class="vs-mid" style="background:var(--blue)">→</div><div class="vs-side hot">Retém o calor da água</div></div>
+      <div class="vs-row vs-cold"><div class="vs-side cold">Evapora e gasta água</div><div class="vs-mid" style="background:var(--blue)">→</div><div class="vs-side hot">Corta a evaporação</div></div>
+      <div class="vs-row vs-hot"><div class="vs-side cold">Suja com folha e poeira</div><div class="vs-mid" style="background:var(--blue)">→</div><div class="vs-side hot">Piscina coberta e limpa</div></div>
+      <div class="vs-row vs-cold"><div class="vs-side cold">Mais cloro e produto</div><div class="vs-mid" style="background:var(--blue)">→</div><div class="vs-side hot">Menos produto químico</div></div>
+      <div class="vs-row vs-hot"><div class="vs-side cold">Capa genérica não encaixa</div><div class="vs-mid" style="background:var(--blue)">→</div><div class="vs-side hot">Sob medida pro seu formato</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= SOLUÇÃO ======================= -->
+<section id="solucao" class="sol">
+  <div class="wrap">
+    <div class="sol-head reveal">
+      <span class="kicker">A solução</span>
+      <!-- COPY: solução -->
+      <h2 class="h-sec">Capa térmica <span class="hl">sob medida</span>, instalada na hora pela Império.</h2>
+      <p class="lead">Nada de capa genérica que não encaixa. A gente mede sua piscina, produz a capa de 300 micras no formato exato e instala imediatamente. Você já sai usando: piscina coberta, quente por mais tempo e muito mais fácil de manter.</p>
+    </div>
+    <p class="gallery-label reveal">Veja algumas das nossas entregas</p>
+    <div class="gallery reveal" aria-label="Galeria de capas térmicas instaladas">
+      <button class="gnav prev" type="button" aria-label="Ver projeto anterior" onclick="galMove(-1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div class="gallery-track" id="galTrack">
+        <div class="gallery-item"><img src="assets/img/piscina-cascata.webp" alt="Capa térmica sob medida instalada em Goiânia" width="900" height="675" loading="lazy" decoding="async"><span class="cap">Capa sob medida instalada</span></div>
+        <div class="gallery-item"><img src="assets/img/piscina-lazer.webp" alt="Piscina protegida com capa térmica" width="900" height="675" loading="lazy" decoding="async"><span class="cap">Piscina protegida</span></div>
+        <div class="gallery-item"><img src="assets/img/piscina-entardecer.webp" alt="Capa térmica no formato personalizado da piscina" width="900" height="675" loading="lazy" decoding="async"><span class="cap">Formato personalizado</span></div>
+      </div>
+      <button class="gnav next" type="button" aria-label="Ver próximo projeto" onclick="galMove(1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+    <div class="grid3">
+      <div class="card reveal">
+        <div class="card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
+        <h3>Segura o calor da água</h3>
+        <p>A capa de 300 micras reduz a perda de calor à noite. Sua água se mantém agradável por muito mais tempo.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z"/><path d="m7.5 6.5 1.5 1.5M10.5 9.5 12 11M13.5 12.5 15 14"/></svg></div>
+        <h3>Sob medida pro seu formato</h3>
+        <p>Piscina redonda, com escada, canto ou desenho diferente? Fazemos no recorte certo.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Instalação imediata</h3>
+        <p>Sem semanas de espera. A gente mede, produz e instala com agilidade.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.7 6.3 8.4a8 8 0 1 0 11.4 0z"/></svg></div>
+        <h3>Menos gasto no dia a dia</h3>
+        <p>Menos evaporação e menos sujeira significam menos reposição de água e menos produto químico.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.82A2 2 0 0 0 9.59 3H4a1 1 0 0 0-1 1v5.59A2 2 0 0 0 3.59 11l9.59 9.59a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg></div>
+        <h3>A partir de R$14,99 o metro linear</h3>
+        <p>Preço direto, sem mínimo e sem variação. Você paga pelo que a sua piscina tem.</p>
+      </div>
+      <div class="card reveal">
+        <div class="card-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <h3>Atendimento direto, sem call center</h3>
+        <p>Você fala pelo WhatsApp com quem resolve. Sem robô, sem ficar sem resposta.</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:44px" class="reveal">
+      <a href="#orcamento" class="btn btn-primary">Quero meu orçamento gratuito</a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= PROCESSO ======================= -->
+<section id="processo">
+  <div class="wrap proc-grid">
+    <div class="reveal">
+      <span class="kicker">Como funciona</span>
+      <!-- COPY: processo -->
+      <h2 class="h-sec">Da medição à <span class="hl">piscina coberta</span>, no mesmo atendimento</h2>
+      <p class="lead">Simples e rápido. Medição, produção sob medida e instalação imediata, tudo com a Império das Piscinas.</p>
+      <div style="margin-top:26px"><a href="#orcamento" class="btn btn-ghost">Agendar minha medição</a></div>
+    </div>
+    <ol class="steps reveal">
+      <li class="step"><div class="step-b"><h3>Você entra em contato</h3><p>Chama no WhatsApp ou preenche o formulário. Perguntamos o formato e a metragem da sua piscina.</p></div></li>
+      <li class="step"><div class="step-b"><h3>Medição e orçamento certo</h3><p>Avaliamos o formato exato e passamos o valor por metro linear, sem chute e sem surpresa.</p></div></li>
+      <li class="step"><div class="step-b"><h3>Produção sob medida</h3><p>Fabricamos sua capa de 300 micras no tamanho e recorte da sua piscina.</p></div></li>
+      <li class="step"><div class="step-b"><h3>Instalação imediata</h3><p>Nossa equipe instala na hora e deixa sua piscina pronta pra usar.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ======================= DIFERENCIAIS ======================= -->
+<section id="diferenciais" class="diff">
+  <div class="wrap">
+    <div class="reveal" style="max-width:720px">
+      <span class="kicker">Por que Império</span>
+      <!-- COPY: diferenciais -->
+      <h2 class="h-sec">Capa térmica com quem produz e instala de verdade. <span class="hl">Sob medida, 300 micras e instalação imediata.</span></h2>
+      <p class="lead">Quem faz sob medida entrega melhor. Esses são os motivos que fazem o cliente escolher a Império das Piscinas.</p>
+    </div>
+    <div class="diff-grid">
+      <div class="diff-card reveal"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 15.3 8.7 2.7a1 1 0 0 0-1.4 0L2.7 7.3a1 1 0 0 0 0 1.4l12.6 12.6a1 1 0 0 0 1.4 0l4.6-4.6a1 1 0 0 0 0-1.4z"/><path d="m7.5 6.5 1.5 1.5M10.5 9.5 12 11M13.5 12.5 15 14"/></svg>Sob medida</h3><p>Capa no formato exato da sua piscina, sem improviso.</p></div>
+      <div class="diff-card reveal"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>300 micras</h3><p>Material reforçado, pensado pra reter mais calor e durar.</p></div>
+      <div class="diff-card reveal"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/></svg>Instalação imediata</h3><p>Mediu, produziu, instalou. Sem espera.</p></div>
+      <div class="diff-card reveal"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41 11 3.82A2 2 0 0 0 9.59 3H4a1 1 0 0 0-1 1v5.59A2 2 0 0 0 3.59 11l9.59 9.59a2 2 0 0 0 2.83 0l4.59-4.59a2 2 0 0 0 0-2.83z"/><circle cx="7.5" cy="7.5" r="1"/></svg>Preço direto</h3><p>A partir de R$14,99/m linear, sem mínimo e sem variação.</p></div>
+    </div>
+    <div style="text-align:center;margin-top:44px" class="reveal">
+      <a href="#orcamento" class="btn btn-primary">Falar com a Império</a>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= DEPOIMENTO ======================= -->
+<!-- Seção de depoimento/prova social será adicionada depois (aguardando cliente) -->
+
+<!-- ======================= FAQ ======================= -->
+<section id="faq">
+  <div class="wrap">
+    <div style="text-align:center;max-width:640px;margin:0 auto" class="reveal">
+      <span class="kicker">Dúvidas frequentes</span>
+      <h2 class="h-sec">Ainda com <span class="hl">alguma pergunta?</span></h2>
+    </div>
+    <div class="faq-grid">
+      <!-- COPY: FAQ -->
+      <details class="reveal"><summary>Como funciona o preço de R$14,99 por metro?<span class="plus"></span></summary><div class="ans">É o valor por metro linear da capa, sem mínimo e sem variação. O total depende só do tamanho e do formato da sua piscina, por isso medimos antes de fechar o valor exato.</div></details>
+      <details class="reveal"><summary>A capa é feita sob medida mesmo?<span class="plus"></span></summary><div class="ans">Sim. Fabricamos no formato e tamanho exatos da sua piscina, incluindo recortes de escada e formatos diferentes.</div></details>
+      <details class="reveal"><summary>A capa térmica aquece a piscina?<span class="plus"></span></summary><div class="ans">Ela retém o calor que a água já tem e reduz a perda durante a noite, mantendo a temperatura por mais tempo. Além disso, corta a evaporação e protege da sujeira.</div></details>
+      <details class="reveal"><summary>O que são 300 micras?<span class="plus"></span></summary><div class="ans">É a espessura da capa. Uma capa de 300 micras é mais reforçada e resistente, com melhor desempenho para reter calor no dia a dia.</div></details>
+      <details class="reveal"><summary>Quanto tempo leva a instalação?<span class="plus"></span></summary><div class="ans">A instalação é imediata. A gente mede, produz e instala com agilidade, sem semanas de espera.</div></details>
+      <details class="reveal"><summary>Vocês atendem em quais cidades?<span class="plus"></span></summary><div class="ans">Goiânia e região.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= CTA FINAL / FORM ======================= -->
+<section id="orcamento" class="cta">
+  <div class="wrap cta-split">
+    <div class="cta-left reveal">
+      <span class="kicker">Orçamento gratuito</span>
+      <!-- COPY: CTA final -->
+      <h2 class="h-sec">Peça seu <span class="hl">orçamento gratuito</span></h2>
+      <p class="lead">Sem compromisso. A Império mede sua piscina e faz sua capa térmica de 300 micras sob medida, a partir de R$14,99 o metro linear.</p>
+      <ul class="cta-bullets stagger">
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Medição e orçamento sem compromisso</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Valor por metro linear, sem mínimo e sem variação</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Instalação imediata, sob medida</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg>Atendimento direto no WhatsApp</li>
+      </ul>
+    </div>
+    <div class="form-card reveal">
+      <h3>Solicitar orçamento</h3>
+      <p class="fsub">Preencha e a gente entra em contato rapidinho.</p>
+      <div class="field"><label>WhatsApp</label><input id="leadPhone" type="tel" placeholder="(62) 90000-0000"></div>
+      <div class="field"><label>Qual o formato da piscina?</label>
+        <select id="leadShape"><option value="">Selecione</option><option>Retangular</option><option>Redonda</option><option>Com escada</option><option>Outro formato</option></select>
+      </div>
+      <div class="field"><label>Metragem aproximada?</label>
+        <select id="leadSize"><option value="">Selecione</option><option>Até 30 m²</option><option>De 30 a 50 m²</option><option>Mais de 50 m²</option></select>
+      </div>
+      <button id="leadSubmitWa" type="button" onclick="gtag_report_conversion();" class="btn btn-primary">Quero meu orçamento gratuito</button>
+      <a id="leadWa" href="https://spar.3ads.com.br/l/imperio-piscinas-pr5g" onclick="return gtag_report_conversion(this.href);" target="_blank" rel="noopener" class="btn btn-wa" style="width:100%;justify-content:center;margin-top:10px"><svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.87 1.22 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35z"/><path d="M12 2a10 10 0 0 0-8.6 15.06L2 22l5.06-1.33A10 10 0 1 0 12 2zm0 18.2c-1.5 0-2.98-.4-4.27-1.16l-.3-.18-3.17.83.85-3.09-.2-.32A8.2 8.2 0 1 1 12 20.2z"/></svg>Prefiro chamar no WhatsApp</a>
+      <p class="form-note">Seus dados são usados só para o atendimento.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FOOTER ======================= -->
+<footer>
+  <div class="wrap">
+    <img src="assets/img/logo-white.webp" alt="Império das Piscinas" class="footer-logo" width="520" height="173" loading="lazy" decoding="async">
+    <div class="foot-links">
+      <a href="#problema">Por que capa térmica</a>
+      <a href="#processo">Como funciona</a>
+      <a href="#diferenciais">Diferenciais</a>
+      <a href="#faq">Dúvidas</a>
+      <a href="https://spar.3ads.com.br/l/imperio-piscinas-pr5g" onclick="return gtag_report_conversion(this.href);" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+    <p class="cr">© 2026 Império das Piscinas · Capas térmicas sob medida em Goiânia e região</p>
+    <p class="foot-credit">Desenvolvido por <a href="https://3ads.com.br/" target="_blank" rel="noopener">3ADS</a></p>
+  </div>
+</footer>
+
+<script>
+// ---------- favicon conforme o tema do navegador ----------
+// navegador claro -> favicon escuro | navegador escuro -> favicon claro
+(function(){
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  function setFavicon(){
+    var href='assets/favicon-'+(mq.matches?'light':'dark')+'.svg';
+    var link=document.getElementById('faviTheme');
+    if(!link){link=document.createElement('link');link.id='faviTheme';link.rel='icon';link.type='image/svg+xml';document.head.appendChild(link);}
+    link.href=href;
+  }
+  setFavicon();
+  mq.addEventListener?mq.addEventListener('change',setFavicon):mq.addListener(setFavicon);
+})();
+
+// ---------- reveal / fade-in no scroll ----------
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal,.stagger').forEach(el=>io.observe(el));
+
+
+// galeria de projetos (setas + auto-avanço, 3 por vez)
+const galTrack=document.getElementById('galTrack');
+const galBtns=document.querySelectorAll('.gnav');
+let galTimer;
+function galMax(){return galTrack?galTrack.scrollWidth-galTrack.clientWidth:0;}
+function galSync(){const off=galMax()<=4;galBtns.forEach(b=>b.disabled=off);}
+function galMove(dir){
+  const max=galMax();
+  if(max<=4)return;
+  const step=galTrack.clientWidth;          // avança uma página (3 fotos)
+  let target=galTrack.scrollLeft+dir*step;
+  if(target>max-4)target=0;
+  else if(target<0)target=max;
+  galTrack.scrollTo({left:target,behavior:'smooth'});
+}
+function galStart(){galStop();if(galMax()>4)galTimer=setInterval(()=>galMove(1),4500);}
+function galStop(){clearInterval(galTimer);}
+if(galTrack){
+  galSync();
+  window.addEventListener('resize',galSync);
+  if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    galStart();
+    galTrack.addEventListener('mouseenter',galStop);
+    galTrack.addEventListener('mouseleave',galStart);
+  }
+}
+
+const whatsappBaseUrl='https://spar.3ads.com.br/l/imperio-piscinas-pr5g';
+
+function fieldValue(id){
+  var el=document.getElementById(id);
+  return el&&el.value?el.value.trim():'';
+}
+function setWaMessage(link,message){
+  if(link)link.href=whatsappBaseUrl;
+}
+function trafficOrigin(){
+  var params=new URLSearchParams(window.location.search);
+  var source=(params.get('utm_source')||'').toLowerCase();
+  var ref=(document.referrer||'').toLowerCase();
+  if(params.has('gclid')||params.has('gbraid')||params.has('wbraid')||source.includes('google')||ref.includes('google.'))return 'pelo Google';
+  if(source.includes('instagram')||source==='ig'||ref.includes('instagram.'))return 'pelo Instagram';
+  if(source.includes('facebook')||source==='fb'||ref.includes('facebook.'))return 'pelo Facebook';
+  if(source.includes('meta'))return 'pela Meta';
+  if(source.includes('tiktok')||ref.includes('tiktok.'))return 'pelo TikTok';
+  return 'pelo site';
+}
+function shapeText(value){
+  if(value==='Retangular')return 'é retangular';
+  if(value==='Redonda')return 'é redonda';
+  if(value==='Com escada')return 'tem escada';
+  if(value==='Outro formato')return 'tem outro formato';
+  return '';
+}
+function capasMessage(data){
+  var parts=['Olá, vim '+trafficOrigin()+' e gostaria de um orçamento para capa térmica sob medida.'];
+  var shape=shapeText(data.shape);
+  if(shape)parts.push('Minha piscina '+shape+'.');
+  if(data.size)parts.push('Ela tem metragem aproximada de '+data.size+'.');
+  if(data.phone)parts.push('Meu WhatsApp é '+data.phone+'.');
+  return parts.join(' ');
+}
+function syncHeroWa(){
+  setWaMessage(document.getElementById('qWa'),capasMessage({
+    shape:fieldValue('qShape'),
+    size:fieldValue('qSize')
+  }));
+}
+function syncLeadWa(){
+  setWaMessage(document.getElementById('leadWa'),capasMessage({
+    phone:fieldValue('leadPhone'),
+    shape:fieldValue('leadShape'),
+    size:fieldValue('leadSize')
+  }));
+}
+function trackWhatsappLead(){
+  if(typeof window.loadMarketingTags==='function')window.loadMarketingTags();
+  window.dataLayer=window.dataLayer||[];
+  window.dataLayer.push({event:'lead_whatsapp',origem:'capas-termica'});
+  if(typeof gtag==='function')gtag('event','generate_lead',{event_category:'whatsapp',event_label:'capas-termica'});
+}
+['qShape','qSize'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el)el.addEventListener('change',syncHeroWa);
+});
+['leadPhone','leadShape','leadSize'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el){
+    el.addEventListener('input',syncLeadWa);
+    el.addEventListener('change',syncLeadWa);
+  }
+});
+var leadSubmitWa=document.getElementById('leadSubmitWa');
+if(leadSubmitWa){
+  leadSubmitWa.addEventListener('click',function(){
+    syncLeadWa();
+    var link=document.getElementById('leadWa');
+    trackWhatsappLead();
+    window.open(link?link.href:whatsappBaseUrl,'_blank','noopener');
+  });
+}
+syncHeroWa();
+syncLeadWa();
+
+// clique no WhatsApp -> rastreia a conversão sem tirar o lead do caminho direto para a conversa
+document.querySelectorAll('a[href^="https://spar.3ads.com.br/l/imperio-piscinas-pr5g"]').forEach(function(a){
+  a.addEventListener('click',function(){
+    if(a.id==='qWa')syncHeroWa();
+    if(a.id==='leadWa')syncLeadWa();
+    trackWhatsappLead();
+  });
+});
+</script>
+</body>
+</html>

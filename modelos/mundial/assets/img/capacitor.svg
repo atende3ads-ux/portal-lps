@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 170" width="110" height="170">
+  <defs><linearGradient id="a" x1="0" x2="1"><stop offset="0" stop-color="#B9C3CD"/><stop offset=".4" stop-color="#F3F6F9"/><stop offset="1" stop-color="#9AA6B2"/></linearGradient></defs>
+  <ellipse cx="55" cy="160" rx="40" ry="7" fill="#000F6B" opacity=".16"/>
+  <path d="M20 40 V144 C20 156 90 156 90 144 V40 Z" fill="url(#a)"/>
+  <ellipse cx="55" cy="40" rx="35" ry="9" fill="#DCE3EA" stroke="#9AA6B2"/>
+  <rect x="20" y="78" width="70" height="40" fill="#0064FF"/>
+  <path d="M20 118 C20 124 90 124 90 118" fill="#0050D6"/>
+  <text x="55" y="97" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">35 µF</text>
+  <text x="55" y="110" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="8" fill="#CFE6F7">250 VAC</text>
+  <g fill="#C9A227"><rect x="36" y="20" width="8" height="18" rx="1"/><rect x="51" y="16" width="8" height="22" rx="1"/><rect x="66" y="20" width="8" height="18" rx="1"/></g>
+</svg>

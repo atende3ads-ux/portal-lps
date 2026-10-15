@@ -1,0 +1,837 @@
+{
+  "base": "/portal-lps/",
+  "nichos": {
+    "saude": "Saúde",
+    "imoveis": "Imóveis e construção",
+    "automotivo": "Automotivo",
+    "educacao": "Educação e mentorias",
+    "tecnologia": "Tecnologia e B2B",
+    "servicos": "Serviços profissionais",
+    "industria": "Indústria e varejo",
+    "lazer": "Lazer e turismo"
+  },
+  "tipos": {
+    "captura": "LP de captura",
+    "campanha": "Campanha e oferta",
+    "evento": "Evento",
+    "institucional": "Site institucional",
+    "interativa": "Interativa",
+    "ecommerce": "E-commerce"
+  },
+  "modelos": [
+    {
+      "slug": "honcord",
+      "nome": "Honcord",
+      "repo": "atende3ads-ux/lp-honcord",
+      "nicho": "saude",
+      "tipo": "captura",
+      "descricao": "Centro de onco-hematologia em Goiânia, com uma LP por especialidade: doação de sangue, hematologia e oncologia.",
+      "paginas": [
+        {
+          "nome": "Doação de sangue",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Hematologia",
+          "caminho": "hematologista-goiania.html"
+        },
+        {
+          "nome": "Oncologia",
+          "caminho": "oncologia-goiania.html"
+        }
+      ]
+    },
+    {
+      "slug": "opimed-black",
+      "nome": "Opimed · Pré-Black",
+      "repo": "atendimento3ads/lp-opimed-black",
+      "nicho": "saude",
+      "tipo": "campanha",
+      "descricao": "Campanha de Black Friday de aparelhos auditivos, com desconto progressivo no segundo aparelho.",
+      "paginas": [
+        {
+          "nome": "Pré-Black 2026",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "opimed-widex",
+      "nome": "Opimed · Widex",
+      "repo": "atendimento3ads/lp-opimed-marcas",
+      "nicho": "saude",
+      "tipo": "captura",
+      "descricao": "LP por marca de aparelho auditivo, primeira da série Opimed por marca (Widex, Signia, ReSound).",
+      "paginas": [
+        {
+          "nome": "Widex",
+          "caminho": "widex/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "opimed-simulador",
+      "nome": "Opimed · Simulador",
+      "repo": "atendimento3ads/lp-opimed-simulador",
+      "nicho": "saude",
+      "tipo": "interativa",
+      "prototipo": true,
+      "descricao": "LP inteligente com simulador visual: a pessoa vê como o aparelho auditivo fica antes de agendar.",
+      "paginas": [
+        {
+          "nome": "Simulador",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "opimed-beneficios",
+      "nome": "Opimed Benefícios",
+      "repo": "atende3ads-ux/opimed-beneficios-prototipo",
+      "nicho": "saude",
+      "tipo": "interativa",
+      "prototipo": true,
+      "descricao": "Protótipo de diagnóstico em etapas para o programa de benefícios da Opimed.",
+      "paginas": [
+        {
+          "nome": "Diagnóstico",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "audius",
+      "nome": "Audius",
+      "repo": "atendimento3ads/audius-landing",
+      "nicho": "saude",
+      "tipo": "captura",
+      "prototipo": true,
+      "descricao": "Marca de aparelhos auditivos do Grupo Opimed, com direção visual mais premium.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Versão 3",
+          "caminho": "index-v3.html"
+        }
+      ]
+    },
+    {
+      "slug": "paula-cardoso-essence",
+      "nome": "Dra. Paula Cardoso · Essence",
+      "repo": "atendimento3ads/paula-cardoso-essence",
+      "nicho": "saude",
+      "tipo": "captura",
+      "descricao": "Dentista em Goiânia: estética do sorriso, implantes e prótese protocolo. Migrada do WordPress para HTML.",
+      "paginas": [
+        {
+          "nome": "Estética do sorriso",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Implantes",
+          "caminho": "implantes/index.html"
+        },
+        {
+          "nome": "Prótese protocolo",
+          "caminho": "implante-protocolo/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "paula-cardoso-implantes",
+      "nome": "Dra. Paula Cardoso · Implantes",
+      "repo": "atendimento3ads/lp-paula-cardoso-implantes",
+      "nicho": "saude",
+      "tipo": "captura",
+      "descricao": "Primeira versão das LPs de implante dentário e prótese protocolo.",
+      "paginas": [
+        {
+          "nome": "Implantes",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Prótese protocolo",
+          "caminho": "protocolo.html"
+        }
+      ]
+    },
+    {
+      "slug": "iceo",
+      "nome": "ICEO Odontologia",
+      "repo": "atendimento3ads/iceo-paula-cardoso",
+      "nicho": "saude",
+      "tipo": "captura",
+      "descricao": "Clínica odontológica (lentes de resina). Três LPs convertidas do WordPress, uma delas para tráfego do TikTok.",
+      "paginas": [
+        {
+          "nome": "Clínica",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Dentista em Goiânia",
+          "caminho": "home-dentista-em-goiania/index.html"
+        },
+        {
+          "nome": "Versão TikTok",
+          "caminho": "tiktok/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "mundo-animal",
+      "nome": "Mundo Animal",
+      "repo": "atende3ads-ux/lp-mundo-animal",
+      "nicho": "saude",
+      "tipo": "captura",
+      "descricao": "Clínica veterinária 24h em Goiânia, com LP separada para banho e tosa.",
+      "paginas": [
+        {
+          "nome": "Clínica 24h",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Banho e tosa",
+          "caminho": "banho-e-tosa/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "full-body",
+      "nome": "Supreme Full Body Experience",
+      "repo": "atendimento3ads/lp-full-body-experience",
+      "nicho": "saude",
+      "tipo": "evento",
+      "descricao": "Imersão presencial de harmonização corporal para médicos, com página do módulo de gestão.",
+      "paginas": [
+        {
+          "nome": "Imersão",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Módulo de gestão",
+          "caminho": "gestao/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "fr-incorporadora",
+      "nome": "FR Incorporadora",
+      "repo": "atendimento3ads/fr-incorporadora",
+      "nicho": "imoveis",
+      "tipo": "captura",
+      "descricao": "Três empreendimentos residenciais em Goiânia no mesmo padrão de LP, com formulário de lead e consentimento de cookies.",
+      "paginas": [
+        {
+          "nome": "FR DGN",
+          "caminho": "dgn/index.html"
+        },
+        {
+          "nome": "FR Bueno Municipal",
+          "caminho": "bueno/index.html"
+        },
+        {
+          "nome": "Lina Praça do Sol",
+          "caminho": "lina/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "ryokan",
+      "nome": "Ryokan Flamboyant",
+      "repo": "atendimento3ads/ryokan-flamboyant-sousa-andrade",
+      "nicho": "imoveis",
+      "tipo": "captura",
+      "descricao": "Apartamentos ao lado do Shopping Flamboyant, com vídeo no topo da página.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "space-up",
+      "nome": "Space Up Construction",
+      "repo": "atendimento3ads/space-up-landing-pages",
+      "nicho": "imoveis",
+      "tipo": "captura",
+      "tags": [
+        "inglês"
+      ],
+      "descricao": "Construtora em Massachusetts (EUA): LPs em inglês, uma por serviço.",
+      "paginas": [
+        {
+          "nome": "Epoxy flooring",
+          "caminho": "epoxy-flooring/index.html"
+        },
+        {
+          "nome": "Epoxy flooring v2",
+          "caminho": "epoxy-flooring-v2/index.html"
+        },
+        {
+          "nome": "Garage remodeling",
+          "caminho": "garage-remodeling/index.html"
+        },
+        {
+          "nome": "Home construction",
+          "caminho": "home-construction/index.html"
+        },
+        {
+          "nome": "Plumbing",
+          "caminho": "plumbing/index.html"
+        },
+        {
+          "nome": "Siding",
+          "caminho": "siding-finishing/index.html"
+        },
+        {
+          "nome": "Siding v2",
+          "caminho": "siding-finishing-v2/index.html"
+        },
+        {
+          "nome": "Página de escolha",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "carmem-avila",
+      "nome": "Carmem Avila Arquitetura",
+      "repo": "atende3ads-ux/carmem-avila-home",
+      "nicho": "imoveis",
+      "tipo": "institucional",
+      "prototipo": true,
+      "descricao": "Reformulação da home de um escritório de arquitetura, com direção editorial.",
+      "paginas": [
+        {
+          "nome": "Home",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "imperio-piscinas",
+      "nome": "Império das Piscinas",
+      "repo": "atende3ads-ux/imperio-das-piscinas-lp",
+      "nicho": "imoveis",
+      "tipo": "captura",
+      "descricao": "Aquecimento solar e capas térmicas para piscinas em Goiânia, com LP por produto.",
+      "paginas": [
+        {
+          "nome": "Aquecimento solar",
+          "caminho": "aquecedores.html"
+        },
+        {
+          "nome": "Capas térmicas",
+          "caminho": "capas-termica.html"
+        },
+        {
+          "nome": "Capas térmicas v2",
+          "caminho": "v2.html"
+        },
+        {
+          "nome": "Página de escolha",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "autorio-feirao",
+      "nome": "Autorio · Feirão Seminovos",
+      "repo": "atende3ads-ux/autorio-feirao-seminovos",
+      "nicho": "automotivo",
+      "tipo": "campanha",
+      "descricao": "Feirão de seminovos com até 2 anos de garantia e vitrine de veículos.",
+      "paginas": [
+        {
+          "nome": "Feirão",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "autorio-ofertas",
+      "nome": "Autorio · Ofertas de Julho",
+      "repo": "atendimento3ads/autorio-ofertas-julho",
+      "nicho": "automotivo",
+      "tipo": "campanha",
+      "descricao": "Catálogo de ofertas Chevrolet 0 km do mês.",
+      "paginas": [
+        {
+          "nome": "Ofertas",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "hunters-motos",
+      "nome": "Hunters Motos",
+      "repo": "atende3ads-ux/lp-hunters-motos",
+      "nicho": "automotivo",
+      "tipo": "captura",
+      "descricao": "Scooters, bikes e triciclos elétricos na Barra da Tijuca (RJ).",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "scooter-goiania",
+      "nome": "Scooter Goiânia",
+      "repo": "atende3ads-ux/scooter-goiania-lps",
+      "nicho": "automotivo",
+      "tipo": "captura",
+      "descricao": "Catálogo 2026 de elétricos em LPs por linha de produto, mais a oficina.",
+      "paginas": [
+        {
+          "nome": "Scooters e bikes",
+          "caminho": "scooters-e-bikes/index.html"
+        },
+        {
+          "nome": "Triciclos",
+          "caminho": "triciclos/index.html"
+        },
+        {
+          "nome": "Diversão elétrica",
+          "caminho": "diversao-eletrica/index.html"
+        },
+        {
+          "nome": "Oficina",
+          "caminho": "oficina/index.html"
+        },
+        {
+          "nome": "Página de escolha",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "savana",
+      "nome": "Savana Auto Peças",
+      "repo": "atendimento3ads/savana-landing-page",
+      "nicho": "automotivo",
+      "tipo": "captura",
+      "descricao": "Distribuidora de autopeças com LP por segmento: caminhões, caminhonetes e máquinas agrícolas.",
+      "paginas": [
+        {
+          "nome": "Caminhões",
+          "caminho": "caminhao/index.html"
+        },
+        {
+          "nome": "Caminhonetes",
+          "caminho": "caminhonetes/index.html"
+        },
+        {
+          "nome": "Máquinas agrícolas",
+          "caminho": "maquinas-agricolas/index.html"
+        },
+        {
+          "nome": "Página de escolha",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "instituto-axon",
+      "nome": "Instituto Axon · Joe Weider",
+      "repo": "atende3ads-ux/lp-joeweider",
+      "nicho": "educacao",
+      "tipo": "captura",
+      "descricao": "Playbook de treinamento corporativo e acelerador de negócios, incluindo uma versão com VSL.",
+      "paginas": [
+        {
+          "nome": "Playbook 4.0",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Playbook set/26",
+          "caminho": "playbook-set26/index.html"
+        },
+        {
+          "nome": "Acelerador",
+          "caminho": "acelerador/index.html"
+        },
+        {
+          "nome": "Acelerador · consultores",
+          "caminho": "acelerador-consultores/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "cinthya-lobo",
+      "nome": "Cinthya Lobo",
+      "repo": "atendimento3ads/lp-cinthya-lobo",
+      "nicho": "educacao",
+      "tipo": "captura",
+      "descricao": "Liderança no varejo farmacêutico: página principal, diagnóstico de liderança, agenda e imersão.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Score de liderança",
+          "caminho": "score-lideranca/index.html"
+        },
+        {
+          "nome": "Agenda",
+          "caminho": "eventos/index.html"
+        },
+        {
+          "nome": "Imersão",
+          "caminho": "eventos/imersao-wolf-farma.html"
+        }
+      ]
+    },
+    {
+      "slug": "ai-first",
+      "nome": "Mentoria AI FIRST",
+      "repo": "atendimento3ads/lp-teste-autimize",
+      "nicho": "educacao",
+      "tipo": "captura",
+      "descricao": "Mentoria de IA para executivos da 3ADS EDU.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "hack-the-growth",
+      "nome": "Hack The Growth",
+      "repo": "atendimento3ads/hack-the-growth",
+      "nicho": "educacao",
+      "tipo": "captura",
+      "descricao": "Biblioteca de guias práticos de ferramentas de IA, usada como isca digital com captura de lead.",
+      "paginas": [
+        {
+          "nome": "Guias",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "3ads-edu",
+      "nome": "3ADS EDU",
+      "repo": "atende3ads-ux/3ads-edu",
+      "zip": "deploy.zip",
+      "nicho": "educacao",
+      "tipo": "institucional",
+      "descricao": "Site da 3ADS EDU com os programas de educação corporativa em IA, marketing e vendas.",
+      "paginas": [
+        {
+          "nome": "Home",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "neppo",
+      "nome": "Neppo",
+      "repo": "atende3ads-ux/neppo-site",
+      "nicho": "tecnologia",
+      "tipo": "institucional",
+      "descricao": "Site de plataforma de atendimento por WhatsApp, com páginas de produto, preços e cases.",
+      "paginas": [
+        {
+          "nome": "Home",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "API WhatsApp",
+          "caminho": "page-api-whatsapp.html"
+        },
+        {
+          "nome": "WhatsApp CoEx",
+          "caminho": "page-whatsapp-coex.html"
+        },
+        {
+          "nome": "Planos e preços",
+          "caminho": "page-planos-e-precos.html"
+        },
+        {
+          "nome": "Cases",
+          "caminho": "page-casos-de-sucesso.html"
+        },
+        {
+          "nome": "Case (modelo)",
+          "caminho": "page-case-eureciclo.html"
+        },
+        {
+          "nome": "Demonstração",
+          "caminho": "page-demonstracao.html"
+        }
+      ]
+    },
+    {
+      "slug": "a2o-sistemas",
+      "nome": "A2O Sistemas",
+      "repo": "atende3ads-ux/a2o-sistemas-prototipo",
+      "nicho": "tecnologia",
+      "tipo": "institucional",
+      "prototipo": true,
+      "descricao": "Site de software de gestão logística (TMS, frota e agro), com páginas de solução, cases e blog.",
+      "paginas": [
+        {
+          "nome": "Home",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Soluções",
+          "caminho": "solucoes.html"
+        },
+        {
+          "nome": "TMS",
+          "caminho": "tms.html"
+        },
+        {
+          "nome": "Como funciona",
+          "caminho": "como-funciona.html"
+        },
+        {
+          "nome": "Cases",
+          "caminho": "cases.html"
+        },
+        {
+          "nome": "Blog",
+          "caminho": "blog.html"
+        },
+        {
+          "nome": "Contato",
+          "caminho": "contato.html"
+        }
+      ]
+    },
+    {
+      "slug": "eq-seguros",
+      "nome": "EQ Seguros",
+      "repo": "atende3ads-ux/project-eq-seguros",
+      "nicho": "tecnologia",
+      "tipo": "institucional",
+      "prototipo": true,
+      "descricao": "Protótipo navegável de seguradora, com estudos de layout da home e o wireframe original.",
+      "paginas": [
+        {
+          "nome": "Protótipo · Home",
+          "caminho": "prototipo/index.html"
+        },
+        {
+          "nome": "Seguros",
+          "caminho": "prototipo/seguros.html"
+        },
+        {
+          "nome": "Seguro de vida",
+          "caminho": "prototipo/seguro-vida.html"
+        },
+        {
+          "nome": "Parceiros",
+          "caminho": "prototipo/parceiros.html"
+        },
+        {
+          "nome": "Layout home v4",
+          "caminho": "layout-v4/index.html"
+        },
+        {
+          "nome": "Layout home v3",
+          "caminho": "layout-v3/index.html"
+        },
+        {
+          "nome": "Layout home v2",
+          "caminho": "layout-v2/index.html"
+        },
+        {
+          "nome": "Wireframe",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "elementar",
+      "nome": "Elementar Soluções Ambientais",
+      "repo": "atendimento3ads/elementar-la-LPs",
+      "nicho": "servicos",
+      "tipo": "captura",
+      "descricao": "Consultoria ambiental: licenciamento em três versões (padrão, com vídeo e WP) e monitoramento do ar.",
+      "paginas": [
+        {
+          "nome": "Licenciamento ambiental",
+          "caminho": "licenciamento-ambiental/index.html"
+        },
+        {
+          "nome": "Licenciamento · vídeo",
+          "caminho": "licenciamento-ambiental-video/index.html"
+        },
+        {
+          "nome": "Licenciamento · WP",
+          "caminho": "licenciamento-ambiental-wp/index.html"
+        },
+        {
+          "nome": "Qualidade do ar",
+          "caminho": "monitoramento-da-qualidade-do-ar/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "biz-center",
+      "nome": "Biz Center",
+      "repo": "atendimento3ads/lp-biz-center",
+      "nicho": "servicos",
+      "tipo": "captura",
+      "descricao": "Coworking e salas por hora em Goiânia, com vídeo no topo.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "carolina-mendanha",
+      "nome": "Carolina Mendanha Advocacia",
+      "repo": "atendimento3ads/carolina-mendanha-lp",
+      "nicho": "servicos",
+      "tipo": "captura",
+      "tags": [
+        "jurídico"
+      ],
+      "descricao": "Advocacia trabalhista empresarial, com versão de SEO para \"advogada trabalhista para empresas\".",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Advogada trabalhista p/ empresas",
+          "caminho": "advogada-trabalhista-para-empresas/index.html"
+        },
+        {
+          "nome": "Versão 2",
+          "caminho": "v2/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "kingdom-play",
+      "nome": "Kingdom Play",
+      "repo": "atendimento3ads/kingdomplay-landing",
+      "nicho": "industria",
+      "tipo": "institucional",
+      "descricao": "Indústria de playgrounds e brinquedotecas, página institucional com captação.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "mundial",
+      "nome": "Mundial Refrigeração",
+      "repo": "atende3ads-ux/lp-mundial",
+      "nicho": "industria",
+      "tipo": "captura",
+      "descricao": "Câmaras frias e peças de linha branca em Goiânia, com LP por linha de negócio.",
+      "paginas": [
+        {
+          "nome": "Câmaras frias",
+          "caminho": "camaras-frias/index.html"
+        },
+        {
+          "nome": "Linha branca",
+          "caminho": "linha-branca/index.html"
+        },
+        {
+          "nome": "Página de escolha",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "mais-mendes",
+      "nome": "Mais Mendes Distribuidora",
+      "repo": "atende3ads-ux/mais-mendes-ecommerce-prototipo",
+      "nicho": "industria",
+      "tipo": "ecommerce",
+      "prototipo": true,
+      "descricao": "Protótipo navegável de e-commerce B2B: home, categoria e página de produto.",
+      "paginas": [
+        {
+          "nome": "Home",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Categoria",
+          "caminho": "categoria.html"
+        },
+        {
+          "nome": "Produto",
+          "caminho": "produto.html"
+        }
+      ]
+    },
+    {
+      "slug": "decora-doces",
+      "nome": "Decora Doces",
+      "repo": "atendimento3ads/lp-decora-doces",
+      "nicho": "industria",
+      "tipo": "captura",
+      "descricao": "Forminhas de luxo para doces: LP de captação de revendedores e versão para eventos.",
+      "paginas": [
+        {
+          "nome": "Revendedores",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Eventos",
+          "caminho": "v2/index.html"
+        }
+      ]
+    },
+    {
+      "slug": "barretos",
+      "nome": "Barretos Country Resort",
+      "repo": "atendimento3ads/barretos-country-resort-lp",
+      "nicho": "lazer",
+      "tipo": "captura",
+      "descricao": "Resort com fazendinha e parque aquático, foco em família.",
+      "paginas": [
+        {
+          "nome": "Principal",
+          "caminho": "index.html"
+        }
+      ]
+    },
+    {
+      "slug": "red-flamboyant",
+      "nome": "Red Flamboyant",
+      "repo": "atende3ads-ux/red-flamboyant",
+      "nicho": "lazer",
+      "tipo": "campanha",
+      "descricao": "Programa de experiências de shopping, com quatro versões de layout.",
+      "paginas": [
+        {
+          "nome": "Versão atual",
+          "caminho": "index.html"
+        },
+        {
+          "nome": "Versão 2",
+          "caminho": "v2/index.html"
+        },
+        {
+          "nome": "Versão 3",
+          "caminho": "v3/index.html"
+        },
+        {
+          "nome": "Versão 4",
+          "caminho": "v4/index.html"
+        }
+      ]
+    }
+  ]
+}

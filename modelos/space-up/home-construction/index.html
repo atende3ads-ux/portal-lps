@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  
+  
+  <!-- Google Tag Manager: keep the inline script and its CSP SHA-256 hash in sync. -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Google Tag Manager -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="New home construction and residential remodeling in Natick, Massachusetts. Discuss your scope and next steps with Space Up Construction: (508) 474-9407.">
+  <title>Home Construction &amp; Remodeling in Natick, MA | Space Up</title>
+  <link rel="stylesheet" href="../assets/site.css?v=bb2f9e2c4602">
+  <script src="../assets/site.js?v=6fc0fdb012df" defer></script>
+  <meta name="theme-color" content="#0b1730">
+  
+  <link rel="canonical" href="https://services.spaceupconstruction.com/home-construction/">
+  <link rel="describedby" href="/portal-lps/modelos/space-up/llms.txt" type="text/plain">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Space Up Construction">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Home Construction &amp; Remodeling in Natick, MA | Space Up">
+  <meta property="og:description" content="New home construction and residential remodeling in Natick, Massachusetts. Discuss your scope and next steps with Space Up Construction: (508) 474-9407.">
+  <meta property="og:url" content="https://services.spaceupconstruction.com/home-construction/">
+  <meta property="og:image" content="https://services.spaceupconstruction.com/home-construction/assets/home-under-construction-1200.webp">
+  <meta property="og:image:alt" content="Home Construction &amp; Remodeling">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Home Construction &amp; Remodeling in Natick, MA | Space Up">
+  <meta name="twitter:description" content="New home construction and residential remodeling in Natick, Massachusetts. Discuss your scope and next steps with Space Up Construction: (508) 474-9407.">
+  <meta name="twitter:image" content="https://services.spaceupconstruction.com/home-construction/assets/home-under-construction-1200.webp">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"GeneralContractor","@id":"https://services.spaceupconstruction.com/#business","name":"Space Up Construction","url":"https://services.spaceupconstruction.com/","telephone":"+1-508-474-9407","email":"contact@spaceupconstruction.com","logo":"https://services.spaceupconstruction.com/epoxy-flooring/assets/space-up-logo.avif","address":{"@type":"PostalAddress","streetAddress":"841 Worcester St, Suite 327","addressLocality":"Natick","addressRegion":"MA","postalCode":"01760","addressCountry":"US"},"areaServed":{"@type":"State","name":"Massachusetts"}},{"@type":"WebSite","@id":"https://services.spaceupconstruction.com/#website","url":"https://services.spaceupconstruction.com/","name":"Space Up Construction","inLanguage":"en-US","publisher":{"@id":"https://services.spaceupconstruction.com/#business"}},{"@type":"Service","@id":"https://services.spaceupconstruction.com/home-construction/#service","name":"Home Construction & Remodeling","serviceType":"Home Construction & Remodeling","url":"https://services.spaceupconstruction.com/home-construction/","description":"New home construction and residential remodeling in Natick, Massachusetts. Discuss your scope and next steps with Space Up Construction: (508) 474-9407.","provider":{"@id":"https://services.spaceupconstruction.com/#business"},"areaServed":{"@type":"State","name":"Massachusetts"}},{"@type":"BreadcrumbList","@id":"https://services.spaceupconstruction.com/home-construction/#breadcrumbs","itemListElement":[{"@type":"ListItem","position":1,"name":"Services","item":"https://services.spaceupconstruction.com/"},{"@type":"ListItem","position":2,"name":"Home Construction & Remodeling","item":"https://services.spaceupconstruction.com/home-construction/"}]},{"@type":"FAQPage","@id":"https://services.spaceupconstruction.com/home-construction/#faq","mainEntity":[{"@type":"Question","name":"Do you work on both new construction and remodeling?","acceptedAnswer":{"@type":"Answer","text":"Yes. Space Up works on new home construction and residential remodeling projects."}},{"@type":"Question","name":"Can I reach out if I’m still planning the project?","acceptedAnswer":{"@type":"Answer","text":"Yes. Call or email us and tell us what you’re considering and where the project currently stands."}},{"@type":"Question","name":"Can a remodel include more than one area of the home?","acceptedAnswer":{"@type":"Answer","text":"Yes. A project may focus on one room or include several areas of the home, depending on the scope."}},{"@type":"Question","name":"What can affect the project timeline?","acceptedAnswer":{"@type":"Answer","text":"The size of the project, scope of work, existing conditions, material selections, and required stages can all affect timing."}},{"@type":"Question","name":"What should I have ready when I call?","acceptedAnswer":{"@type":"Answer","text":"Start with the type of property, whether you’re building or remodeling, and a general idea of what you want to do."}},{"@type":"Question","name":"How do I get started?","acceptedAnswer":{"@type":"Answer","text":"Call (508) 474-9407 or email contact@spaceupconstruction.com."}}]},{"@type":"WebPage","@id":"https://services.spaceupconstruction.com/home-construction/#webpage","url":"https://services.spaceupconstruction.com/home-construction/","name":"Home Construction & Remodeling in Natick, MA | Space Up","description":"New home construction and residential remodeling in Natick, Massachusetts. Discuss your scope and next steps with Space Up Construction: (508) 474-9407.","inLanguage":"en-US","isPartOf":{"@id":"https://services.spaceupconstruction.com/#website"},"about":{"@id":"https://services.spaceupconstruction.com/home-construction/#service"},"breadcrumb":{"@id":"https://services.spaceupconstruction.com/home-construction/#breadcrumbs"},"hasPart":{"@id":"https://services.spaceupconstruction.com/home-construction/#faq"}}]}</script>
+  <link rel="icon" href="/portal-lps/modelos/space-up/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/portal-lps/modelos/space-up/assets/apple-touch-icon.png">
+</head>
+<body class="page-home">
+  <!-- Google Tag Manager (noscript) -->
+  
+  <!-- End Google Tag Manager (noscript) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container nav-shell">
+      <a class="brand" href="#top" aria-label="Space Up Construction — home">
+        <img src="assets/space-up-logo-240.avif" srcset="assets/space-up-logo-160.avif 160w, assets/space-up-logo-240.avif 240w, assets/space-up-logo.avif 412w" sizes="(max-width: 680px) 150px, 210px" width="412" height="130" alt="Space Up Construction">
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#services">Services</a>
+        <a href="#planning">Planning</a>
+        <a href="#projects">Projects</a>
+        <a href="#faq">FAQ</a>
+        <a class="nav-call" href="tel:+15084749407" aria-label="Call Now: Space Up Construction at (508) 474-9407">Call Now</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero-media"><picture><source type="image/avif" srcset="assets/home-under-construction-480.avif 480w, assets/home-under-construction-800.avif 800w, assets/home-under-construction-1200.avif 1200w, assets/home-under-construction-1600.avif 1600w" sizes="(max-width: 680px) calc(100vw - 34px), 100vw"><img src="assets/home-under-construction-1600.webp" width="1672" height="941" alt="Two-story home under construction in a New England neighborhood" srcset="assets/home-under-construction-480.webp 480w, assets/home-under-construction-800.webp 800w, assets/home-under-construction-1200.webp 1200w, assets/home-under-construction-1600.webp 1600w" sizes="(max-width: 680px) calc(100vw - 34px), 100vw" decoding="async" fetchpriority="high" loading="eager"></picture></div>
+      <div class="container hero-content">
+        <div class="hero-copy">
+          <p class="eyebrow">Space Up Construction · Natick, Massachusetts</p>
+          <h1 id="hero-title">New Home Construction &amp; <span>Home Remodeling</span></h1>
+          <p class="hero-description">Tell us what you’re planning. We’ll talk through the scope, the property, and the next steps before work begins.</p>
+          <div class="button-row hero-actions">
+            <a class="button" href="tel:+15084749407">Call (508) 474-9407</a>
+            <a class="button button--outline" href="mailto:contact@spaceupconstruction.com">Email Us</a>
+          </div>
+        </div>
+        <div class="hero-proof" aria-label="Residential services">
+          <span>New Home Construction</span>
+          <span>Home Remodeling</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="services" aria-labelledby="services-title">
+      <div class="container">
+        <div class="section-head"><div><p class="section-label">New Construction &amp; Remodeling</p><h2 id="services-title">The starting point depends on the project</h2></div><p class="lead">Two ways to begin—each shaped by the property, the scope, and what you want to build or change.</p></div>
+        <div class="project-types">
+          <article class="project-type"><picture><source type="image/avif" srcset="assets/interior-framing-480.avif 480w, assets/interior-framing-800.avif 800w, assets/interior-framing-1200.avif 1200w, assets/interior-framing-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 1288px) calc((100vw - 66px) / 2), 611px"><img src="assets/interior-framing-1448.webp" width="1456" height="1092" loading="lazy" alt="Interior timber framing during new home construction" srcset="assets/interior-framing-480.webp 480w, assets/interior-framing-800.webp 800w, assets/interior-framing-1200.webp 1200w, assets/interior-framing-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 1288px) calc((100vw - 66px) / 2), 611px" decoding="async"></picture><h3>New Home Construction</h3><p>If you’re building from the ground up, the project starts with a clear understanding of what you’re building and what the scope includes.</p><a class="inline-cta" href="tel:+15084749407">Talk About Your New Home ↗</a></article>
+          <article class="project-type"><picture><source type="image/avif" srcset="assets/kitchen-remodel-480.avif 480w, assets/kitchen-remodel-800.avif 800w, assets/kitchen-remodel-1200.avif 1200w, assets/kitchen-remodel-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 1288px) calc((100vw - 66px) / 2), 611px"><img src="assets/kitchen-remodel-1448.webp" width="1456" height="1092" loading="lazy" alt="Kitchen remodeling project in progress" srcset="assets/kitchen-remodel-480.webp 480w, assets/kitchen-remodel-800.webp 800w, assets/kitchen-remodel-1200.webp 1200w, assets/kitchen-remodel-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 1288px) calc((100vw - 66px) / 2), 611px" decoding="async"></picture><h3>Home Remodeling</h3><p>For an existing home, the current condition of the property and the changes you want to make help shape the scope of work.</p><a class="inline-cta" href="tel:+15084749407">Talk About Your Remodel ↗</a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section proof-band" id="planning" aria-labelledby="planning-title">
+      <div class="container">
+        <div class="section-head"><div><p class="section-label">Project Planning</p><h2 id="planning-title">Know what the project requires before construction begins</h2></div><p class="lead">The existing conditions and the changes you want to make help determine what the project will require. Material choices come into play as the plan takes shape.</p></div>
+        <div class="planning-grid">
+          <article class="planning-card"><span class="step-number">01</span><h3>Existing Conditions</h3><p>For a remodel, the current condition of the home may affect what needs attention first.</p></article>
+          <article class="planning-card"><span class="step-number">02</span><h3>Work Involved</h3><p>The rooms, structural changes, and services included in the project help define the work ahead.</p></article>
+          <article class="planning-card"><span class="step-number">03</span><h3>Materials &amp; Finishes</h3><p>Selections can influence the final look and the work needed during construction.</p></article>
+        </div>
+        <a class="inline-cta" href="tel:+15084749407">Call to Discuss Your Project ↗</a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="remodel-title">
+      <div class="container">
+        <div class="section-head"><div><p class="section-label">Home Remodeling</p><h2 id="remodel-title">Make the space work better for the way you use it</h2></div><p class="lead">Maybe the kitchen layout no longer works for your household. A bathroom may need a full update. An unfinished basement may have room for a completely different use.<br><br>The scope starts with what needs to change.</p></div>
+        <div class="remodel-layout">
+          <figure class="remodel-image"><picture><source type="image/avif" srcset="assets/kitchen-remodel-480.avif 480w, assets/kitchen-remodel-800.avif 800w, assets/kitchen-remodel-1200.avif 1200w, assets/kitchen-remodel-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/kitchen-remodel-1448.webp" width="1456" height="1092" loading="lazy" alt="Residential kitchen remodeling work underway" srcset="assets/kitchen-remodel-480.webp 480w, assets/kitchen-remodel-800.webp 800w, assets/kitchen-remodel-1200.webp 1200w, assets/kitchen-remodel-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture></figure>
+          <div class="remodel-list">
+            <article class="remodel-row"><h3>Kitchen Remodeling</h3><p>Update a layout that no longer works, replace worn finishes, or rework the space around how the kitchen is actually used.</p></article>
+            <article class="remodel-row"><h3>Bathroom Remodeling</h3><p>Update fixtures, surfaces, storage, or layout based on what the room needs.</p></article>
+            <article class="remodel-row"><h3>Basement Remodeling</h3><p>Finish an underused basement and turn it into a more functional part of the home.</p></article>
+            <article class="remodel-row"><h3>Larger Home Remodels</h3><p>Renovate multiple areas as part of a broader residential project.</p></article>
+            <a class="inline-cta" href="tel:+15084749407">Call About Your Remodel ↗</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section dark-panel" aria-labelledby="build-title">
+      <div class="container">
+        <div class="section-head"><div><p class="section-label">Building From the Ground Up</p><h2 id="build-title">A new home comes together one stage at a time</h2></div><p class="lead">As construction moves forward, each stage sets up the work that follows.</p></div>
+        <div class="stage-grid">
+          <article class="stage"><div><span class="step-number">01</span><h3>Structure</h3></div><p>The early stages establish the structure of the home and the basis for the work ahead.</p></article>
+          <article class="stage"><div><span class="step-number">02</span><h3>Interior Work</h3></div><p>As the build progresses, the interior spaces begin to take shape.</p></article>
+          <article class="stage"><div><span class="step-number">03</span><h3>Surfaces &amp; Finishes</h3></div><p>Materials and finishes bring the rooms closer to the look and function planned for the home.</p></article>
+          <article class="stage"><div><span class="step-number">04</span><h3>Final Details</h3></div><p>The remaining work is completed as the project reaches its final stage.</p></article>
+        </div>
+        <a class="inline-cta" href="tel:+15084749407">Talk to Us About Your Home Project ↗</a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="steps-title">
+      <div class="container">
+        <div class="section-head"><div><p class="section-label">First Steps</p><h2 id="steps-title">Start by telling us about the project</h2></div><div class="button-row"><a class="button" href="tel:+15084749407">Call (508) 474-9407</a><a class="button button--outline" href="mailto:contact@spaceupconstruction.com">Email Us</a></div></div>
+        <div class="steps contact-steps">
+          <article class="step"><span class="step-number">01</span><h3>Call or Email</h3><p>Let us know whether you’re planning a new home or remodeling an existing one.</p></article>
+          <article class="step"><span class="step-number">02</span><h3>Tell Us What You’re Planning</h3><p>Share what you want to build or change and where the project stands today.</p></article>
+          <article class="step"><span class="step-number">03</span><h3>Review the Scope</h3><p>The property and the work being considered help determine what the project may require.</p></article>
+          <article class="step"><span class="step-number">04</span><h3>Discuss the Next Steps</h3><p>Once the scope is clearer, we can talk through what comes next.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section proof-band" id="projects" aria-labelledby="projects-title">
+      <div class="container">
+        <div class="section-head"><div><p class="section-label">Projects</p><h2 id="projects-title">See the work behind our residential projects</h2></div><p class="lead">From the earliest construction stage to the final result, each phase moves the home forward.</p></div>
+        <div class="gallery">
+          <figure><picture><source type="image/avif" srcset="assets/home-under-construction-480.avif 480w, assets/home-under-construction-800.avif 800w, assets/home-under-construction-1200.avif 1200w, assets/home-under-construction-1600.avif 1600w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/home-under-construction-1600.webp" width="1672" height="941" loading="lazy" alt="New home exterior under construction" srcset="assets/home-under-construction-480.webp 480w, assets/home-under-construction-800.webp 800w, assets/home-under-construction-1200.webp 1200w, assets/home-under-construction-1600.webp 1600w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture><figcaption>New Home Construction · Progress</figcaption></figure>
+          <figure><picture><source type="image/avif" srcset="assets/kitchen-remodel-480.avif 480w, assets/kitchen-remodel-800.avif 800w, assets/kitchen-remodel-1200.avif 1200w, assets/kitchen-remodel-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/kitchen-remodel-1448.webp" width="1456" height="1092" loading="lazy" alt="Kitchen remodel in progress" srcset="assets/kitchen-remodel-480.webp 480w, assets/kitchen-remodel-800.webp 800w, assets/kitchen-remodel-1200.webp 1200w, assets/kitchen-remodel-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture><figcaption>Home Remodeling · Work in Progress</figcaption></figure>
+          <figure><picture><source type="image/avif" srcset="assets/interior-framing-480.avif 480w, assets/interior-framing-800.avif 800w, assets/interior-framing-1200.avif 1200w, assets/interior-framing-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/interior-framing-1448.webp" width="1456" height="1092" loading="lazy" alt="Interior framing inside a new home" srcset="assets/interior-framing-480.webp 480w, assets/interior-framing-800.webp 800w, assets/interior-framing-1200.webp 1200w, assets/interior-framing-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture><figcaption>Interior Construction · Structure</figcaption></figure>
+          <figure><picture><source type="image/avif" srcset="assets/home-under-construction-480.avif 480w, assets/home-under-construction-800.avif 800w, assets/home-under-construction-1200.avif 1200w, assets/home-under-construction-1600.avif 1600w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/home-under-construction-1600.webp" width="1672" height="941" loading="lazy" alt="New home construction progress" srcset="assets/home-under-construction-480.webp 480w, assets/home-under-construction-800.webp 800w, assets/home-under-construction-1200.webp 1200w, assets/home-under-construction-1600.webp 1600w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture><figcaption>Construction · Progress · Finished Home</figcaption></figure>
+          <figure><picture><source type="image/avif" srcset="assets/kitchen-remodel-480.avif 480w, assets/kitchen-remodel-800.avif 800w, assets/kitchen-remodel-1200.avif 1200w, assets/kitchen-remodel-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/kitchen-remodel-1448.webp" width="1456" height="1092" loading="lazy" alt="Residential remodel under construction" srcset="assets/kitchen-remodel-480.webp 480w, assets/kitchen-remodel-800.webp 800w, assets/kitchen-remodel-1200.webp 1200w, assets/kitchen-remodel-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture><figcaption>Existing Space · Construction · Final Result</figcaption></figure>
+          <figure><picture><source type="image/avif" srcset="assets/interior-framing-480.avif 480w, assets/interior-framing-800.avif 800w, assets/interior-framing-1200.avif 1200w, assets/interior-framing-1448.avif 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px"><img src="assets/interior-framing-1448.webp" width="1456" height="1092" loading="lazy" alt="New home interior framing detail" srcset="assets/interior-framing-480.webp 480w, assets/interior-framing-800.webp 800w, assets/interior-framing-1200.webp 1200w, assets/interior-framing-1448.webp 1448w" sizes="(max-width: 680px) calc(100vw - 36px), (max-width: 980px) 75vw, 800px" decoding="async"></picture><figcaption>New Home · Interior Work</figcaption></figure>
+        </div>
+        <a class="inline-cta" href="tel:+15084749407">Talk About Your Project ↗</a>
+      </div>
+    </section>
+
+    <section class="section" id="faq" aria-labelledby="faq-title">
+      <div class="container faq-layout">
+        <div><p class="section-label">Common Questions</p><h2 id="faq-title">Before starting a residential project</h2><a class="inline-cta" href="tel:+15084749407">Call Space Up ↗</a></div>
+        <div class="faq-list">
+          <details name="faq" open><summary>Do you work on both new construction and remodeling?</summary><p>Yes. Space Up works on new home construction and residential remodeling projects.</p></details>
+          <details name="faq"><summary>Can I reach out if I’m still planning the project?</summary><p>Yes. Call or email us and tell us what you’re considering and where the project currently stands.</p></details>
+          <details name="faq"><summary>Can a remodel include more than one area of the home?</summary><p>Yes. A project may focus on one room or include several areas of the home, depending on the scope.</p></details>
+          <details name="faq"><summary>What can affect the project timeline?</summary><p>The size of the project, scope of work, existing conditions, material selections, and required stages can all affect timing.</p></details>
+          <details name="faq"><summary>What should I have ready when I call?</summary><p>Start with the type of property, whether you’re building or remodeling, and a general idea of what you want to do.</p></details>
+          <details name="faq"><summary>How do I get started?</summary><p>Call <a href="tel:+15084749407"><strong>(508) 474-9407</strong></a> or email <a href="mailto:contact@spaceupconstruction.com"><strong>contact@spaceupconstruction.com</strong></a>.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-panel" aria-labelledby="final-title">
+      <div class="container">
+        <p class="section-label">Tell Us About Your Project</p>
+        <h2 id="final-title">Planning a new home or a remodel?</h2>
+        <p class="lead">Call or email Space Up Construction and tell us what you have in mind.</p>
+        <div class="button-row"><a class="button" href="tel:+15084749407">Call (508) 474-9407</a><a class="button button--outline" href="mailto:contact@spaceupconstruction.com">Email Us</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div><img class="footer-logo" src="assets/space-up-logo-240.avif" srcset="assets/space-up-logo-160.avif 160w, assets/space-up-logo-240.avif 240w, assets/space-up-logo.avif 412w" sizes="(max-width: 680px) 150px, 210px" width="412" height="130" alt="Space Up Construction" loading="lazy" decoding="async"></div>
+        <div class="footer-block"><h3>Contact</h3><a href="tel:+15084749407">(508) 474-9407</a><a href="mailto:contact@spaceupconstruction.com">contact@spaceupconstruction.com</a></div>
+        <div class="footer-block"><h3>Address</h3><p>841 Worcester St, Suite 327</p><p>Natick, MA 01760</p></div>
+      </div>
+      <nav class="footer-services" aria-label="Our services"><a href="../garage-remodeling/">Garage Remodeling</a><a href="../plumbing/">Plumbing</a><a href="../epoxy-flooring/">Epoxy Flooring</a><a href="../home-construction/">Home Construction &amp; Remodeling</a><a href="../siding-finishing/">Siding Installation &amp; Replacement</a></nav>
+      <div class="footer-bottom"><span>© 2026 Space Up Construction</span><span class="developer-credit">Developed by <a href="https://3ads.com.br/">3ADS</a></span><a href="#top">Back to top ↑</a></div>
+    </div>
+  </footer>
+
+  <a class="mobile-call" href="tel:+15084749407" aria-label="Call Now · (508) 474-9407 — Space Up Construction">Call Now · (508) 474-9407</a>
+</body>
+</html>

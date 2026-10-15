@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 170 190" width="170" height="190">
+  <defs><linearGradient id="m" x1="0" x2="1"><stop offset="0" stop-color="#8E9AA6"/><stop offset=".45" stop-color="#E9EEF3"/><stop offset="1" stop-color="#7C8896"/></linearGradient></defs>
+  <ellipse cx="85" cy="178" rx="66" ry="9" fill="#000F6B" opacity=".16"/>
+  <!-- eixo -->
+  <rect x="77" y="8" width="16" height="64" rx="3" fill="#C4CCD4"/>
+  <g stroke="#9AA6B2" stroke-width="1.4"><line x1="77" y1="16" x2="93" y2="16"/><line x1="77" y1="22" x2="93" y2="22"/><line x1="77" y1="28" x2="93" y2="28"/><line x1="77" y1="34" x2="93" y2="34"/></g>
+  <!-- flange -->
+  <ellipse cx="85" cy="92" rx="72" ry="16" fill="#AEB8C2"/>
+  <ellipse cx="85" cy="86" rx="72" ry="16" fill="#E3E8ED" stroke="#9AA6B2"/>
+  <circle cx="26" cy="86" r="4" fill="#7C8896"/><circle cx="144" cy="86" r="4" fill="#7C8896"/>
+  <!-- corpo -->
+  <path d="M40 90 V150 C40 170 130 170 130 150 V90 Z" fill="url(#m)"/>
+  <ellipse cx="85" cy="72" rx="20" ry="6" fill="#0064FF"/>
+  <path d="M65 72 V86 C65 92 105 92 105 86 V72" fill="#0064FF"/>
+  <rect x="112" y="118" width="28" height="12" rx="3" fill="#2C3B4A"/>
+</svg>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script>
+  
+  
+  <!-- Google Tag Manager: keep the inline script and its CSP SHA-256 hash in sync. -->
+  <!-- rastreio removido pelo portal -->
+  <!-- End Google Tag Manager -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Space Up Construction in Natick, MA: epoxy flooring, home construction, remodeling, siding, garage remodeling and plumbing. Call (508) 474-9407 to discuss your project.">
+  <title>Construction &amp; Flooring Services in MA | Space Up</title>
+  <link rel="stylesheet" href="styles.css?v=b971d40eade5">
+  <meta name="theme-color" content="#0b1730">
+  
+  <link rel="canonical" href="https://services.spaceupconstruction.com/">
+  <link rel="describedby" href="/portal-lps/modelos/space-up/llms.txt" type="text/plain">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Space Up Construction">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Construction &amp; Flooring Services in MA | Space Up">
+  <meta property="og:description" content="Space Up Construction in Natick, MA: epoxy flooring, home construction, remodeling, siding, garage remodeling and plumbing. Call (508) 474-9407 to discuss your project.">
+  <meta property="og:url" content="https://services.spaceupconstruction.com/">
+  <meta property="og:image" content="https://services.spaceupconstruction.com/epoxy-flooring/assets/flake-epoxy-1200.webp">
+  <meta property="og:image:alt" content="Construction &amp; Flooring Services in Massachusetts">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Construction &amp; Flooring Services in MA | Space Up">
+  <meta name="twitter:description" content="Space Up Construction in Natick, MA: epoxy flooring, home construction, remodeling, siding, garage remodeling and plumbing. Call (508) 474-9407 to discuss your project.">
+  <meta name="twitter:image" content="https://services.spaceupconstruction.com/epoxy-flooring/assets/flake-epoxy-1200.webp">
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"GeneralContractor","@id":"https://services.spaceupconstruction.com/#business","name":"Space Up Construction","url":"https://services.spaceupconstruction.com/","telephone":"+1-508-474-9407","email":"contact@spaceupconstruction.com","logo":"https://services.spaceupconstruction.com/epoxy-flooring/assets/space-up-logo.avif","address":{"@type":"PostalAddress","streetAddress":"841 Worcester St, Suite 327","addressLocality":"Natick","addressRegion":"MA","postalCode":"01760","addressCountry":"US"},"areaServed":{"@type":"State","name":"Massachusetts"}},{"@type":"WebSite","@id":"https://services.spaceupconstruction.com/#website","url":"https://services.spaceupconstruction.com/","name":"Space Up Construction","inLanguage":"en-US","publisher":{"@id":"https://services.spaceupconstruction.com/#business"}},{"@type":"WebPage","@id":"https://services.spaceupconstruction.com/#webpage","url":"https://services.spaceupconstruction.com/","name":"Construction & Flooring Services in MA | Space Up","description":"Space Up Construction in Natick, MA: epoxy flooring, home construction, remodeling, siding and painting. Call (508) 474-9407 to discuss your project.","inLanguage":"en-US","isPartOf":{"@id":"https://services.spaceupconstruction.com/#website"},"about":{"@id":"https://services.spaceupconstruction.com/#business"}}]}</script>
+  <link rel="icon" href="/portal-lps/modelos/space-up/assets/favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/portal-lps/modelos/space-up/assets/apple-touch-icon.png">
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+  
+  <!-- End Google Tag Manager (noscript) -->
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main">
+    <img class="logo" src="epoxy-flooring/assets/space-up-logo-240.avif" srcset="epoxy-flooring/assets/space-up-logo-240.avif 240w, epoxy-flooring/assets/space-up-logo.avif 412w" sizes="190px" width="412" height="130" alt="Space Up Construction">
+    <p class="eyebrow">Space Up Construction</p>
+    <h1>Construction &amp; Flooring Services in Massachusetts</h1>
+    <p class="intro">Based in Natick, Massachusetts, Space Up Construction handles epoxy flooring, new home construction, remodeling, siding, garage remodeling, and residential plumbing. Contact us to discuss your property and project scope.</p>
+    <div class="links">
+      <a href="epoxy-flooring/"><span>01</span><strong>Epoxy Flooring</strong><small>Garages &amp; commercial spaces</small><b>Explore services ↗</b></a>
+      <a href="home-construction/"><span>02</span><strong>Home Construction</strong><small>New homes &amp; remodeling</small><b>Explore services ↗</b></a>
+      <a href="siding-finishing/"><span>03</span><strong>Siding</strong><small>Residential installation &amp; replacement</small><b>Explore siding services ↗</b></a>
+      <a href="garage-remodeling/"><span>04</span><strong>Garage Remodeling</strong><small>Floors, walls &amp; finishes</small><b>Explore garage services ↗</b></a>
+      <a href="plumbing/"><span>05</span><strong>Plumbing</strong><small>Repairs, leaks &amp; installations</small><b>Explore plumbing services ↗</b></a>
+    </div>
+    <div class="contact"><a href="tel:+15084749407">(508) 474-9407</a><a href="mailto:contact@spaceupconstruction.com">contact@spaceupconstruction.com</a></div>
+    <footer><p>841 Worcester St, Suite 327 · Natick, MA 01760</p><span>© 2026 Space Up Construction</span><span class="developer-credit">Developed by <a href="https://3ads.com.br/">3ADS</a></span></footer>
+  </main>
+</body>
+</html>

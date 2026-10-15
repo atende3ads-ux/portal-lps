@@ -1,0 +1,151 @@
+<!doctype html><html data-gtm="GTM-TFSKCFTX" lang="pt-BR"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' data: blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://fonts.googleapis.com https://fonts.gstatic.com https://*.lottiefiles.com https://lottie.host https://maps.googleapis.com https://maps.gstatic.com; form-action 'none'"><meta name="robots" content="noindex,nofollow"><script>/* Injetado no topo de cada LP copiada para o portal.
+   Bloqueia rastreamento (GTM, Pixel, GA, Clarity...), envio de formulários
+   e links de contato, para o modelo não sujar dados nem gerar lead para o cliente. */
+(function () {
+  var BLOQ = /googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|connect\.facebook\.net|facebook\.com\/tr|clarity\.ms|hotjar\.com|analytics\.tiktok\.com|snap\.licdn\.com|ads-twitter\.com|bat\.bing\.com|d335luupugsy2\.cloudfront\.net\/js\/loader-scripts|leadster|hs-scripts\.com|hs-analytics\.net|pinimg\.com\/ct|kwai|taboola|outbrain/i;
+  var CONTATO = /^(https?:)?\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|chat\.whatsapp\.com|m\.me|t\.me)\b|^(whatsapp|tel|mailto|sms):/i;
+  var noop = function () {};
+
+  var ultimo = 0;
+  function avisa(msg) {
+    var agora = Date.now();
+    if (agora - ultimo < 1200) return;
+    ultimo = agora;
+    try {
+      var host = document.createElement('div');
+      host.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;pointer-events:none';
+      var raiz = host.attachShadow ? host.attachShadow({ mode: 'closed' }) : host;
+      raiz.innerHTML = '<div style="font:500 14px/1.4 system-ui,-apple-system,sans-serif;color:#fff;background:#111;border:1px solid #333;padding:12px 18px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.35);white-space:nowrap">' + msg + '</div>';
+      (document.body || document.documentElement).appendChild(host);
+      setTimeout(function () { host.remove(); }, 2600);
+    } catch (e) {}
+    try { parent !== window && parent.postMessage({ portalLps: 'bloqueio', msg: msg }, '*'); } catch (e) {}
+  }
+
+  // Stubs: o código da página pode chamar fbq()/gtag() sem quebrar.
+  function stub() {
+    var f = function () { return f; };
+    return new Proxy(f, {
+      get: function (t, p) {
+        if (typeof p === 'symbol') return undefined;
+        return p === 'push' || p === 'callMethod' ? noop : (p === 'queue' ? [] : f);
+      },
+      apply: function () { return f; }
+    });
+  }
+  window.dataLayer = window.dataLayer || [];
+  ['fbq', '_fbq', 'ttq', 'clarity', 'hj', 'lintrk', 'uetq', 'twq', 'pintrk', 'kwaiq', 'RdIntegration'].forEach(function (n) {
+    try { window[n] = stub(); } catch (e) {}
+  });
+  window.gtag = noop;
+
+  // Scripts, iframes e imagens de rastreio não carregam.
+  function trava(proto, tag) {
+    var d = Object.getOwnPropertyDescriptor(proto, 'src');
+    if (!d || !d.set) return;
+    Object.defineProperty(proto, 'src', {
+      configurable: true, enumerable: true,
+      get: function () { return d.get.call(this); },
+      set: function (v) {
+        if (BLOQ.test(String(v))) { if (tag === 'SCRIPT') this.type = 'text/bloqueado'; return; }
+        d.set.call(this, v);
+      }
+    });
+  }
+  trava(HTMLScriptElement.prototype, 'SCRIPT');
+  trava(HTMLIFrameElement.prototype, 'IFRAME');
+  trava(HTMLImageElement.prototype, 'IMG');
+  var setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (n, v) {
+    if (/^(src|href)$/i.test(n) && /^(SCRIPT|IFRAME|IMG|LINK)$/.test(this.tagName) && BLOQ.test(String(v))) return;
+    return setAttr.apply(this, arguments);
+  };
+
+  // Rede: nada sai para rastreio, e nenhum POST/PUT sai da página.
+  function envio(url, metodo) {
+    return BLOQ.test(String(url)) || !/^(GET|HEAD)$/i.test(metodo || 'GET');
+  }
+  if (window.fetch) {
+    var f0 = window.fetch;
+    window.fetch = function (i, o) {
+      var url = (i && i.url) || String(i);
+      var m = (o && o.method) || (i && i.method) || 'GET';
+      if (envio(url, m)) {
+        if (!BLOQ.test(url)) avisa('Modelo de demonstração · envio desativado');
+        return Promise.reject(new TypeError('Bloqueado no portal de modelos'));
+      }
+      return f0.apply(this, arguments);
+    };
+  }
+  var xo = XMLHttpRequest.prototype.open, xs = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    this.__portalBloq = envio(u, m);
+    this.__portalRastreio = BLOQ.test(String(u));
+    return xo.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__portalBloq) {
+      if (!this.__portalRastreio) avisa('Modelo de demonstração · envio desativado');
+      var x = this;
+      setTimeout(function () { x.dispatchEvent(new Event('error')); x.dispatchEvent(new Event('loadend')); }, 0);
+      return;
+    }
+    return xs.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) navigator.sendBeacon = function () { return true; };
+  // Service worker de uma LP poderia ficar preso ao endereço do portal.
+  try {
+    if (navigator.serviceWorker) navigator.serviceWorker.register = function () { return Promise.reject(new Error('Desativado no portal')); };
+  } catch (e) {}
+
+  // Formulários: o envio não acontece, mas a interação até o botão funciona.
+  window.addEventListener('submit', function (e) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    avisa('Modelo de demonstração · formulário desativado');
+  }, true);
+  HTMLFormElement.prototype.submit = function () { avisa('Modelo de demonstração · formulário desativado'); };
+
+  // Links de contato (WhatsApp, telefone, e-mail) não abrem; externos vão para nova aba.
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a) return;
+    var h = a.getAttribute('href') || '';
+    if (CONTATO.test(h)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      avisa('Modelo de demonstração · link de contato desativado');
+    } else if (/^https?:/i.test(h) && a.host !== location.host) {
+      a.target = '_blank';
+      a.rel = 'noopener';
+    }
+  }, true);
+  var abre = window.open;
+  window.open = function (u) {
+    if (CONTATO.test(String(u || '')) || BLOQ.test(String(u || ''))) {
+      avisa('Modelo de demonstração · link de contato desativado');
+      return null;
+    }
+    return abre.apply(window, arguments);
+  };
+})();
+</script><meta content="width=device-width,initial-scale=1" name="viewport"><!-- rastreio removido pelo portal --><title>Licenciamento ambiental com agilidade e transparência | Elementar</title><meta content="Conheça o processo de licenciamento ambiental da Elementar, com equipe especializada, transparência e suporte contínuo." name="description"><link href="https://elementarla.com.br/licenciamento-ambiental-wp/" rel="canonical"><meta content="website" property="og:type"><meta content="pt_BR" property="og:locale"><meta content="Licenciamento ambiental com agilidade e transparência | Elementar" property="og:title"><meta content="Conheça o processo de licenciamento ambiental da Elementar, com equipe especializada e suporte contínuo." property="og:description"><meta content="https://elementarla.com.br/licenciamento-ambiental-wp/" property="og:url"><meta content="https://elementarla.com.br/assets/images/equipe-licenciamento.webp" property="og:image"><meta content="summary_large_image" name="twitter:card"><link href="../assets/images/favicon-elementar.svg" rel="icon" type="image/svg+xml"><link href="../assets/fonts/montserrat-latin.woff2" rel="preload" as="font" crossorigin type="font/woff2"><link href="../assets/images/equipe-licenciamento.webp" rel="preload" as="image"><link href="../assets/css/style.css?v=20260928-2" rel="stylesheet"><link href="../assets/css/tintim-button.css?v=20260928" rel="stylesheet"><script type="application/ld+json">{
+        "@context": "https://schema.org",
+        "@type": "Service",
+        "name": "Licenciamento ambiental",
+        "description": "Licenciamento ambiental com atendimento especializado, transparência e suporte contínuo.",
+        "provider": {
+          "@type": "ProfessionalService",
+          "name": "Elementar Soluções Ambientais",
+          "url": "https://elementarla.com.br/",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Rua 03, número 800, Edifício Office Tower, salas 104/105",
+            "addressLocality": "Goiânia",
+            "addressRegion": "GO",
+            "postalCode": "74115-050",
+            "addressCountry": "BR"
+          }
+        },
+        "url": "https://elementarla.com.br/licenciamento-ambiental-wp/"
+      }</script></head><body><script>!function(t,a){if(!t.tt){t.tt=t.tt||{};var e=a.getElementsByTagName("head")[0],c=a.createElement("script");c.async=1,c.src="https://s.tintim.app/static/core/tintim-1.0.js",e.appendChild(c)}t.tt.accountCode="a0baf5ef-be3a-4a68-a04f-abd4ca4504fe"}(window,document)</script><a class="tintim-whatsapp-float" href="https://spar.3ads.com.br/l/atendimento-elementar-ywjd" target="_blank" rel="noopener noreferrer" aria-label="Falar com a Elementar pelo WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#fff" width="32" height="32" aria-hidden="true" focusable="false"><path d="M7.25361 18.4944L7.97834 18.917C9.18909 19.623 10.5651 20 12.001 20C16.4193 20 20.001 16.4183 20.001 12C20.001 7.58172 16.4193 4 12.001 4C7.5827 4 4.00098 7.58172 4.00098 12C4.00098 13.4363 4.37821 14.8128 5.08466 16.0238L5.50704 16.7478L4.85355 19.1494L7.25361 18.4944ZM2.00516 22L3.35712 17.0315C2.49494 15.5536 2.00098 13.8345 2.00098 12C2.00098 6.47715 6.47813 2 12.001 2C17.5238 2 22.001 6.47715 22.001 12C22.001 17.5228 17.5238 22 12.001 22C10.1671 22 8.44851 21.5064 6.97086 20.6447L2.00516 22ZM8.39232 7.30833C8.5262 7.29892 8.66053 7.29748 8.79459 7.30402C8.84875 7.30758 8.90265 7.31384 8.95659 7.32007C9.11585 7.33846 9.29098 7.43545 9.34986 7.56894C9.64818 8.24536 9.93764 8.92565 10.2182 9.60963C10.2801 9.76062 10.2428 9.95633 10.125 10.1457C10.0652 10.2428 9.97128 10.379 9.86248 10.5183C9.74939 10.663 9.50599 10.9291 9.50599 10.9291C9.50599 10.9291 9.40738 11.0473 9.44455 11.1944C9.45903 11.25 9.50521 11.331 9.54708 11.3991C9.57027 11.4368 9.5918 11.4705 9.60577 11.4938C9.86169 11.9211 10.2057 12.3543 10.6259 12.7616C10.7463 12.8783 10.8631 12.9974 10.9887 13.108C11.457 13.5209 11.9868 13.8583 12.559 14.1082L12.5641 14.1105C12.6486 14.1469 12.692 14.1668 12.8157 14.2193C12.8781 14.2457 12.9419 14.2685 13.0074 14.2858C13.0311 14.292 13.0554 14.2955 13.0798 14.2972C13.2415 14.3069 13.335 14.2032 13.3749 14.1555C14.0984 13.279 14.1646 13.2218 14.1696 13.2222V13.2238C14.2647 13.1236 14.4142 13.0888 14.5476 13.097C14.6085 13.1007 14.6691 13.1124 14.7245 13.1377C15.2563 13.3803 16.1258 13.7587 16.1258 13.7587L16.7073 14.0201C16.8047 14.0671 16.8936 14.1778 16.8979 14.2854C16.9005 14.3523 16.9077 14.4603 16.8838 14.6579C16.8525 14.9166 16.7738 15.2281 16.6956 15.3913C16.6406 15.5058 16.5694 15.6074 16.4866 15.6934C16.3743 15.81 16.2909 15.8808 16.1559 15.9814C16.0737 16.0426 16.0311 16.0714 16.0311 16.0714C15.8922 16.159 15.8139 16.2028 15.6484 16.2909C15.391 16.428 15.1066 16.5068 14.8153 16.5218C14.6296 16.5313 14.4444 16.5447 14.2589 16.5347C14.2507 16.5342 13.6907 16.4482 13.6907 16.4482C12.2688 16.0742 10.9538 15.3736 9.85034 14.402C9.62473 14.2034 9.4155 13.9885 9.20194 13.7759C8.31288 12.8908 7.63982 11.9364 7.23169 11.0336C7.03043 10.5884 6.90299 10.1116 6.90098 9.62098C6.89729 9.01405 7.09599 8.4232 7.46569 7.94186C7.53857 7.84697 7.60774 7.74855 7.72709 7.63586C7.85348 7.51651 7.93392 7.45244 8.02057 7.40811C8.13607 7.34902 8.26293 7.31742 8.39232 7.30833Z"/></svg> </a><a href="#conteudo" class="skip-link">Ir para o conteúdo</a><main id="conteudo"><section class="hero hero--white"><div class="container hero__grid"><div class="hero__copy"><img alt="Elementar Soluções Ambientais" src="../assets/images/logo-elementar.svg" height="512" width="2081" class="hero__logo"><h1>Obtenha seu Licenciamento Ambiental com a Elementar</h1><p class="hero__lead">Conte com acompanhamento técnico em cada etapa do processo de licenciamento ambiental, com informações claras sobre documentos, escopo e próximos passos.</p><a href="https://spar.3ads.com.br/l/atendimento-elementar-ywjd" target="_blank" class="button" rel="noopener noreferrer"><img alt="" src="../assets/images/whatsapp.svg" height="24" width="24" class="wa-icon" aria-hidden="true">Fale com nosso time</a></div><img alt="Equipe da Elementar em atividade técnica" src="../assets/images/equipe-licenciamento.webp" height="495" width="500" class="hero__image"></div></section><section class="section section--green"><div class="container split"><div class="reveal split__copy"><span class="eyebrow">Soluções ambientais</span><h2>Transformamos seu negócio em um exemplo de sustentabilidade!</h2><p>Na Elementar, ajudamos sua empresa a se manter em conformidade com as leis e regulamentações ambientais, minimizando os impactos ambientais e reduzindo os riscos de multas e penalidades.</p></div><div class="reveal split__copy"><h2>Agilidade e transparência</h2><p>Nosso compromisso é oferecer acompanhamento técnico transparente, com escopo, documentos e etapas explicados desde o início.</p><ul class="check-list"><li>Planejamento e acompanhamento do licenciamento</li><li>Informações claras durante o processo</li><li>Atendimento especializado e suporte contínuo</li></ul><a href="https://spar.3ads.com.br/l/atendimento-elementar-ywjd" target="_blank" class="button" rel="noopener noreferrer"><img alt="" src="../assets/images/whatsapp.svg" height="24" width="24" class="wa-icon" aria-hidden="true">Fale com nosso time</a></div></div></section><section class="section"><div class="container"><div class="reveal section-title"><span class="eyebrow">Empresas atendidas</span><h2>Nossos clientes</h2><p>Já ajudamos diversas empresas a obterem suas licenças ambientais com eficiência e transparência. Conheça alguns dos clientes que confiam no nosso trabalho:</p></div><div class="client-strip" aria-label="Logotipos de clientes" role="group"><div class="client-track"><img alt="Cliente da Elementar" src="../assets/images/cliente-10.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-21.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-9.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-7.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-6.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-5.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-8.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-22.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-13.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-14.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-12.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-11.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-15.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-25.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-24.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-16.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-17.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-23.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-26.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-18.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-9-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-13-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-15-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-8-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-10-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-11-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-12-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-14-1.webp" loading="lazy" height="150" width="150"><img alt="Cliente da Elementar" src="../assets/images/cliente-Group-16-1.webp" loading="lazy" height="150" width="150"></div></div></div></section><section class="section section--soft"><div class="container"><div class="reveal section-title"><span class="eyebrow">Depoimentos</span><h2>O que eles dizem:</h2></div><div class="testimonial-grid"><article class="reveal testimonial"><h3>Estevão Ramalho</h3><p>Gostaríamos de parabenizar a Elementar pela excepcional dedicação em prestar serviços de alta qualidade, com um rigoroso controle das informações do IBAMA e da PF… continuem com o excelente trabalho!</p></article><article class="reveal testimonial"><h3>Renato Akira Honma</h3><p>A Elementar foi uma das melhores consultorias que contratamos na área ambiental. Sempre proativas e dando o melhor apoio à unidade da Sakura de Ouvidor-GO. Recomendo esta empresa sempre que me perguntam.</p></article><article class="reveal testimonial"><h3>Rodrigo Silva</h3><p>Desde o primeiro contato sempre fui bem atendido pela Giovanna e equipe. Assertiva e pronta para atender todas as nossas necessidades e sanar quaisquer dúvidas no decorrer dos processos!</p></article><article class="reveal testimonial"><h3>Fernando Carvalho</h3><p>Ótimo atendimento e serviço de qualidade. Passei pelo meu processo de licenciamento sem pendências com a ajuda da Elementar.</p></article></div></div></section><section class="section"><div class="container"><div class="reveal section-title"><span class="eyebrow">Experiência e segurança</span><h2>Por que escolher a Elementar?</h2></div><div class="benefit-grid"><article class="reveal benefit-card"><img alt="Ícone de experiência" src="../assets/images/beneficio-1.webp" loading="lazy" height="99" width="99"><h3>Experiência em consultoria ambiental</h3><p>Atendimento técnico para empresas de diferentes portes e segmentos.</p></article><article class="reveal benefit-card"><img alt="Ícone de processo" src="../assets/images/beneficio-2.webp" loading="lazy" height="99" width="100"><h3>Experiência em processos ambientais</h3><p>Orientamos a preparação e o acompanhamento de processos perante os órgãos competentes.</p></article><article class="reveal benefit-card"><img alt="Ícone de equipe" src="../assets/images/beneficio-3.webp" loading="lazy" height="99" width="100"><h3>Equipe experiente e capacitada</h3><p>Temos uma equipe de engenheiros e técnicos experientes em licenciamento ambiental.</p></article><article class="reveal benefit-card"><img alt="Ícone de sustentabilidade" src="../assets/images/beneficio-4.webp" loading="lazy" height="99" width="100"><h3>Compromisso com a sustentabilidade</h3><p>Buscamos sempre soluções eficientes e sustentáveis para nossos clientes.</p></article><article class="reveal benefit-card"><img alt="Ícone de transparência" src="../assets/images/beneficio-5.webp" loading="lazy" height="99" width="100"><h3>Transparência e seriedade</h3><p>Explicamos o escopo técnico e as etapas aplicáveis a cada projeto.</p></article></div></div></section><section class="section section--green"><div class="container"><div class="reveal section-title"><span class="eyebrow">Passo a passo</span><h2>Nosso processo</h2><p>Saiba como funciona o passo a passo do nosso processo de licenciamento ambiental:</p></div><div class="process-grid"><article class="reveal process-card"><img alt="Análise inicial do projeto" src="../assets/images/processo-1.webp" loading="lazy"><div class="process-card__body"><h3>Análise inicial</h3><p>Avaliação detalhada da sua necessidade ambiental.</p></div></article><article class="reveal process-card"><img alt="Organização de documentos" src="../assets/images/processo-2.webp" loading="lazy"><div class="process-card__body"><h3>Documentação</h3><p>Coletamos e organizamos todos os documentos necessários.</p></div></article><article class="reveal process-card"><img alt="Aprovação do processo" src="../assets/images/processo-3.webp" loading="lazy"><div class="process-card__body"><h3>Aprovação</h3><p>Encaminhamento do processo aos órgãos ambientais competentes.</p></div></article><article class="reveal process-card"><img alt="Entrega da licença" src="../assets/images/processo-4.webp" loading="lazy"><div class="process-card__body"><h3>Entrega da licença</h3><p>Finalização e suporte contínuo para sua empresa.</p></div></article></div></div></section><section class="section section--soft"><div class="container split"><div class="reveal split__copy"><span class="eyebrow">Regularização</span><h2>Por que fazer o seu Estudo Ambiental?</h2><p>Saiba que empresas que não estão em conformidade com as leis e regulamentações ambientais podem enfrentar multas e penalidades, além de danos à reputação e à imagem da empresa.</p><p>Ou seja, a falta de licenças ambientais pode impedir o crescimento e desenvolvimento do seu negócio.</p></div><div class="reveal image-row"><img alt="Estudo ambiental em campo" src="../assets/images/estudo-ambiental-1.webp" loading="lazy" height="370" width="368"><img alt="Equipe técnica ambiental" src="../assets/images/estudo-ambiental-2.webp" loading="lazy" height="370" width="368"><img alt="Análise ambiental" src="../assets/images/estudo-ambiental-3.webp" loading="lazy" height="370" width="368"></div></div></section><section class="section"><div class="container"><div class="reveal section-title"><span class="eyebrow">Nossa estrutura</span><h2>Nossa equipe em ação</h2><p>Trabalhamos com um time altamente capacitado e comprometido com a sustentabilidade e a regularização ambiental.</p></div><div class="reveal gallery"><img alt="Equipe Elementar em atividade" src="../assets/images/equipe-1.webp" loading="lazy"><img alt="Equipe Elementar em ação" src="../assets/images/equipe-2.webp" loading="lazy"><img alt="Trabalho técnico da Elementar" src="../assets/images/equipe-3.webp" loading="lazy"><img alt="Atividade de campo da Elementar" src="../assets/images/equipe-4.webp" loading="lazy"><img alt="Equipe da Elementar" src="../assets/images/equipe-5.webp" loading="lazy"></div></div></section><section class="section section--soft"><div class="container split split--reverse"><img alt="Licenciamento ambiental com a Elementar" src="../assets/images/licenciamento-ambiental.webp" loading="lazy" height="531" width="530" class="reveal feature-image"><div class="reveal split__copy"><span class="eyebrow">Conformidade ambiental</span><h2>Por que fazer o seu Licenciamento Ambiental?</h2><p>Você sabia que o licenciamento ambiental é fundamental para garantir a conformidade da sua empresa com as leis ambientais?</p><p>Com a Elementar, você tem consultoria personalizada para apoiar a adequação ambiental e reduzir riscos operacionais e regulatórios.</p><p>Nossa equipe orienta o processo técnico; a emissão de licenças e os prazos dependem dos órgãos públicos responsáveis.</p></div></div></section><section class="cta-band"><div class="reveal container"><h2>Ficou na dúvida?</h2><p>Fale com nossa equipe agora mesmo!</p><a href="https://spar.3ads.com.br/l/atendimento-elementar-ywjd" target="_blank" class="button" rel="noopener noreferrer"><img alt="" src="../assets/images/whatsapp.svg" height="24" width="24" class="wa-icon" aria-hidden="true">Fale com nosso time</a></div></section><section class="section"><div class="container"><div class="reveal disclosure"><strong>Informação importante:</strong> a Elementar é uma consultoria ambiental privada e independente, sem vínculo com SEMAD, IBAMA, Polícia Federal ou qualquer órgão público. Prazos, licenças e aprovações dependem da análise das autoridades competentes e não são garantidos. O contato inicial por formulário ou WhatsApp é gratuito e não cria obrigação de contratação.</div></div></section></main><footer class="footer"><div class="container"><div class="footer__grid"><img alt="Elementar Soluções Ambientais" src="../assets/images/logo-elementar.svg" loading="lazy" height="512" width="2081" class="footer__logo"><address><strong>Endereço:</strong><br>Rua 03, número 800, Edifício Office Tower, salas 104/105<br>CEP 74115-050, Setor Oeste, Goiânia, Goiás</address></div><nav aria-label="Informações legais" class="footer__links"><a href="../politica-de-privacidade.html">Privacidade</a><a href="../termos-de-uso.html">Termos de uso</a><a href="../acessibilidade.html">Acessibilidade</a><button type="button" class="link-button" data-consent-manage>Preferências de privacidade</button></nav><div class="footer__bottom">2026 © Elementar Soluções Ambientais | Todos os direitos reservados | Desenvolvido por <a href="https://3ads.com.br/" rel="noopener">3ADS</a></div></div></footer><div class="consent-banner" aria-label="Preferências de privacidade" role="dialog" data-consent-banner hidden><p><strong>Privacidade:</strong> usamos armazenamento essencial e mantemos Google Tag Manager e Microsoft Clarity sob consentimento. Com sua permissão, ativamos medição e publicidade. <a href="../politica-de-privacidade.html">Saiba mais</a>.</p><div class="consent-actions"><button type="button" data-consent-reject>Recusar opcionais</button><button type="button" class="consent-accept" data-consent-accept>Aceitar opcionais</button></div></div><script defer="defer" src="../assets/js/app.js?v=20261015-1"></script></body></html>

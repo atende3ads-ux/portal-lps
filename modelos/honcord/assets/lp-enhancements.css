@@ -1,0 +1,60 @@
+/* Mobile-first refinements shared by the three Honcord landing pages. */
+:root{color-scheme:light;--hc-content:1160px;--hc-gutter:clamp(18px,5vw,56px)}
+html{overflow-x:hidden;-webkit-text-size-adjust:100%}
+body{min-width:280px;overflow-x:hidden;font-family:"Avenir Next",Avenir,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{width:100%;max-width:var(--hc-content)}
+.hdr-in{gap:10px}
+.hdr-in>a:first-child img{width:clamp(96px,28vw,124px);height:auto}
+.hdr-cta{min-height:44px;max-width:176px;padding:8px 10px;font-size:12px;line-height:1.25;text-align:center}
+.hdr-nav{display:none}
+.hero-media,.hero-veil{display:none}
+.hero-in{min-height:auto}
+.hero-txt{width:100%}
+.btn{width:100%;min-height:48px;text-align:center}
+.split,.sec-head{grid-template-columns:minmax(0,1fr)!important}
+.grid-4{grid-template-columns:minmax(0,1fr)!important}
+.grid[style*="grid-template-columns"]{grid-template-columns:minmax(0,1fr)!important}
+section{content-visibility:auto;contain-intrinsic-size:auto 720px}
+.hero,.hero-band,.hdr{content-visibility:visible;contain-intrinsic-size:none}
+img{height:auto}
+a,button,summary,input,select{touch-action:manipulation}
+footer a{color:rgba(255,255,255,.78);text-decoration:underline;text-underline-offset:3px}
+footer a:hover{color:#fff}
+.micro{color:#6E6764!important}
+footer .foot-in p:last-child{color:rgba(255,255,255,.68)!important}
+
+html.js .fade-scroll{opacity:0;transform:translate3d(0,18px,0);transition:opacity .58s cubic-bezier(.2,.8,.2,1),transform .58s cubic-bezier(.2,.8,.2,1)}
+html.js .fade-scroll.is-visible{opacity:1;transform:none}
+@media(min-width:561px){
+  .grid-4{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .grid[style*="grid-template-columns"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(min-width:641px){
+  .btn{width:auto}
+  .hdr-cta{max-width:none;padding:9px 16px;font-size:13.5px;white-space:nowrap}
+}
+@media(min-width:768px){
+  .split,.sec-head{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(min-width:900px){
+  .hdr-nav{display:flex}
+  .hero-media,.hero-veil{display:block}
+  .hero-in{min-height:clamp(420px,52vh,560px)}
+}
+@media(min-width:1024px){
+  .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .grid[style*="grid-template-columns"]{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important}
+}
+@media(min-width:1600px){
+  :root{--hc-content:1360px}
+  .hero-txt{max-width:660px}
+}
+@media(min-width:2200px){
+  :root{--hc-content:1540px}
+  body{font-size:17px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html.js .fade-scroll{opacity:1;transform:none}
+}
+@media(prefers-reduced-data:reduce){.hero-media{display:none!important}.hero-veil{display:none!important}}
