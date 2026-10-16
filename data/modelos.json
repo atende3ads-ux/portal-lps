@@ -119,29 +119,6 @@
       "thumbAltura": 2659
     },
     {
-      "slug": "opimed-beneficios",
-      "nome": "Opimed Benefícios",
-      "repo": "atende3ads-ux/opimed-beneficios-prototipo",
-      "nicho": "saude",
-      "tipo": "interativa",
-      "prototipo": true,
-      "descricao": "Protótipo de diagnóstico em etapas para o programa de benefícios da Opimed.",
-      "paginas": [
-        {
-          "nome": "Diagnóstico",
-          "caminho": "index.html"
-        }
-      ],
-      "tags": [],
-      "atualizado": "2026-09-17",
-      "urlOriginal": "https://atende3ads-ux.github.io/opimed-beneficios-prototipo/",
-      "tamanhoMB": 0,
-      "arquivos": 1,
-      "thumb": "thumbs/opimed-beneficios.webp",
-      "thumbMobile": "thumbs/opimed-beneficios-m.webp",
-      "thumbAltura": 636
-    },
-    {
       "slug": "audius",
       "nome": "Audius",
       "repo": "atendimento3ads/audius-landing",
@@ -1078,33 +1055,6 @@
       "thumb": "thumbs/mais-mendes.webp",
       "thumbMobile": "thumbs/mais-mendes-m.webp",
       "thumbAltura": 3074
-    },
-    {
-      "slug": "decora-doces",
-      "nome": "Decora Doces",
-      "repo": "atendimento3ads/lp-decora-doces",
-      "nicho": "industria",
-      "tipo": "captura",
-      "descricao": "Forminhas de luxo para doces: LP de captação de revendedores e versão para eventos.",
-      "paginas": [
-        {
-          "nome": "Revendedores",
-          "caminho": "index.html"
-        },
-        {
-          "nome": "Eventos",
-          "caminho": "v2/index.html"
-        }
-      ],
-      "tags": [],
-      "prototipo": false,
-      "atualizado": "2026-08-31",
-      "urlOriginal": "https://atendimento3ads.github.io/lp-decora-doces/",
-      "tamanhoMB": 1.7,
-      "arquivos": 30,
-      "thumb": "thumbs/decora-doces.webp",
-      "thumbMobile": "thumbs/decora-doces-m.webp",
-      "thumbAltura": 3600
     },
     {
       "slug": "barretos",

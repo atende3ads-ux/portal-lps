@@ -85,21 +85,6 @@
       ]
     },
     {
-      "slug": "opimed-beneficios",
-      "nome": "Opimed Benefícios",
-      "repo": "atende3ads-ux/opimed-beneficios-prototipo",
-      "nicho": "saude",
-      "tipo": "interativa",
-      "prototipo": true,
-      "descricao": "Protótipo de diagnóstico em etapas para o programa de benefícios da Opimed.",
-      "paginas": [
-        {
-          "nome": "Diagnóstico",
-          "caminho": "index.html"
-        }
-      ]
-    },
-    {
       "slug": "audius",
       "nome": "Audius",
       "repo": "atendimento3ads/audius-landing",
@@ -772,24 +757,6 @@
         {
           "nome": "Produto",
           "caminho": "produto.html"
-        }
-      ]
-    },
-    {
-      "slug": "decora-doces",
-      "nome": "Decora Doces",
-      "repo": "atendimento3ads/lp-decora-doces",
-      "nicho": "industria",
-      "tipo": "captura",
-      "descricao": "Forminhas de luxo para doces: LP de captação de revendedores e versão para eventos.",
-      "paginas": [
-        {
-          "nome": "Revendedores",
-          "caminho": "index.html"
-        },
-        {
-          "nome": "Eventos",
-          "caminho": "v2/index.html"
         }
       ]
     },
