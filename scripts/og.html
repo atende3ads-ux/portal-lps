@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <!-- Arte da prévia de link (1200×630). Gerada por scripts/gerar-og.mjs → assets/og.jpg -->
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    body { width: 1200px; height: 630px; overflow: hidden; background: #07131a; }
+    .og { position: relative; width: 1200px; height: 630px; overflow: hidden; color: #fff; font-family: 'Geist', system-ui, sans-serif; -webkit-font-smoothing: antialiased; isolation: isolate; background: #07131a; }
+    .mosaico { position: absolute; top: -170px; right: -110px; width: 860px; height: 1050px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; transform: rotate(-7deg); z-index: -2; }
+    .coluna { display: flex; flex-direction: column; gap: 16px; }
+    .coluna img { width: 100%; aspect-ratio: 390 / 844; object-fit: cover; object-position: top; border-radius: 14px; background: #0d1d24; box-shadow: 0 0 0 1px #ffffff1a; }
+    .shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(4,12,15,.96) 0%, rgba(4,12,15,.88) 44%, rgba(4,12,15,.4) 70%, rgba(4,12,15,.18) 100%), linear-gradient(0deg, rgba(4,12,15,.8), transparent 52%); }
+    .marca { position: absolute; top: 54px; left: 64px; display: flex; align-items: center; gap: 16px; }
+    .marca .logo { width: 128px; height: auto; }
+    .marca .logo path { stroke: none; }
+    .marca i { width: 1px; height: 26px; background: #fff; opacity: .3; }
+    .marca span { font-size: 16px; font-weight: 500; letter-spacing: -.01em; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #a8dded; flex: none; }
+    .copia { position: absolute; left: 64px; bottom: 112px; width: 760px; }
+    .eyebrow { font-size: 13px; font-weight: 500; letter-spacing: .09em; text-transform: uppercase; color: #ffffffd9; margin-bottom: 22px; }
+    h1 { font-size: 68px; font-weight: 400; line-height: 1.02; letter-spacing: -.056em; }
+    h1 span { color: #b5e7f6; }
+    .desc { margin-top: 22px; font-size: 19px; line-height: 1.5; color: #ffffffe0; max-width: 640px; }
+    .rodape { position: absolute; left: 64px; bottom: 50px; font-size: 13px; color: #ffffffa8; }
+    .card { position: absolute; right: 64px; bottom: 50px; width: 236px; padding: 26px 24px 0; border: 1px solid #fff3; border-radius: 14px; background: #ffffff14; backdrop-filter: blur(18px); }
+    .card b { display: block; font-size: 80px; font-weight: 300; letter-spacing: -.07em; line-height: 1; }
+    .card p { margin-top: 18px; font-size: 20px; line-height: 1.3; letter-spacing: -.02em; }
+    .card small { display: flex; align-items: center; gap: 8px; margin-top: 24px; padding-block: 16px; border-top: 1px solid #fff3; font-size: 12px; color: #ffffffbf; }
+    .card small .dot { width: 6px; height: 6px; }
+  </style>
+</head>
+<body>
+  <div class="og" id="og">
+    <div class="mosaico" id="mosaico"></div>
+    <div class="shade"></div>
+    <div class="marca"><svg class="logo" viewBox="0 0 238 78" fill="none" aria-hidden="true"><path d="M208.159 7.90671C215.239 7.42122 224.417 8.57153 231.094 10.968C232.105 12.9731 232.019 18.3341 231.869 20.7298C229.551 20.5001 227.697 19.4598 225.356 18.8757C218.164 17.0685 211.104 16.5218 203.804 18.0447C198.186 18.9291 197.759 22.9627 203.977 23.5439C208.509 23.9675 212.837 24.1707 217.4 24.7539C224.011 25.5985 234.189 25.3312 236.465 33.4175C237.035 36.0184 237.006 39.8382 235.515 42.1184C230.922 49.141 221.827 49.7852 214.366 50.0528C202.512 50.4782 194.108 47.707 184.063 41.6684C182.579 42.3872 181.943 43.2215 180.662 44.0531C173.355 48.801 163.656 48.4891 155.381 48.4944L140.211 48.4972L130.596 48.5046C128.6 48.5075 126.261 48.5682 124.298 48.4121C123.12 47.1939 122.471 45.6328 121.618 44.1703C117.995 37.9526 114.525 31.6515 110.921 25.4386C110.264 24.3048 109.255 21.6755 108.037 21.2661C107.773 21.3271 107.458 21.3849 107.317 21.6501C106.577 23.0444 105.789 24.4333 105.004 25.8021L96.2073 41.2055C95.0566 43.2019 93.2944 47.0191 91.6608 48.3848C88.8743 48.6845 82.8528 48.4691 79.7793 48.5049C80.1183 47.619 80.7845 46.5641 81.2762 45.727C86.7945 35.7431 92.9242 25.9428 98.4362 15.9247C99.3927 14.1863 101.059 10.1685 102.644 9.10809C105.881 8.88205 110.398 9.02725 113.757 9.02666C114.878 10.0626 116.851 14.1477 117.764 15.7625L128.689 35.013L131.842 40.6033C132.177 41.1993 133.623 44.0233 134.15 44.0995C134.273 43.485 134.162 42.7862 134.089 42.1625C133.884 40.4062 133.896 38.6792 133.905 36.9112C133.953 28.2888 133.862 19.6589 133.937 11.0388C133.941 10.4949 134.123 9.716 134.456 9.2867C135.623 8.85345 144.117 9.01791 145.849 9.03192C152.609 9.19681 159.569 8.71351 166.309 9.2829C172.881 9.83785 179.787 11.5818 184.249 16.7067C187.021 19.8964 188.519 23.9976 188.455 28.224C188.436 30.0258 188.179 31.85 188.058 33.6612C188.792 33.9599 189.741 34.5684 190.47 34.9673C191.912 35.7616 193.378 36.5119 194.865 37.2172C202.244 40.676 210.044 41.6528 218.116 40.8009C219.902 40.6124 226.754 39.6122 226.001 36.6532C225.218 33.5731 218.643 33.98 216.047 33.5315C207.592 32.0706 190.753 34.0273 188.858 22.5571C188.404 19.7985 189.56 16.4479 191.302 14.326C195.322 9.43379 202.299 8.72825 208.159 7.90671ZM144.028 40.1228C148.669 40.0618 153.311 40.0433 157.954 40.0675C163.819 40.0691 170.124 40.4622 175.091 36.7136C177.24 34.5474 178.713 32.1882 178.576 29.0133C178.069 17.3034 165.411 17.3978 156.751 17.6095C152.777 17.7067 147.998 17.2576 144.234 17.6854C143.774 18.2713 143.954 29.0114 143.949 30.736C143.943 33.4397 143.881 37.4359 144.028 40.1228Z" fill="currentColor"/>
+<path d="M50.1799 20.7006C56.5497 22.3659 63.5455 28.184 66.887 33.9011C70.7448 40.5099 71.7771 48.3946 69.7511 55.774C67.8087 63.1024 62.299 69.2147 55.8562 72.9363C48.7087 77.1087 40.1997 78.2807 32.1904 76.1958C21.3026 73.2607 12.5543 64.9899 10.0928 54.2224C10.0124 53.8709 9.98553 53.3345 9.90234 53.0712L9.96198 52.6745C10.5592 53.0307 17.6258 52.8049 18.9109 52.8271C22.2611 62.2857 29.7356 68.1318 39.8847 68.3701C57.708 68.7883 69.2264 47.9807 56.045 34.3984C50.8332 29.028 45.6704 27.8697 38.4941 27.7475C41.183 25.7296 47.0796 22.3643 50.1799 20.7006Z" fill="currentColor"/>
+<path d="M23.0335 0.0633376C23.9792 0.169569 26.107 0.0846433 27.1853 0.0839137L36.021 0.0828917L60.3345 0.0788059C63.447 0.0769089 66.8089 -0.0393916 69.8665 0.0140161C69.9913 2.14843 70.0356 6.29906 69.82 8.57107C69.7978 8.80542 69.2921 8.94945 69.0062 9.07188C67.7178 8.70693 51.2745 8.75902 50.4554 9.20584C49.6181 8.7936 26.1359 9.15257 22.8759 8.98257C22.6374 7.03232 22.757 1.96602 23.0335 0.0633376Z" fill="currentColor"/>
+<path d="M50.4559 9.20583C51.2751 8.75901 67.7184 8.70692 69.0068 9.07187C67.1131 10.7437 64.2413 12.0617 62.0946 13.4628C59.6261 15.0744 57.2413 16.5872 54.6944 18.0601C53.9151 18.5109 50.5811 20.3215 50.1805 20.7006C47.0801 22.3643 41.1835 25.7295 38.4946 27.7475C35.0492 29.2612 30.7619 32.5632 27.2146 34.1245C26.8565 32.2688 26.8856 24.2588 27.1128 22.2218C31.5413 19.6948 36.2657 17.2972 40.6193 14.7055C43.9624 12.7154 47.0073 11.0166 50.4559 9.20583Z" fill="#7BBDF3"/>
+<path d="M0.0594405 53.031C0.0344165 51.7245 -0.188479 45.4876 0.429999 44.7183C0.701396 44.3807 1.10236 44.2409 1.51872 44.1819C2.68443 44.0172 4.02099 44.2353 5.20926 44.2318C6.80712 44.2272 8.39648 44.0582 9.98461 43.8979C10.0831 46.4453 10.1405 50.1497 9.9632 52.6745L9.90357 53.0712C7.25742 53.1821 2.68997 53.1636 0.0594405 53.031Z" fill="#7BBDF3"/></svg><i></i><span>Biblioteca de LPs</span></div>
+    <div class="copia">
+      <p class="eyebrow">3ADS · Biblioteca interna de LPs</p>
+      <h1>Tudo o que já entregamos,<br><span>num lugar só.</span></h1>
+      <p class="desc">Encontre uma referência do nicho e veja no desktop e no celular.</p>
+    </div>
+    <p class="rodape" id="nichos"></p>
+    <div class="card">
+      <b id="num">00</b>
+      <p>modelos prontos para consulta.</p>
+      <small><span class="dot"></span><span id="foot"></span></small>
+    </div>
+  </div>
+  <script>
+    // Telas mais coloridas primeiro; o resto do acervo completa as colunas.
+    const DESTAQUE = ['opimed-black', 'red-flamboyant', 'barretos', 'paula-cardoso-essence', 'mundo-animal', 'audius',
+      'iceo', 'honcord', 'autorio-feirao', 'decora-doces', 'fr-incorporadora', 'full-body', 'kingdom-play',
+      'hunters-motos', 'scooter-goiania', 'cinthya-lobo', 'savana', 'space-up', 'imperio-piscinas', 'biz-center'];
+    const DESLOCA = [-40, -190, -10, -150, -70];
+    fetch('../data/modelos.json').then((r) => r.json()).then(async (d) => {
+      const paginas = d.modelos.reduce((s, m) => s + m.paginas.length, 0);
+      document.getElementById('num').textContent = String(d.modelos.length).padStart(2, '0');
+      document.getElementById('foot').textContent = `${paginas} páginas · ${Object.keys(d.nichos).length} nichos`;
+      document.getElementById('nichos').textContent = Object.values(d.nichos).map((n) => n.split(' ')[0]).join(' · ');
+      const slugs = [...DESTAQUE, ...d.modelos.map((m) => m.slug).filter((s) => !DESTAQUE.includes(s))]
+        .filter((s) => d.modelos.some((m) => m.slug === s && m.thumbMobile));
+      const cols = Array.from({ length: 5 }, (_, c) => {
+        const col = document.createElement('div');
+        col.className = 'coluna';
+        col.style.transform = `translateY(${DESLOCA[c]}px)`;
+        slugs.filter((_, i) => i % 5 === c).slice(0, 4).forEach((s) => {
+          const img = new Image();
+          img.src = `../thumbs/${s}-m.webp`;
+          col.append(img);
+        });
+        return col;
+      });
+      document.getElementById('mosaico').append(...cols);
+      await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
+      await document.fonts.ready;
+      document.body.dataset.pronto = '1';
+    });
+  </script>
+</body>
+</html>

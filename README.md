@@ -57,6 +57,8 @@ scripts/             importar, capturar e servir localmente
 
 Para atualizar todos os modelos com a versão mais nova dos repos: `npm run importar -- --atualizar` e depois `npm run capturar`.
 
+A imagem que aparece ao compartilhar o link (`assets/og.jpg`, 1200×630) sai de `scripts/og.html`. Para gerar de novo com a contagem atualizada: `node scripts/gerar-og.mjs`.
+
 ## Requisitos
 
 Node 20+, Google Chrome instalado, `cwebp` (`brew install webp`) e `npm install` uma vez (instala o `playwright-core`, que usa o Chrome da máquina).
