@@ -230,10 +230,8 @@
         ['Páginas', String(m.paginas.length)],
         ['Atualizado', data(m.atualizado)],
         ['Peso', m.tamanhoMB != null ? `${m.tamanhoMB.toLocaleString('pt-BR')} MB` : '—'],
-        ['Conta', m.repo.split('/')[0]],
       ];
       $('#v-dados').replaceChildren(...dados.flatMap(([k, v]) => [el('dt', {}, k), el('dd', {}, v)]));
-      $('#v-clone').textContent = `gh repo clone ${m.repo}`;
     }
     $('#v-paginas').replaceChildren(...m.paginas.map((pg, i) => el('button', {
       type: 'button', role: 'tab', 'aria-selected': String(i === p),
@@ -243,7 +241,7 @@
     $('#v-lista').replaceChildren(...m.paginas.map((pg, i) => el('li', {}, el('button', {
       type: 'button', 'aria-current': String(i === p), onclick: () => irPara(m.slug, i),
     }, el('span', {}, num(i)), pg.nome))));
-    const links = [el('a', { href: `https://github.com/${m.repo}`, target: '_blank', rel: 'noopener' }, 'Repositório no GitHub', seta())];
+    const links = [];
     const pub = urlPublicada(m, p);
     if (pub) links.push(el('a', { href: pub, target: '_blank', rel: 'noopener' }, 'Página publicada', seta()));
     $('#v-links').replaceChildren(...links);
@@ -308,14 +306,6 @@
     requestAnimationFrame(ajustar);
   }
 
-  function avisar(msg) {
-    const a = $('#aviso');
-    a.textContent = msg;
-    a.hidden = false;
-    clearTimeout(avisar.t);
-    avisar.t = setTimeout(() => { a.hidden = true; }, 1800);
-  }
-
   // ---------- eventos ----------
   function ligar() {
     const busca = $('#busca');
@@ -346,10 +336,6 @@
     for (const b of V.raiz.querySelectorAll('button[data-disp]')) {
       b.addEventListener('click', () => V.modelo && irPara(V.modelo.slug, V.pagina, b.dataset.disp));
     }
-    $('#v-copiar-clone').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText($('#v-clone').textContent); avisar('Comando copiado'); }
-      catch (e) { avisar('Não foi possível copiar'); }
-    });
     V.frame.addEventListener('load', () => V.palco.classList.remove('carregando'));
 
     const topo = $('#topo');
