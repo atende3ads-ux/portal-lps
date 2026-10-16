@@ -320,29 +320,6 @@
       "thumbAltura": 3600
     },
     {
-      "slug": "ryokan",
-      "nome": "Ryokan Flamboyant",
-      "repo": "atendimento3ads/ryokan-flamboyant-sousa-andrade",
-      "nicho": "imoveis",
-      "tipo": "captura",
-      "descricao": "Apartamentos ao lado do Shopping Flamboyant, com vídeo no topo da página.",
-      "paginas": [
-        {
-          "nome": "Principal",
-          "caminho": "index.html"
-        }
-      ],
-      "tags": [],
-      "prototipo": false,
-      "atualizado": "2026-10-14",
-      "urlOriginal": null,
-      "tamanhoMB": 27.6,
-      "arquivos": 63,
-      "thumb": "thumbs/ryokan.webp",
-      "thumbMobile": "thumbs/ryokan-m.webp",
-      "thumbAltura": 3600
-    },
-    {
       "slug": "space-up",
       "nome": "Space Up Construction",
       "repo": "atendimento3ads/space-up-landing-pages",
