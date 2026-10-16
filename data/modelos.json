@@ -1000,7 +1000,7 @@
       "arquivos": 58,
       "thumb": "thumbs/mundial.webp",
       "thumbMobile": "thumbs/mundial-m.webp",
-      "thumbAltura": 2713
+      "thumbAltura": 2647
     },
     {
       "slug": "mais-mendes",
@@ -1062,22 +1062,10 @@
       "repo": "atende3ads-ux/red-flamboyant",
       "nicho": "lazer",
       "tipo": "campanha",
-      "descricao": "Programa de experiências de shopping, com quatro versões de layout.",
+      "descricao": "Programa de experiências de shopping, na versão aprovada pelo cliente (V4).",
       "paginas": [
         {
-          "nome": "Versão atual",
-          "caminho": "index.html"
-        },
-        {
-          "nome": "Versão 2",
-          "caminho": "v2/index.html"
-        },
-        {
-          "nome": "Versão 3",
-          "caminho": "v3/index.html"
-        },
-        {
-          "nome": "Versão 4",
+          "nome": "Versão aprovada (V4)",
           "caminho": "v4/index.html"
         }
       ],
@@ -1085,8 +1073,8 @@
       "prototipo": false,
       "atualizado": "2026-09-30",
       "urlOriginal": "https://atende3ads-ux.github.io/red-flamboyant/",
-      "tamanhoMB": 22.6,
-      "arquivos": 74,
+      "tamanhoMB": 11.9,
+      "arquivos": 36,
       "thumb": "thumbs/red-flamboyant.webp",
       "thumbMobile": "thumbs/red-flamboyant-m.webp",
       "thumbAltura": 3600

@@ -766,22 +766,10 @@
       "repo": "atende3ads-ux/red-flamboyant",
       "nicho": "lazer",
       "tipo": "campanha",
-      "descricao": "Programa de experiências de shopping, com quatro versões de layout.",
+      "descricao": "Programa de experiências de shopping, na versão aprovada pelo cliente (V4).",
       "paginas": [
         {
-          "nome": "Versão atual",
-          "caminho": "index.html"
-        },
-        {
-          "nome": "Versão 2",
-          "caminho": "v2/index.html"
-        },
-        {
-          "nome": "Versão 3",
-          "caminho": "v3/index.html"
-        },
-        {
-          "nome": "Versão 4",
+          "nome": "Versão aprovada (V4)",
           "caminho": "v4/index.html"
         }
       ]

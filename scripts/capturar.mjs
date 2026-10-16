@@ -35,9 +35,13 @@ async function limparTela(page) {
       const caixa = b.closest('[class*=cookie i],[id*=cookie i],[class*=consent i],[id*=consent i],[class*=lgpd i],[id*=lgpd i],[class*=privac i],[id*=privac i]');
       if (caixa && aceitar.test(t)) b.click();
     }
-    for (const el of document.querySelectorAll('[class*=cookie i],[id*=cookie i],[class*=consent i],[id*=consent i],[class*=lgpd i],[id*=lgpd i]')) {
+    // Banner fixo que fala de cookies/privacidade e tem botão: some da captura, seja qual for o nome da classe.
+    for (const el of document.body.querySelectorAll('*')) {
       const cs = getComputedStyle(el);
-      if (cs.position === 'fixed' || cs.position === 'sticky') el.style.setProperty('display', 'none', 'important');
+      if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+      if (/cookie|privacidade|privacy|lgpd|consentimento/i.test(el.textContent || '') && el.querySelector('button, [role=button]')) {
+        el.style.setProperty('display', 'none', 'important');
+      }
     }
   }).catch(() => {});
 }
@@ -48,8 +52,12 @@ async function limparTela(page) {
 async function revelar(page) {
   await page.evaluate(() => {
     const css = document.createElement('style');
-    css.textContent = '*,*::before,*::after{transition:none!important;animation-play-state:paused!important;content-visibility:visible!important}';
+    css.textContent = '*,*::before,*::after{transition:none!important;animation-duration:0s!important;animation-delay:0s!important;content-visibility:visible!important}';
     document.head.append(css);
+    // Animações de entrada que reiniciam ao voltar ao topo vão direto para o estado final.
+    for (const a of document.getAnimations()) {
+      try { a.finish(); } catch (e) {}
+    }
     for (const e of document.body.querySelectorAll('*')) {
       const cs = getComputedStyle(e);
       if (cs.position === 'fixed' || cs.position === 'absolute') continue;

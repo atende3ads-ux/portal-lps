@@ -19,15 +19,17 @@ export const CELULAR = { viewport: { width: 390, height: 844 }, deviceScaleFacto
 export async function rolar(page, { passo = 500, pausa = 140, limite = 40000 } = {}) {
   await page.evaluate(async ({ passo, pausa, limite }) => {
     const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+    // Rolagem instantânea: com scroll-behavior: smooth, a volta ao topo ainda estaria no meio na hora da foto.
+    const ir = (top) => window.scrollTo({ top, behavior: 'instant' });
     let y = 0;
     while (y < Math.min(document.documentElement.scrollHeight, limite)) {
-      window.scrollTo(0, y);
+      ir(y);
       await espera(pausa);
       y += passo;
     }
-    window.scrollTo(0, document.documentElement.scrollHeight);
+    ir(document.documentElement.scrollHeight);
     await espera(400);
-    window.scrollTo(0, 0);
+    ir(0);
     await espera(300);
   }, { passo, pausa, limite }).catch(() => {});
   await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => {});
