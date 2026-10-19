@@ -306,6 +306,29 @@
     requestAnimationFrame(ajustar);
   }
 
+  // Link do portal já aberto neste modelo, nesta página e neste dispositivo (sem os filtros da galeria).
+  async function copiarLink() {
+    if (!V.modelo) return;
+    const link = location.origin + location.pathname + location.hash;
+    try {
+      await navigator.clipboard.writeText(link);
+    } catch (e) {
+      const t = el('textarea', { style: 'position:fixed;opacity:0' }, link);
+      document.body.append(t);
+      t.select();
+      document.execCommand('copy');
+      t.remove();
+    }
+    const b = $('#v-copiar');
+    b.classList.add('copiado');
+    $('#v-copiar-status').textContent = 'Link da referência copiado';
+    clearTimeout(copiarLink.t);
+    copiarLink.t = setTimeout(() => {
+      b.classList.remove('copiado');
+      $('#v-copiar-status').textContent = '';
+    }, 2000);
+  }
+
   // ---------- eventos ----------
   function ligar() {
     const busca = $('#busca');
@@ -333,6 +356,7 @@
     $('#v-ant').addEventListener('click', () => vizinho(-1));
     $('#v-prox').addEventListener('click', () => vizinho(1));
     $('#v-info-btn').addEventListener('click', () => mostrarInfo(V.info.hidden));
+    $('#v-copiar').addEventListener('click', copiarLink);
     for (const b of V.raiz.querySelectorAll('button[data-disp]')) {
       b.addEventListener('click', () => V.modelo && irPara(V.modelo.slug, V.pagina, b.dataset.disp));
     }
@@ -357,6 +381,7 @@
         else if (e.key === '2') irPara(V.modelo.slug, V.pagina, 'tablet');
         else if (e.key === '3') irPara(V.modelo.slug, V.pagina, 'celular');
         else if (e.key === 'i') mostrarInfo(V.info.hidden);
+        else if (e.key === 'c') copiarLink();
         return;
       }
       if (e.key === '/' && !digitando) { e.preventDefault(); busca.focus(); busca.select(); }
