@@ -1,0 +1,5 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://biblioteca.3ads.com.br%{REQUEST_URI} [R=301,L]
+</IfModule>
