@@ -900,7 +900,56 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 }
 
 /* ============================================================
-   09 — CTA final + Unidade
+   09 — Formulário de contato
+   ============================================================ */
+.lead-form{padding:var(--sp-9) 0;background:var(--coral-50);scroll-margin-top:110px}
+.lead-form__grid{display:grid;gap:var(--sp-7);align-items:center}
+.lead-form__title{
+  max-width:15ch;margin:0 0 var(--sp-5);
+  font-size:clamp(2.5rem, 4.27vw, 5.125rem);font-weight:400;
+  line-height:1.08;letter-spacing:-.02em;font-variation-settings:"opsz" 96;
+}
+.lead-form__sub{max-width:42ch;margin:0;color:var(--neutral-600);font-size:var(--fs-body-lg);line-height:1.5}
+.lead-form__card{
+  padding:clamp(24px, 3vw, 48px);background:#fff;
+  border:1px solid var(--coral-100);border-radius:var(--r-2xl);
+  box-shadow:var(--sh-md);
+}
+.lead-form__card-title{margin:0 0 var(--sp-3);font-size:1.75rem;font-weight:600;line-height:1.2}
+.lead-form__card-sub{margin:0 0 var(--sp-6);color:var(--neutral-600);line-height:1.5}
+.lead-form__fields{display:grid;gap:var(--sp-5)}
+.lead-form__field{display:grid;gap:var(--sp-2)}
+.lead-form__label{font-size:15px;font-weight:700;line-height:1.3}
+.lead-form__input{
+  width:100%;min-height:56px;padding:14px 16px;
+  border:1.5px solid var(--neutral-200);border-radius:var(--r-md);
+  background:#fff;color:var(--neutral-900);font:inherit;font-size:1rem;
+}
+.lead-form__input::placeholder{color:var(--neutral-400)}
+.lead-form__input:focus-visible{outline:3px solid var(--green-400);outline-offset:2px;border-color:var(--green-700)}
+.lead-form__input[aria-invalid="true"]{border-color:var(--coral-600)}
+.lead-form__hint{margin:0;color:var(--neutral-500);font-size:13px;line-height:1.4}
+.lead-form__error{margin:0;color:var(--coral-700);font-size:14px;line-height:1.4}
+.lead-form__choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-3)}
+.lead-form__choice{
+  display:flex;align-items:center;gap:var(--sp-3);min-height:56px;padding:12px 16px;
+  border:1.5px solid var(--neutral-200);border-radius:var(--r-md);
+  font-weight:600;cursor:pointer;
+}
+.lead-form__choice:focus-within{outline:3px solid var(--green-400);outline-offset:2px}
+.lead-form__choice input{width:20px;height:20px;margin:0;accent-color:var(--coral-500);cursor:pointer}
+.lead-form__legend{margin-bottom:var(--sp-2);font-size:15px;font-weight:700;line-height:1.3}
+.lead-form__fieldset{margin:0;padding:0;border:0;min-width:0}
+.lead-form__submit{margin-top:var(--sp-6);width:100%;justify-content:center;white-space:normal;text-align:center}
+.lead-form__submit:disabled{background:var(--neutral-200);color:var(--neutral-700);box-shadow:none;cursor:not-allowed;transform:none}
+.lead-form__state{margin:var(--sp-4) 0 0;color:var(--neutral-600);font-size:14px;line-height:1.45}
+@media (min-width:1050px){
+  .lead-form{padding:var(--sp-10) 0}
+  .lead-form__grid{grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);gap:var(--sp-9)}
+}
+
+/* ============================================================
+   10 — CTA final + Unidade
    ============================================================ */
 .cta-final{
   position:relative;overflow:hidden;
@@ -1205,7 +1254,7 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
       <a href="#como">Como funciona</a>
       <a href="#preco">Preço</a>
       <a href="#onde">Onde estamos</a>
-      <a href="#falar">Falar agora</a>
+      <a href="#formulario">Formulário</a>
       <a class="nav__wa" href="#falar">Falar no WhatsApp</a>
     </nav>
 
@@ -1658,7 +1707,50 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 </section>
 
 <!-- ============================================================
-     09 — CTA FINAL + UNIDADE
+     09 — FORMULÁRIO DE CONTATO
+     ============================================================ -->
+<section class="lead-form" id="formulario" aria-labelledby="formulario-titulo">
+  <div class="container lead-form__grid">
+    <div class="lead-form__content">
+      <p class="eyebrow-num">Contato</p>
+      <h2 class="lead-form__title" id="formulario-titulo">Quer conversar sobre sua audição?</h2>
+      <p class="lead-form__sub">Conte o que você procura. Nossa equipe pode ajudar a encontrar o próximo passo para você.</p>
+    </div>
+
+    <form class="lead-form__card" id="contatoForm" aria-describedby="formulario-status">
+      <h3 class="lead-form__card-title">Deixe seu contato</h3>
+      <p class="lead-form__card-sub">Preencha os campos abaixo para preparar sua solicitação. Todos são obrigatórios.</p>
+      <div class="lead-form__fields">
+        <div class="lead-form__field">
+          <label class="lead-form__label" for="contato-nome">Nome completo</label>
+          <input class="lead-form__input" id="contato-nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required />
+        </div>
+        <div class="lead-form__field">
+          <label class="lead-form__label" for="contato-instagram">Instagram</label>
+          <input class="lead-form__input" id="contato-instagram" name="instagram" type="text" autocomplete="off" placeholder="@seuusuario" pattern="@?[A-Za-z0-9._]{1,30}" title="Digite apenas o nome de usuário, com ou sem @." required />
+        </div>
+        <div class="lead-form__field">
+          <label class="lead-form__label" for="contato-telefone">Telefone / WhatsApp</label>
+          <input class="lead-form__input" id="contato-telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000" aria-describedby="contato-telefone-dica contato-telefone-erro" required />
+          <p class="lead-form__hint" id="contato-telefone-dica">Informe DDD e número brasileiro.</p>
+          <p class="lead-form__error" id="contato-telefone-erro" hidden></p>
+        </div>
+        <fieldset class="lead-form__fieldset">
+          <legend class="lead-form__legend">Você já usa aparelho?</legend>
+          <div class="lead-form__choices">
+            <label class="lead-form__choice"><input type="radio" name="usa_aparelho" value="sim" required /> Sim</label>
+            <label class="lead-form__choice"><input type="radio" name="usa_aparelho" value="nao" required /> Não</label>
+          </div>
+        </fieldset>
+      </div>
+      <button class="btn btn--primary lead-form__submit" type="button" disabled>Envio em configuração</button>
+      <p class="lead-form__state" id="formulario-status" role="status">Prévia do formulário: o envio será habilitado após a definição do canal de atendimento.</p>
+    </form>
+  </div>
+</section>
+
+<!-- ============================================================
+     10 — CTA FINAL + UNIDADE
      ============================================================ -->
 <section class="cta-final" id="falar">
   <div class="container cta-final__grid">
@@ -1727,6 +1819,49 @@ button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 </footer>
 
 <script>
+// A página ainda não possui destino de envio; impede submissão implícita pelo teclado.
+document.getElementById('contatoForm')?.addEventListener('submit',(event)=>event.preventDefault());
+
+// Máscara e validação de formato para números brasileiros com DDD.
+(()=>{
+  const input=document.getElementById('contato-telefone');
+  const error=document.getElementById('contato-telefone-erro');
+  if(!input||!error) return;
+  const ddds=new Set(('11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99').split(' '));
+  const digits=()=>input.value.replace(/\D/g,'');
+  const format=(value)=>{
+    let number=value.replace(/\D/g,'');
+    if(number.startsWith('55')&&number.length>11) number=number.slice(2);
+    number=number.slice(0,11);
+    if(number.length<=2) return number?`(${number}`:'';
+    const ddd=number.slice(0,2);
+    const local=number.slice(2);
+    const split=local.startsWith('9')?5:4;
+    return `(${ddd}) ${local.slice(0,split)}${local.length>split?'-'+local.slice(split):''}`;
+  };
+  const message=()=>{
+    const number=digits();
+    if(!number) return 'Informe seu telefone com DDD.';
+    if(!ddds.has(number.slice(0,2))) return 'Informe um DDD brasileiro válido.';
+    const local=number.slice(2);
+    if(number.length===11&&local.startsWith('9')&&!/^(\d)\1+$/.test(local)) return '';
+    if(number.length===10&&/^[2-5]/.test(local)&&!/^(\d)\1+$/.test(local)) return '';
+    return 'Informe um celular ou telefone fixo válido com DDD.';
+  };
+  const update=()=>{
+    const invalid=message();
+    input.setCustomValidity(input.value?invalid:'');
+    const show=!!input.dataset.touched&&!!invalid;
+    input.setAttribute('aria-invalid',String(show));
+    error.textContent=show?invalid:'';
+    error.hidden=!show;
+  };
+  input.addEventListener('input',()=>{input.value=format(input.value);update()});
+  input.addEventListener('change',()=>{input.value=format(input.value);update()});
+  input.addEventListener('blur',()=>{input.dataset.touched='true';update()});
+  update();
+})();
+
 // Header sombra ao rolar
 (()=>{
   const h=document.getElementById('header');
